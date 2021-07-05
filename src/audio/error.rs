@@ -8,7 +8,7 @@ pub enum AddAudioError {
     #[cfg(feature = "audio")]
     LockError(Lockable),
     #[cfg(feature = "audio")]
-    TetraError(deps::tetra::TetraError),
+    TetraError(tetra::TetraError),
 }
 
 #[derive(Debug)]
@@ -27,7 +27,7 @@ pub enum PlayAudioError {
     #[cfg(feature = "audio")]
     LockError(Lockable),
     #[cfg(feature = "audio")]
-    TetraError(deps::tetra::TetraError),
+    TetraError(tetra::TetraError),
 }
 
 impl Error for AddAudioError {}

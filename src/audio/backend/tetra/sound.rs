@@ -5,7 +5,7 @@ use parking_lot::{Mutex, const_mutex};
 
 use crate::audio::error::PlayAudioError;
 
-pub(crate) static SOUND_MAP: Mutex<Option<HashMap<Sound, deps::tetra::audio::Sound>>> = const_mutex(None);
+pub(crate) static SOUND_MAP: Mutex<Option<HashMap<Sound, tetra::audio::Sound>>> = const_mutex(None);
 
 pub fn play_sound(ctx: &Context, sound: &Sound) -> Result<(), PlayAudioError> {
     match SOUND_MAP.lock().as_mut() {

@@ -1,6 +1,5 @@
 pub const WIDTH: f32 = 240.0;
 pub const HEIGHT: f32 = 160.0;
-pub const TILE_SIZE: f32 = 16.0;
 
 mod timer;
 
