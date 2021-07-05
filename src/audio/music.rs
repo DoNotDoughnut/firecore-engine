@@ -1,4 +1,4 @@
-use deps::tetra::Context;
+use tetra::Context;
 use super::audio::serialized::SerializedMusicData;
 
 pub use super::audio::music::*;
@@ -8,6 +8,7 @@ use super::error::{AddAudioError, PlayAudioError};
 #[cfg(feature = "audio")]
 pub static MUSIC_ID_MAP: parking_lot::Mutex<Option<deps::hash::HashMap<MusicName, MusicId>>> = parking_lot::const_mutex(None);
 
+#[deprecated(note = "move to engine context")]
 pub fn add_music(music_data: SerializedMusicData) -> Result<(), AddAudioError> {
     #[cfg(feature = "audio")] {
         match MUSIC_ID_MAP.lock().as_mut() {

@@ -1,6 +1,6 @@
-use deps::tetra::audio::Sound;
+use tetra::audio::Sound;
 use crate::audio::serialized::{SerializedMusicData, SerializedSoundData};
-use deps::hash::HashMap;
+use hashbrown::HashMap;
 
 use crate::audio::error::AddAudioError;
 

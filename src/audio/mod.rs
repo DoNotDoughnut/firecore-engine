@@ -1,8 +1,6 @@
 extern crate firecore_audio as audio;
 
-#[cfg(feature = "play")]
-extern crate firecore_dependencies as deps;
-
+#[cfg(feature = "audio")]
 use error::AddAudioError;
 
 pub mod music;
@@ -15,7 +13,7 @@ pub use audio::serialized;
 
 #[cfg(feature = "audio")]
 pub fn create() -> Result<(), AddAudioError> {
-    *music::MUSIC_ID_MAP.lock() = Some(deps::hash::HashMap::new());
+    *music::MUSIC_ID_MAP.lock() = Some(Default::default());
     backend::context::create()
 }
 

@@ -272,12 +272,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "firecore-audio"
+version = "0.1.1"
+source = "git+https://github.com/DoNotDoughnut/firecore-audio#ee6529f18e35c9805f58a072da7e672742fc2b0b"
+dependencies = [
+ "firecore-dependencies",
+ "serde",
+]
+
+[[package]]
+name = "firecore-dependencies"
+version = "0.5.0-beta.2021-07-05"
+source = "git+https://github.com/DoNotDoughnut/firecore-dependencies#d198f00ae9d88f7186de7d619dfeed1ec2c077cf"
+dependencies = [
+ "tinystr",
+]
+
+[[package]]
 name = "firecore-engine"
 version = "0.1.0"
 dependencies = [
  "enum-map",
+ "firecore-audio",
  "firecore-font",
  "hashbrown",
+ "log",
+ "parking_lot",
  "serde",
  "tetra",
 ]
@@ -285,7 +305,7 @@ dependencies = [
 [[package]]
 name = "firecore-font"
 version = "0.5.0-2021-07-05"
-source = "git+https://github.com/DoNotDoughnut/firecore-font#9d0132ded31830c4ab0c22e5986294a3eebd9a5a"
+source = "git+https://github.com/DoNotDoughnut/firecore-font#50b02791d61daff006f06fe5df719c65d417462b"
 dependencies = [
  "serde",
 ]
@@ -365,6 +385,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "instant"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61124eeebbd69b8190558df225adf7e4caafce0d743919e5d6b19652314ec5ec"
+dependencies = [
+ "cfg-if 1.0.0",
+]
+
+[[package]]
 name = "js-sys"
 version = "0.3.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -410,6 +439,15 @@ checksum = "6f84d96438c15fcd6c3f244c8fce01d1e2b9c6b5623e9c711dc9286d8fc92d6a"
 dependencies = [
  "cfg-if 1.0.0",
  "winapi",
+]
+
+[[package]]
+name = "lock_api"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0382880606dff6d15c9476c416d18690b72742aa7b605bb6dd6ec9030fbf07eb"
+dependencies = [
+ "scopeguard",
 ]
 
 [[package]]
@@ -545,6 +583,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "692fcb63b64b1758029e0a96ee63e049ce8c5948587f2f7208df04625e5f6b56"
 
 [[package]]
+name = "parking_lot"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d7744ac029df22dca6284efe4e898991d28e3085c706c972bcd7da4a27a15eb"
+dependencies = [
+ "instant",
+ "lock_api",
+ "parking_lot_core",
+]
+
+[[package]]
+name = "parking_lot_core"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa7a782938e745763fe6907fc6ba86946d72f49fe7e21de074e08128a99fb018"
+dependencies = [
+ "cfg-if 1.0.0",
+ "instant",
+ "libc",
+ "redox_syscall",
+ "smallvec",
+ "winapi",
+]
+
+[[package]]
 name = "peeking_take_while"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -639,6 +702,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "scopeguard"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
+
+[[package]]
 name = "sdl2"
 version = "0.34.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -722,6 +791,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d61b40583e0c1bd3100652ba8940939decc8808e7b2a07f4f4606c6a8a40035a"
 
 [[package]]
+name = "smallvec"
+version = "1.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe0f37c9e8f3c5a4a66ad655a93c74daac4ad00c441533bf5c6e7990bb42604e"
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -792,6 +867,32 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "tinystr"
+version = "0.4.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4bbe33cb8f36dc886f2de095af6c7aefd2b36a4f084081885054ad964422b46f"
+dependencies = [
+ "serde",
+ "tinystr-macros",
+ "tinystr-raw",
+]
+
+[[package]]
+name = "tinystr-macros"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f65be51117c325c2b58eec529be7a0857d11527a9029973b58810a4c63e77a6"
+dependencies = [
+ "tinystr-raw",
+]
+
+[[package]]
+name = "tinystr-raw"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b975dd2af5824896acaeebf7336471fcafebfa417da0a290ded5509f297ccedb"
 
 [[package]]
 name = "tinyvec"

@@ -5,13 +5,16 @@ authors = ["Rhys Holloway <rhyswilliamholloway@gmail.com>"]
 edition = "2018"
 
 [features]
-audio = ["tetra/audio", "tetra/audio_vorbis"]
-static-link = ["tetra/sdl2_static_link"]
-bundled = ["tetra/sdl2_bundled"]
+default = []
+audio = ["tetra/audio", "tetra/audio_vorbis", "parking_lot"]
 
 [dependencies]
-tetra = { git="https://github.com/DoNotDoughnut/tetra", branch="main", default-features=false, features=["serde_support", "texture_png"] }
+tetra = { git="https://github.com/DoNotDoughnut/tetra", branch="main", default-features=false, features=["serde_support", "texture_png", "sdl2_static_link", "sdl2_bundled"] }
 firecore-font = { git="https://github.com/DoNotDoughnut/firecore-font" }
+firecore-audio = { git="https://github.com/DoNotDoughnut/firecore-audio" }
 enum-map = { version="1", features=["serde"] }
 serde = { version="1", features=["derive"] }
 hashbrown = "0.11"
+parking_lot = { version = "0.11", optional = true }
+
+log = "0.4" # remove, handle audio errors in trait

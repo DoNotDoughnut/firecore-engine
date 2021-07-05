@@ -1,5 +1,5 @@
-use deps::hash::HashMap;
-use deps::tetra::{Context, audio::{Sound, SoundInstance}};
+use hashbrown::HashMap;
+use tetra::{Context, audio::{Sound, SoundInstance}};
 use parking_lot::{Mutex, const_mutex};
 use crate::audio::music::{MusicId, MusicData};
 

@@ -1,4 +1,4 @@
-use deps::hash::HashMap;
+use hashbrown::HashMap;
 use crate::tetra::Context;
 use crate::audio::sound::Sound;
 use parking_lot::{Mutex, const_mutex};

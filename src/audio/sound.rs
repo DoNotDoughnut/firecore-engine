@@ -1,4 +1,4 @@
-use deps::tetra::Context;
+use tetra::Context;
 use super::audio::serialized::SerializedSoundData;
 use super::error::{AddAudioError, PlayAudioError};
 
