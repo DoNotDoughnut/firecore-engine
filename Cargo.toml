@@ -1,0 +1,17 @@
+[package]
+name = "firecore-engine"
+version = "0.1.0"
+authors = ["Rhys Holloway <rhyswilliamholloway@gmail.com>"]
+edition = "2018"
+
+[features]
+audio = ["tetra/audio", "tetra/audio_vorbis"]
+static-link = ["tetra/sdl2_static_link"]
+bundled = ["tetra/sdl2_bundled"]
+
+[dependencies]
+tetra = { git="https://github.com/DoNotDoughnut/tetra", branch="main", default-features=false, features=["serde_support", "texture_png"] }
+firecore-font = { git="https://github.com/DoNotDoughnut/firecore-font", features=["textures"] }
+enum-map = { version="1", features=["serde"] }
+serde = { version="1", features=["derive"] }
+hashbrown = "0.11"
