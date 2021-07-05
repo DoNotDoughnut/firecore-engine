@@ -34,8 +34,8 @@ impl TextRenderer {
     pub fn new(ctx: &mut Context) -> Result<TextRenderer> {
         Ok(TextRenderer {
             fonts: HashMap::new(),
-            button: Texture::from_file_data(ctx, firecore_font::BUTTON_TEXTURE)?,
-            cursor: Texture::from_file_data(ctx, firecore_font::CURSOR_TEXTURE)?,
+            button: Texture::from_file_data(ctx, include_bytes!("../../assets/button.png"))?,
+            cursor: Texture::from_file_data(ctx, include_bytes!("../../assets/cursor.png"))?,
         })
     }
 

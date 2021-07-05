@@ -62,8 +62,8 @@ static mut WHITE_TEXTURE: Option<Texture> = None;
 
 fn new_white_texture(ctx: &mut Context) {
     if unsafe { WHITE_TEXTURE.is_none() } {
-        // just a 1x1 white png lol
         unsafe {
+            // just a 1x1 white png lol
             WHITE_TEXTURE = Some(byte_texture(
                 ctx,
                 &[
