@@ -11,13 +11,13 @@ use crate::tetra::{
 use crate::text::TextColor;
 use crate::graphics::{position, flip_x, flip_y, draw_text_left, draw_cursor};
 
-pub const WHITE: Color = Color::rgb(248.0 / 255.0, 248.0 / 255.0, 248.0 / 255.0);
-
 static mut PANEL: Option<Texture> = None;
 
 pub struct Panel(Texture);
 
 impl Panel {
+
+    pub const BACKGROUND: Color = Color::rgb(248.0 / 255.0, 248.0 / 255.0, 248.0 / 255.0);
 
     pub fn new(ctx: &mut Context) -> Self {
         Self(unsafe { PANEL.get_or_insert(crate::graphics::byte_texture(ctx, include_bytes!("../../assets/panel.png"))).clone() })
