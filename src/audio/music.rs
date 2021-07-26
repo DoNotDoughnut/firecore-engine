@@ -1,65 +1,48 @@
-use tetra::Context;
-use super::audio::serialized::SerializedMusicData;
+use crate::Context;
 
 pub use super::audio::music::*;
 
-use super::error::{AddAudioError, PlayAudioError};
+use super::error::PlayAudioError;
 
-#[cfg(feature = "audio")]
-pub static MUSIC_ID_MAP: parking_lot::Mutex<Option<hashbrown::HashMap<MusicName, MusicId>>> = parking_lot::const_mutex(None);
-
-#[deprecated(note = "move to engine context")]
-pub fn add_music(music_data: SerializedMusicData) -> Result<(), AddAudioError> {
+#[cfg_attr(not(feature = "audio"), allow(unused_variables))]
+pub fn play_music(ctx: &mut Context, music: MusicId) -> Result<(), PlayAudioError> {
     #[cfg(feature = "audio")] {
-        match MUSIC_ID_MAP.lock().as_mut() {
-            Some(map) => {
-                map.insert(music_data.music.name.clone(), music_data.music.track);
-                super::backend::context::add_track(music_data)
-            }
-            None => {
-                Err(AddAudioError::Uninitialized)
-            }
-        }
+        super::backend::music::play_music(ctx, music)
     }
     #[cfg(not(feature = "audio"))] {
         Ok(())
     }
 }
 
-pub fn get_music_id(name: &str) -> Option<Option<MusicId>> {
+#[cfg_attr(not(feature = "audio"), allow(unused_variables))]
+pub fn get_current_music(ctx: &Context) -> Option<MusicId> {
     #[cfg(feature = "audio")] {
-        Some(match MUSIC_ID_MAP.lock().as_ref() {
-            Some(map) => map.get(name).copied(),
-            None => None,
-        })
+        ctx.game.audio.current_music.as_ref().map(|(id, _)| *id)
     }
     #[cfg(not(feature = "audio"))] {
         None
     }
 }
 
-pub fn play_music_id(ctx: &Context, id: MusicId) -> Result<(), PlayAudioError> {
-    super::backend::music::play_music(ctx, id)
-}
-
-pub fn play_music_named(ctx: &Context, name: &str) -> Result<(), PlayAudioError> {
-    #[cfg(feature = "audio")]
-    match get_music_id(&name.to_string()) {
-        Some(id) => match id {
-            Some(id) => {
-                play_music_id(ctx, id)?;
-                Ok(())
-            }
-            None => {
-                Err(PlayAudioError::Missing)
-            }
-        }
-        None => Ok(()),
+#[cfg_attr(not(feature = "audio"), allow(unused_variables))]
+pub fn get_music_id(ctx: &Context, name: &str) -> Option<MusicId> {
+    #[cfg(feature = "audio")] {
+        ctx.game.audio.music_id.get(name).as_deref().copied()
     }
-    #[cfg(not(feature = "audio"))]
-    Ok(())
+    #[cfg(not(feature = "audio"))] {
+        None
+    }
 }
 
-pub fn get_current_music() -> Option<MusicId> {
-    super::backend::music::get_current_music()
+#[cfg_attr(not(feature = "audio"), allow(unused_variables))]
+pub fn play_music_named(ctx: &mut Context, name: &str) -> Result<(), PlayAudioError> {
+    #[cfg(feature = "audio")] {
+        match get_music_id(ctx, &name.to_string()) {
+            Some(music) => play_music(ctx, music),
+            None => Err(PlayAudioError::Missing),
+        }
+    }
+    #[cfg(not(feature = "audio"))] {
+        Ok(())
+    }
 }

@@ -1,29 +1,36 @@
 extern crate firecore_audio as audio;
 
-#[cfg(feature = "audio")]
-use error::AddAudioError;
-
 pub mod music;
 pub mod sound;
 
 pub mod error;
-pub mod backend;
+#[cfg(feature = "audio")]
+mod backend;
+
+#[cfg(feature = "audio")]
+pub use backend::{add_music, add_sound};
 
 pub use audio::serialized;
 
-#[cfg(feature = "audio")]
-pub fn create() -> Result<(), AddAudioError> {
-    *music::MUSIC_ID_MAP.lock() = Some(Default::default());
-    backend::context::create()
+use crate::Context;
+
+pub fn play_music(ctx: &mut Context, id: music::MusicId) {
+    if let Err(err) = music::play_music(ctx, id) {
+        log::warn!("Could not play music id {:x} with error {}", id, err);
+    }
 }
 
-#[cfg(feature = "audio")]
-pub fn load(data: serialized::SerializedAudio) -> Result<(), AddAudioError> {
-    for music_data in data.music {
-        music::add_music(music_data)?;
+pub fn play_music_named(ctx: &mut Context, music: &str) {
+    if let Err(err) = music::play_music_named(ctx, music) {
+        log::warn!(
+            "Could not play music named \"{}\" with error {}",
+            music, err
+        );
     }
-    for sound_data in data.sounds {
-        sound::add_sound(sound_data)?;
+}
+
+pub fn play_sound(ctx: &Context, sound: &sound::Sound) {
+    if let Err(err) = sound::play_sound(ctx, &sound) {
+        log::warn!("Could not play sound {} with error {}", sound, err);
     }
-    Ok(())
 }

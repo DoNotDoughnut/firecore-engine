@@ -1,30 +1,25 @@
+pub extern crate firecore_text as text;
 pub extern crate tetra;
 
-pub mod util;
-pub mod graphics;
 pub mod audio;
-pub mod input;
+pub mod context;
+pub mod font;
+pub mod graphics;
 pub mod gui;
+pub mod input;
+pub mod util;
 
-pub use firecore_font::message as text;
+pub const WIDTH: f32 = 240.0;
+pub const HEIGHT: f32 = 160.0;
 
-pub fn play_music(ctx: &tetra::Context, id: audio::music::MusicId) {
-    if let Err(err) = audio::music::play_music_id(ctx, id) {
-        log::warn!("Could not play music id {:x} with error {}", id, err);
-    }
-}
+pub type Context = tetra::Context<context::GameContext>;
+pub use context::GameContext;
 
-pub fn play_music_named(ctx: &tetra::Context, music: &str) {
-    if let Err(err) = audio::music::play_music_named(ctx, music) {
-        log::warn!(
-            "Could not play music named \"{}\" with error {}",
-            music, err
-        );
-    }
-}
-
-pub fn play_sound(ctx: &tetra::Context, sound: &audio::sound::Sound) {
-    if let Err(err) = audio::sound::play_sound(ctx, &sound) {
-        log::warn!("Could not play sound {} with error {}", sound, err);
-    }
+pub fn build(
+    builder: &mut tetra::ContextBuilder,
+    fonts: font::SerializedFonts,
+) -> tetra::Result<Context> {
+    builder
+        .timestep(tetra::time::Timestep::Variable)
+        .build(|ctx| context::GameContext::new(ctx, fonts))
 }

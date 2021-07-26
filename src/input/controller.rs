@@ -1,35 +1,18 @@
-use crate::tetra::{
-    input::{self, GamepadButton},
-    Context,
-};
-
+use crate::tetra::input::{self, GamepadButton};
+use enum_map::EnumMap;
 use hashbrown::HashSet;
 
-use enum_map::EnumMap;
-
-use super::Control;
+use crate::{Context, input::Control};
 
 pub type ButtonSet = HashSet<GamepadButton>;
 pub type ButtonMap = EnumMap<Control, GamepadButton>;
 
-static mut BUTTON_CONTROLS: Option<ButtonMap> = None;
-
-pub fn load(map: ButtonMap) {
-    unsafe {
-        BUTTON_CONTROLS = Some(map);
-    }
-}
-
 pub fn pressed(ctx: &Context, control: Control) -> bool {
-    unsafe { BUTTON_CONTROLS.as_ref() }
-        .map(|controls| input::is_gamepad_button_pressed(ctx, 0, controls[control]))
-        .unwrap_or_default()
+    input::is_gamepad_button_pressed(ctx, 0, ctx.game.controls.controller[control])
 }
 
 pub fn down(ctx: &Context, control: Control) -> bool {
-    unsafe { BUTTON_CONTROLS.as_ref() }
-        .map(|controls| input::is_gamepad_button_down(ctx, 0, controls[control]))
-        .unwrap_or_default()
+    input::is_gamepad_button_down(ctx, 0, ctx.game.controls.controller[control])
 }
 
 pub fn default_button_map() -> ButtonMap {

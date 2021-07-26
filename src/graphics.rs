@@ -1,19 +1,19 @@
 use tetra::{
     graphics::{Color, DrawParams, Texture},
     math::Vec2,
-    Context,
+    TetraContext
 };
 
-pub mod text;
+use crate::{font::FontId, Context};
 
-use text::{AsColor, FontId, TEXT_RENDERER};
+pub mod text;
 
 pub const LIGHTGRAY: Color = Color::rgb(0.78, 0.78, 0.78);
 pub const GRAY: Color = Color::rgb(0.51, 0.51, 0.51);
 pub const RED: Color = Color::rgb(0.90, 0.16, 0.22);
 pub const DARKBLUE: Color = Color::rgb(0.00, 0.32, 0.67);
 
-pub fn byte_texture(ctx: &mut Context, bytes: &[u8]) -> Texture {
+pub fn byte_texture(ctx: &mut TetraContext, bytes: &[u8]) -> Texture {
     Texture::from_file_data(ctx, bytes).unwrap()
 }
 
@@ -40,59 +40,28 @@ pub fn flip_y(params: DrawParams) -> DrawParams {
 }
 
 #[inline]
-pub fn draw_bottom(ctx: &mut Context, texture: &Texture, x: f32, y: f32) {
+pub fn draw_bottom(ctx: &mut TetraContext, texture: &Texture, x: f32, y: f32) {
     texture.draw(ctx, position(x, y - texture.height() as f32));
 }
 
 #[inline]
-pub fn draw_o(ctx: &mut Context, texture: Option<&Texture>, x: f32, y: f32) {
+pub fn draw_o(ctx: &mut TetraContext, texture: Option<&Texture>, x: f32, y: f32) {
     if let Some(texture) = texture {
         texture.draw(ctx, position(x, y));
     }
 }
 
 #[inline]
-pub fn draw_o_bottom(ctx: &mut Context, texture: Option<&Texture>, x: f32, y: f32) {
+pub fn draw_o_bottom(ctx: &mut TetraContext, texture: Option<&Texture>, x: f32, y: f32) {
     if let Some(texture) = texture {
         draw_bottom(ctx, texture, x, y);
     }
 }
 
-static mut WHITE_TEXTURE: Option<Texture> = None;
-
-fn new_white_texture(ctx: &mut Context) {
-    if unsafe { WHITE_TEXTURE.is_none() } {
-        unsafe {
-            // just a 1x1 white png lol
-            WHITE_TEXTURE = Some(byte_texture(
-                ctx,
-                &[
-                    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49,
-                    0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02,
-                    0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x01, 0x73, 0x52,
-                    0x47, 0x42, 0x00, 0xAE, 0xCE, 0x1C, 0xE9, 0x00, 0x00, 0x00, 0x04, 0x67, 0x41,
-                    0x4D, 0x41, 0x00, 0x00, 0xB1, 0x8F, 0x0B, 0xFC, 0x61, 0x05, 0x00, 0x00, 0x00,
-                    0x09, 0x70, 0x48, 0x59, 0x73, 0x00, 0x00, 0x0E, 0xC3, 0x00, 0x00, 0x0E, 0xC3,
-                    0x01, 0xC7, 0x6F, 0xA8, 0x64, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54,
-                    0x18, 0x57, 0x63, 0xF8, 0xFF, 0xFF, 0x3F, 0x00, 0x05, 0xFE, 0x02, 0xFE, 0xA7,
-                    0x35, 0x81, 0x84, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42,
-                    0x60, 0x82,
-                ],
-            ))
-        }
-    }
-}
-
-fn white_texture() -> &'static Texture {
-    unsafe { WHITE_TEXTURE.as_ref().unwrap() }
-}
-
 pub fn draw_rectangle(ctx: &mut Context, x: f32, y: f32, w: f32, h: f32, color: Color) {
-    new_white_texture(ctx);
-    let texture = white_texture();
-    tetra::graphics::set_texture(ctx, texture);
+    tetra::graphics::set_texture(&mut ctx.tetra, &ctx.game.white);
     tetra::graphics::push_quad(
-        ctx,
+        &mut ctx.tetra,
         x,
         y,
         x + w,
@@ -138,79 +107,58 @@ pub fn draw_line(
 }
 
 #[allow(unused_variables)]
-pub fn draw_circle(ctx: &mut Context, x: f32, y: f32, r: f32, color: Color) {
+pub fn draw_circle(ctx: &mut TetraContext, x: f32, y: f32, r: f32, color: Color) {
     // todo!("draw circle")
 }
 
-// #[deprecated]
-// pub fn draw_message(message: &Message, x: f32, y: f32) {
-// 	if let Some(renderer) = unsafe{TEXT_RENDERER.as_ref()} {
-// 		_draw_message(renderer, message.font, &message.message_set[0], message.color.into_color(), x, y)
-// 	}
-// }
+use ::text::TextColor;
 
-// fn _draw_message(renderer: &firecore_text::TextRenderer, font_id: u8, message: &MessagePage, color: Color, x: f32, y: f32) {
-// 	message.lines.iter().enumerate().for_each(|(index, line)| renderer.draw_text_left(font_id, line, color, x, y + (index << 4) as f32));
-// }
+const TEXT_GRAY: Color = Color::rgb(0.51, 0.51, 0.51);
+const TEXT_RED: Color = Color::rgb(0.90, 0.16, 0.22);
+const TEXT_WHITE: Color = Color::rgb(240.0 / 255.0, 240.0 / 255.0, 240.0 / 255.0);
+const TEXT_BLACK: Color = Color::rgb(20.0 / 255.0, 20.0 / 255.0, 20.0 / 255.0);
+const TEXT_BLUE: Color = Color::rgb(48.0 / 255.0, 80.0 / 255.0, 200.0 / 255.0);
 
-pub fn draw_text_left(
-    ctx: &mut Context,
-    font: &FontId,
-    text: &str,
-    color: &impl AsColor,
-    x: f32,
-    y: f32,
-) {
-    if let Some(renderer) = unsafe { TEXT_RENDERER.as_ref() } {
-        renderer.draw_text_left(ctx, font, text, color.as_color(), x, y);
+pub fn text_color(color: TextColor) -> Color {
+    match color {
+        TextColor::White => TEXT_WHITE,
+        TextColor::Gray => TEXT_GRAY,
+        TextColor::Black => TEXT_BLACK,
+        TextColor::Red => TEXT_RED,
+        TextColor::Blue => TEXT_BLUE,
     }
 }
 
-pub fn draw_text_right(
-    ctx: &mut Context,
-    font: &FontId,
-    text: &str,
-    color: &impl AsColor,
-    x: f32,
-    y: f32,
-) {
-    if let Some(renderer) = unsafe { TEXT_RENDERER.as_ref() } {
-        renderer.draw_text_right(ctx, font, text, color.as_color(), x, y);
-    }
+pub fn draw_text_left(ctx: &mut Context, font: &FontId, text: &str, color: TextColor, x: f32, y: f32) {
+    ctx.game.text_renderer.draw_text_left(&mut ctx.tetra, font, text, text_color(color), x, y)
+}
+
+pub fn draw_text_right(ctx: &mut Context, font: &FontId, text: &str, color: TextColor, x: f32, y: f32) {
+    ctx.game.text_renderer.draw_text_right(&mut ctx.tetra, font, text, text_color(color), x, y)
 }
 
 pub fn draw_text_center(
     ctx: &mut Context,
     font: &FontId,
     text: &str,
-    color: &impl AsColor,
+    color: TextColor,
     x: f32,
     y: f32,
-    center_y: bool,
+    center_vertical: bool,
 ) {
-    if let Some(renderer) = unsafe { TEXT_RENDERER.as_ref() } {
-        renderer.draw_text_center(ctx, font, text, color.as_color(), x, y, center_y);
-    }
-}
-
-pub fn draw_cursor(ctx: &mut Context, x: f32, y: f32) {
-    if let Some(renderer) = unsafe { TEXT_RENDERER.as_ref() } {
-        renderer.draw_cursor(ctx, x, y);
-    }
+    ctx.game.text_renderer.draw_text_center(&mut ctx.tetra, font, text, text_color(color), x, y, center_vertical)
 }
 
 pub fn draw_button(ctx: &mut Context, font: &FontId, text: &str, x: f32, y: f32) {
-    if let Some(renderer) = unsafe { TEXT_RENDERER.as_ref() } {
-        renderer.draw_button(ctx, font, text, x, y)
-    }
+    ctx.game.text_renderer.draw_button(&mut ctx.tetra, font, text, x, y)
 }
 
-pub fn text_len(font: &FontId, text: &str) -> f32 {
-    if let Some(renderer) = unsafe { TEXT_RENDERER.as_ref() } {
-        renderer.text_len(font, text)
-    } else {
-        0.0
-    }
+pub fn draw_cursor(ctx: &mut Context, x: f32, y: f32) {
+    ctx.game.text_renderer.draw_cursor(&mut ctx.tetra, x, y)
+}
+
+pub fn text_len(ctx: &Context, font: &FontId, text: &str) -> f32 {
+    ctx.game.text_renderer.text_len(font, text)
 }
 
 pub fn fade_in_out(
@@ -262,8 +210,8 @@ pub fn fade_in(
     );
 }
 
-use std::{fmt::Display, hash::Hash};
 use hashbrown::HashMap;
+use std::{fmt::Display, hash::Hash};
 
 pub trait TextureManager {
     type Id: Eq + Hash + Display;

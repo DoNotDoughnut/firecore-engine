@@ -1,51 +1,64 @@
-use crate::input::{pressed, Control};
-use crate::util::{Completable, Entity, Reset, Timer};
-use firecore_font::{
-    message::{Message, MessagePage, MessagePages, TextColor},
-    FontId,
+use crate::{
+    font::FontId,
+    graphics::{draw_button, draw_text_left},
+    input::{pressed, Control},
+    util::{Completable, Entity, Reset},
+    Context,
 };
 
-use tetra::{math::Vec2, Context};
+use tetra::math::Vec2;
+use text::{Message, MessagePage, MessagePages, TextColor};
 
-use crate::graphics::{draw_button, draw_text_left};
-
-#[derive(Clone)]
-pub struct TextDisplay {
+#[derive(Default, Clone)]
+pub struct MessageBox {
     alive: bool,
-
     origin: Vec2<f32>,
 
     pub font: FontId,
     pub message: Message,
-    pub current: usize,
-    current_line: usize,
 
-    counter: f32,
+    page: usize,
+    line: usize,
 
-    pub can_continue: bool,
-    end: bool,
+    accumulator: f32,
+
     timer: Timer,
+    button: Button,
 
-    button: (f32, bool),
+    finished: bool,
 }
 
-impl TextDisplay {
-    pub fn new(origin: Vec2<f32>, font: FontId, color: TextColor, len: usize) -> Self {
+#[derive(Default, Clone, Copy)]
+struct Timer {
+    length: f32,
+    accumulator: f32,
+    alive: bool,
+}
+
+#[derive(Default, Clone, Copy)]
+struct Button {
+    position: f32,
+    direction: bool,
+}
+
+impl MessageBox {
+    pub fn new(origin: Vec2<f32>, font: FontId) -> Self {
         Self {
             alive: false,
 
             origin,
 
             font,
-            message: Message::empty(color, len),
-            current: 0,
-            current_line: 0,
+            message: Default::default(),
 
-            counter: 0.0,
+            page: 0,
+            line: 0,
 
-            can_continue: false,
-            end: false,
-            timer: Timer::new(false, 1.0),
+            accumulator: 0.0,
+
+            // can_continue: false,
+            finished: false,
+            timer: Default::default(),
 
             button: Default::default(),
         }
@@ -79,76 +92,66 @@ impl TextDisplay {
         self.len() == 0
     }
 
-    pub fn current(&self) -> usize {
-        self.current
-    }
-
-    pub fn can_continue(&self) -> bool {
-        self.can_continue
+    pub fn page(&self) -> usize {
+        self.page
     }
 
     fn reset_page(&mut self) {
-        self.can_continue = false;
-        self.current_line = 0;
-        self.counter = 0.0;
-        self.timer.hard_reset();
+        self.line = 0;
+        self.accumulator = 0.0;
     }
 
     pub fn update(&mut self, ctx: &Context, delta: f32) {
         if self.alive {
-            if let Some(current) = self.message.pages.get(self.current) {
-                let line_len = current.lines[self.current_line].len() << 2;
-                if self.can_continue {
-                    match current.wait {
-                        Some(wait) => {
-                            if !self.timer.alive() {
-                                self.timer.hard_reset();
-                                self.timer.spawn();
+            if let Some(page) = self.message.pages.get(self.page) {
+                if (self.accumulator as usize) < page.lines[self.line].len() {
+                    self.accumulator += delta * 30.0;
+                } else if self.line < page.lines.len() - 1 {
+                    self.line += 1;
+                    self.accumulator = 0.0;
+                } else {
+                    match page.wait {
+                        Some(wait) => match self.timer.alive {
+                            false => {
+                                self.timer.accumulator = 0.0;
                                 self.timer.length = wait;
-                            } else {
-                                self.timer.update(delta);
-                                if self.timer.finished() {
-                                    self.timer.despawn();
-                                    if self.current + 1 >= self.len() {
-                                        self.end = true;
-                                    } else {
-                                        self.current += 1;
+                                self.timer.alive = true;
+                            }
+                            true => {
+                                self.timer.accumulator += delta;
+                                if self.timer.accumulator >= self.timer.length {
+                                    self.timer.alive = false;
+                                    match self.page + 1 >= self.len() {
+                                        true => self.finished = true,
+                                        false => {
+                                            self.page += 1;
+                                            self.reset_page();
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        None => {
+                            self.button.position += match self.button.direction {
+                                true => delta,
+                                false => -delta,
+                            } * 7.5;
+
+                            if self.button.position.abs() > 3.0 {
+                                self.button.direction = !self.button.direction;
+                            }
+
+                            if pressed(ctx, Control::A) {
+                                match self.page + 1 >= self.len() {
+                                    true => self.finished = true,
+                                    false => {
+                                        self.page += 1;
                                         self.reset_page();
                                     }
                                 }
                             }
                         }
-                        None => {
-                            if self.button.1 {
-                                self.button.0 += delta * 7.5;
-                                if self.button.0 > 3.0 {
-                                    self.button.1 = false;
-                                }
-                            } else {
-                                self.button.0 -= delta * 7.5;
-                                if self.button.0 < -3.0 {
-                                    self.button.1 = true;
-                                }
-                            }
-
-                            if pressed(ctx, Control::A) {
-                                if self.current + 1 >= self.len() {
-                                    self.end = true;
-                                } else {
-                                    self.current += 1;
-                                    self.reset_page();
-                                }
-                            }
-                        }
                     }
-                } else if self.counter <= line_len as f32 {
-                    self.counter += delta * 120.0;
-                } else if self.current_line < current.lines.len() - 1 {
-                    self.current_line += 1;
-                    self.counter = 0.0;
-                } else {
-                    self.counter = line_len as f32;
-                    self.can_continue = true;
                 }
             }
         }
@@ -156,72 +159,67 @@ impl TextDisplay {
 
     pub fn draw(&self, ctx: &mut Context) {
         if self.alive {
-            if let Some(current_line) = self
-                .message
-                .pages
-                .get(self.current)
-                .map(|page| page.lines.get(self.current_line))
-                .flatten()
-            {
-                let string = if current_line.len() > (self.counter as usize) >> 2 {
-                    &current_line[..(self.counter as usize) >> 2]
-                } else {
-                    current_line
-                };
+            if let Some(page) = self.message.pages.get(self.page) {
+                if let Some(line) = page.lines.get(self.line) {
+                    let len = self.accumulator as usize;
+                    let (string, finished) = if line.len() > len {
+                        (&line[..len], false)
+                    } else {
+                        (line.as_str(), true)
+                    };
 
-                let current = &self.message.pages[self.current];
-
-                let y = (self.current_line << 4) as f32;
-                draw_text_left(
-                    ctx,
-                    &self.font,
-                    string,
-                    &self.message.color,
-                    self.origin.x,
-                    self.origin.y + y,
-                );
-
-                for index in 0..self.current_line {
+                    let y = (self.line << 4) as f32;
                     draw_text_left(
                         ctx,
                         &self.font,
-                        &current.lines[index],
-                        &self.message.color,
+                        string,
+                        self.message.color,
                         self.origin.x,
-                        self.origin.y + (index << 4) as f32,
+                        self.origin.y + y,
                     );
-                }
 
-                if self.can_continue && current.wait.is_none() {
-                    draw_button(
-                        ctx,
-                        &self.font,
-                        current_line,
-                        self.origin.x,
-                        self.origin.y + 2.0 + self.button.0 + y,
-                    );
+                    for index in 0..self.line {
+                        draw_text_left(
+                            ctx,
+                            &self.font,
+                            &page.lines[index],
+                            self.message.color,
+                            self.origin.x,
+                            self.origin.y + (index << 4) as f32,
+                        );
+                    }
+
+                    if finished && page.wait.is_none() {
+                        draw_button(
+                            ctx,
+                            &self.font,
+                            line,
+                            self.origin.x,
+                            self.origin.y + 2.0 + self.button.position + y,
+                        );
+                    }
                 }
             }
         }
     }
 }
 
-impl Reset for TextDisplay {
+impl Reset for MessageBox {
     fn reset(&mut self) {
-        self.current = 0;
-        self.button = Default::default();
-        self.end = false;
+        self.page = 0;
         self.reset_page();
+        self.button = Default::default();
+        self.finished = false;
     }
 }
 
-impl Completable for TextDisplay {
+impl Completable for MessageBox {
     fn finished(&self) -> bool {
-        (self.current + 1 >= self.len() && self.end && self.can_continue) || self.is_empty()
+        (!(self.page < self.len()) && self.finished) || self.is_empty()
     }
 }
 
-impl Entity for TextDisplay {
+impl Entity for MessageBox {
     fn spawn(&mut self) {
         self.alive = true;
         self.reset();
@@ -229,7 +227,6 @@ impl Entity for TextDisplay {
 
     fn despawn(&mut self) {
         self.alive = false;
-        self.timer.despawn();
         self.reset();
         self.clear();
     }

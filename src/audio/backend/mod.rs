@@ -1,41 +1,27 @@
-#[cfg(feature = "audio")]
-mod tetra;
+pub mod music;
+pub mod sound;
 
-use std::error::Error;
+use crate::{
+    audio::{
+        serialized::{SerializedMusicData, SerializedSoundData},
+        sound::Sound,
+        music::{MusicId, MusicName},
+    },
+    context::GameAudioMap,
+};
 
-#[cfg(feature = "audio")]
-pub use self::tetra::*;
+use tetra::audio::Sound as Audio;
 
-#[cfg(not(feature = "audio"))]
-mod dummy;
+pub fn add_music(music: &GameAudioMap<MusicId>, ids: &GameAudioMap<MusicName, MusicId>, music_data: SerializedMusicData) {
+    add(music, music_data.music.track, &music_data.bytes);
+    ids.insert(music_data.music.name, music_data.music.track);
+}
 
-#[cfg(not(feature = "audio"))]
-pub use dummy::*;
+pub fn add_sound(sounds: &GameAudioMap<Sound>, sound_data: SerializedSoundData) {
+    add(sounds, sound_data.sound, &sound_data.bytes)
+}
 
-// To - do: this 
-
-use firecore_audio::{serialized::SerializedAudio, sound::Sound};
-
-pub trait AudioBackend {
-
-    type AddError: Error;
-    type PlayError: Error;
-
-    /// Initialize the audio backend or panic.
-    fn init(&mut self);
-
-    fn load(&mut self, data: SerializedAudio);
-
-    fn add_music(&mut self) -> Result<(), Self::AddError>;
-
-    fn add_sound(&mut self) -> Result<(), Self::AddError>;
-
-    fn try_play_music(&mut self) -> Result<(), Self::PlayError>;
-
-    fn play_music(&mut self);
-
-    fn try_play_sound(&mut self, sound: &Sound) -> Result<(), Self::PlayError>;
-
-    fn play_sound(&mut self, sound: &Sound);
-
+fn add<K: Eq + std::hash::Hash>(map: &GameAudioMap<K>, k: K, bytes: &[u8]) {
+    let sound = Audio::from_file_data(bytes);
+    map.insert(k, sound);
 }

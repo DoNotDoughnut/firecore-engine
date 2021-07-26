@@ -2,9 +2,11 @@ mod panel;
 mod text;
 mod bar;
 
-pub use panel::*;
-pub use text::*;
-pub use bar::*;
+pub use self::{
+    panel::*, 
+    text::*,
+    bar::*,
+};
 
 // pub struct StaticList<D, const SIZE: usize> {
 //     pub options: [D; SIZE],

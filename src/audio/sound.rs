@@ -1,13 +1,13 @@
-use tetra::Context;
-use super::audio::serialized::SerializedSoundData;
-use super::error::{AddAudioError, PlayAudioError};
-
+use crate::Context;
 pub use super::audio::sound::*;
+use super::error::PlayAudioError;
 
+#[cfg_attr(not(feature = "audio"), allow(unused_variables))]
 pub fn play_sound(ctx: &Context, sound: &Sound) -> Result<(), PlayAudioError> {
-    super::backend::sound::play_sound(ctx, &sound)
-}
-
-pub fn add_sound(sound_data: SerializedSoundData) -> Result<(), AddAudioError> {
-    super::backend::context::add_sound(sound_data)
+    #[cfg(feature = "audio")] {
+        super::backend::sound::play_sound(ctx, sound)
+    }
+    #[cfg(not(feature = "audio"))] {
+        Ok(())
+    }
 }
