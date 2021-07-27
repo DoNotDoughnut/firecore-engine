@@ -1,17 +1,17 @@
 use enum_map::EnumMap;
 use tetra::input::{self, Key};
 
-use crate::{input::Control, Context};
+use crate::{input::Control, EngineContext};
 
 // pub type KeySet = HashSet<Key>;
 pub type KeyMap = EnumMap<Control, Key>;
 
-pub fn pressed(ctx: &Context, control: Control) -> bool {
-    input::is_key_pressed(ctx, ctx.game.controls.keyboard[control])
+pub fn pressed(ctx: &EngineContext, control: Control) -> bool {
+    input::is_key_pressed(ctx, ctx.controls.keyboard[control])
 }
 
-pub fn down(ctx: &Context, control: Control) -> bool {
-    input::is_key_down(ctx, ctx.game.controls.keyboard[control])
+pub fn down(ctx: &EngineContext, control: Control) -> bool {
+    input::is_key_down(ctx, ctx.controls.keyboard[control])
         // .iter()
         // .any(|key| input::is_key_down(ctx, *key))
 }

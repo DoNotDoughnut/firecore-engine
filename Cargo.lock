@@ -818,7 +818,7 @@ dependencies = [
 [[package]]
 name = "tetra"
 version = "0.6.5"
-source = "git+https://github.com/DoNotDoughnut/tetra?branch=main#f24283c362c7219d881f5763d856e016305a5df4"
+source = "git+https://github.com/DoNotDoughnut/tetra?branch=main#ca767b6e4a175fcf7fccc7b0a19ebd739492b1ce"
 dependencies = [
  "bytemuck",
  "glow",

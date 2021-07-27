@@ -1,6 +1,6 @@
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
-use crate::Context;
+use crate::EngineContext;
 
 pub mod controller;
 pub mod keyboard;
@@ -18,7 +18,7 @@ pub enum Control {
     Select,
 }
 
-pub fn pressed(ctx: &Context, control: Control) -> bool {
+pub fn pressed(ctx: &EngineContext, control: Control) -> bool {
     if keyboard::pressed(ctx, control) {
         return true;
     }
@@ -33,7 +33,7 @@ pub fn pressed(ctx: &Context, control: Control) -> bool {
     false
 }
 
-pub fn down(ctx: &Context, control: Control) -> bool {
+pub fn down(ctx: &EngineContext, control: Control) -> bool {
     if keyboard::down(ctx, control) {
         return true;
     }
@@ -50,10 +50,10 @@ pub fn down(ctx: &Context, control: Control) -> bool {
 
 pub type DebugBind = tetra::input::Key;
 
-pub fn debug_pressed<G>(ctx: &tetra::Context<G>, bind: DebugBind) -> bool {
+pub fn debug_pressed(ctx: &tetra::Context, bind: DebugBind) -> bool {
     tetra::input::is_key_pressed(ctx, bind)
 }
 
-pub fn debug_down<G>(ctx: &tetra::Context<G>, bind: DebugBind) -> bool {
+pub fn debug_down(ctx: &tetra::Context, bind: DebugBind) -> bool {
     tetra::input::is_key_down(ctx, bind)
 }

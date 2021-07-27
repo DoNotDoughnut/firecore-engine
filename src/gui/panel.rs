@@ -4,7 +4,7 @@ use crate::{
         graphics::{Color, Rectangle},
         math::Vec2,
     },
-    Context,
+    EngineContext,
 };
 
 use text::TextColor;
@@ -14,13 +14,13 @@ pub struct Panel;
 impl Panel {
     pub const BACKGROUND: Color = Color::rgb(248.0 / 255.0, 248.0 / 255.0, 248.0 / 255.0);
 
-    pub fn draw(&self, ctx: &mut Context, x: f32, y: f32, w: f32, h: f32) {
+    pub fn draw(&self, ctx: &mut EngineContext, x: f32, y: f32, w: f32, h: f32) {
         self.draw_color(ctx, x, y, w, h, Color::WHITE)
     }
 
-    pub fn draw_color(&self, ctx_: &mut Context, x: f32, y: f32, w: f32, h: f32, color: Color) {
+    pub fn draw_color(&self, ctx_: &mut EngineContext, x: f32, y: f32, w: f32, h: f32, color: Color) {
 
-        let panel = &ctx_.game.panel;
+        let panel = &ctx_.panel;
         let ctx = &mut ctx_.tetra;
 
         panel.draw(ctx, position(x, y).color(color));
@@ -40,7 +40,7 @@ impl Panel {
 
         crate::graphics::draw_rectangle(ctx_, x + 7.0, y + 7.0, w, h, color);
 
-        let panel = &ctx_.game.panel;
+        let panel = &ctx_.panel;
         let ctx = &mut ctx_.tetra;
 
         panel.draw_region(
@@ -68,7 +68,7 @@ impl Panel {
 
     pub fn draw_text(
         &self,
-        ctx: &mut Context,
+        ctx: &mut EngineContext,
         x: f32,
         y: f32,
         w: f32,

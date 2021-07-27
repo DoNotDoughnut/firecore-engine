@@ -12,14 +12,15 @@ pub mod util;
 pub const WIDTH: f32 = 240.0;
 pub const HEIGHT: f32 = 160.0;
 
-pub type Context = tetra::Context<context::GameContext>;
-pub use context::GameContext;
+pub use context::EngineContext;
 
 pub fn build(
     builder: &mut tetra::ContextBuilder,
     fonts: font::SerializedFonts,
-) -> tetra::Result<Context> {
-    builder
+) -> tetra::Result<EngineContext> {
+    EngineContext::new(builder
         .timestep(tetra::time::Timestep::Variable)
-        .build(|ctx| context::GameContext::new(ctx, fonts))
+        .build()?,
+        fonts
+    )
 }

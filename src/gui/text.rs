@@ -3,7 +3,7 @@ use crate::{
     graphics::{draw_button, draw_text_left},
     input::{pressed, Control},
     util::{Completable, Entity, Reset},
-    Context,
+    EngineContext,
 };
 
 use tetra::math::Vec2;
@@ -101,7 +101,7 @@ impl MessageBox {
         self.accumulator = 0.0;
     }
 
-    pub fn update(&mut self, ctx: &Context, delta: f32) {
+    pub fn update(&mut self, ctx: &EngineContext, delta: f32) {
         if self.alive {
             if let Some(page) = self.message.pages.get(self.page) {
                 if (self.accumulator as usize) < page.lines[self.line].len() {
@@ -157,7 +157,7 @@ impl MessageBox {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut EngineContext) {
         if self.alive {
             if let Some(page) = self.message.pages.get(self.page) {
                 if let Some(line) = page.lines.get(self.line) {

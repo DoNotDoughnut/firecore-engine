@@ -4,7 +4,7 @@ use hashbrown::HashMap;
 use tetra::{
     graphics::{DrawParams, ImageData, Texture, Color},
     math::Vec2,
-    Result, TetraContext,
+    Result, Context,
 };
 
 pub struct TextRenderer {
@@ -14,7 +14,7 @@ pub struct TextRenderer {
 }
 
 impl TextRenderer {
-    pub fn new(ctx: &mut TetraContext, serialized_fonts: SerializedFonts) -> Result<Self> {
+    pub fn new(ctx: &mut Context, serialized_fonts: SerializedFonts) -> Result<Self> {
         let mut fonts = HashMap::with_capacity(serialized_fonts.fonts.len());
         for font_sheet in serialized_fonts.fonts {
             fonts.insert(
@@ -43,7 +43,7 @@ impl TextRenderer {
 
     pub fn draw_text_left(
         &self,
-        ctx: &mut TetraContext,
+        ctx: &mut Context,
         font: &FontId,
         text: &str,
         color: Color,
@@ -57,7 +57,7 @@ impl TextRenderer {
 
     pub fn draw_text_right(
         &self,
-        ctx: &mut TetraContext,
+        ctx: &mut Context,
         font: &FontId,
         text: &str,
         color: Color,
@@ -71,7 +71,7 @@ impl TextRenderer {
 
     pub fn draw_text_center(
         &self,
-        ctx: &mut TetraContext,
+        ctx: &mut Context,
         font: &FontId,
         text: &str,
         color: Color,
@@ -84,7 +84,7 @@ impl TextRenderer {
         }
     }
 
-    pub fn draw_button(&self, ctx: &mut TetraContext, font: &FontId, text: &str, x: f32, y: f32) {
+    pub fn draw_button(&self, ctx: &mut Context, font: &FontId, text: &str, x: f32, y: f32) {
         if let Some(font) = self.fonts.get(font) {
             self.button.draw(
                 ctx,
@@ -96,7 +96,7 @@ impl TextRenderer {
         }
     }
 
-    pub fn draw_cursor(&self, ctx: &mut TetraContext, x: f32, y: f32) {
+    pub fn draw_cursor(&self, ctx: &mut Context, x: f32, y: f32) {
         self.cursor.draw(
             ctx,
             DrawParams::position(DrawParams::default(), Vec2::new(x, y)),

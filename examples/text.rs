@@ -1,22 +1,21 @@
 use engine::{
-    context::GameContext,
     gui::MessageBox,
     tetra::{ContextBuilder, Result, State, graphics::Color},
     text::{Message, MessagePage, TextColor},
     util::Entity,
-    Context,
+    EngineContext,
 };
 use firecore_engine as engine;
 
 fn main() -> Result {
-    engine::build(
+    let mut ctx = engine::build(
         &mut ContextBuilder::new("MessageBox", engine::WIDTH as _, engine::HEIGHT as _),
         firecore_dependencies::ser::deserialize(include_bytes!(
             "../../../pokemon-game/build/data/fonts.bin"
         ))
         .unwrap(),
-    )?
-    .run(Game::new)
+    )?;
+    tetra::run(&mut ctx, Game::new)
 }
 
 struct Game {
@@ -24,15 +23,15 @@ struct Game {
 }
 
 impl Game {
-    pub fn new(_: &mut Context) -> Result<Self> {
+    pub fn new(_: &mut EngineContext) -> Result<Self> {
         Ok(Self {
             messagebox: MessageBox::new(Default::default(), 0),
         })
     }
 }
 
-impl State<GameContext> for Game {
-    fn begin(&mut self, ctx: &mut Context) -> Result {
+impl State<EngineContext> for Game {
+    fn begin(&mut self, _: &mut EngineContext) -> Result {
         let page = MessagePage {
             lines: vec!["Test Page Test Page".to_owned(), "Page Test Page Test".to_owned()],
             wait: None,
@@ -45,11 +44,7 @@ impl State<GameContext> for Game {
         Ok(())
     }
 
-    fn end(&mut self, ctx: &mut Context) -> Result {
-        Ok(())
-    }
-
-    fn update(&mut self, ctx: &mut Context) -> Result {
+    fn update(&mut self, ctx: &mut EngineContext) -> Result {
         if !self.messagebox.alive() {
             tetra::window::quit(ctx)
         } else {
@@ -59,13 +54,9 @@ impl State<GameContext> for Game {
         Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> Result {
+    fn draw(&mut self, ctx: &mut EngineContext) -> Result {
         tetra::graphics::clear(ctx, Color::WHITE);
         self.messagebox.draw(ctx);
-        Ok(())
-    }
-
-    fn event(&mut self, ctx: &mut Context, event: tetra::Event) -> Result {
         Ok(())
     }
 }

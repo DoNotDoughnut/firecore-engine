@@ -1,10 +1,10 @@
-use crate::Context;
+use crate::EngineContext;
 use crate::audio::sound::Sound;
 
 use crate::audio::error::PlayAudioError;
 
-pub fn play_sound(ctx: &Context, sound: &Sound) -> Result<(), PlayAudioError> {
-    match ctx.game.audio.sound.get(sound) {
+pub fn play_sound(ctx: &EngineContext, sound: &Sound) -> Result<(), PlayAudioError> {
+    match ctx.audio.sound.get(sound) {
         Some(handle) => {
             match handle.play(ctx) {
                 Ok(instance) => {

@@ -37,7 +37,7 @@ use hashbrown::HashMap;
 use tetra::{
     graphics::{ImageData, Rectangle, Texture, Color, DrawParams},
     math::Vec2,
-    Result, TetraContext,
+    Result, Context,
 };
 
 pub type Fonts = HashMap<FontId, Font>;
@@ -50,7 +50,7 @@ pub struct Font {
 }
 
 impl Font {
-    pub fn draw_text_left(&self, ctx: &mut TetraContext, text: &str, color: Color, x: f32, y: f32) {
+    pub fn draw_text_left(&self, ctx: &mut Context, text: &str, color: Color, x: f32, y: f32) {
         let mut len = 0;
         for character in text.chars() {
             len += if let Some(texture) = self.chars.get(&character) {
@@ -66,7 +66,7 @@ impl Font {
         }
     }
 
-    pub fn draw_text_right(&self, ctx: &mut TetraContext, text: &str, color: Color, x: f32, y: f32) {
+    pub fn draw_text_right(&self, ctx: &mut Context, text: &str, color: Color, x: f32, y: f32) {
         let mut len = 0;
         let x = x - self.text_pixel_length(text);
         for character in text.chars() {
@@ -83,7 +83,7 @@ impl Font {
         }
     }
 
-    pub fn draw_text_center(&self, ctx: &mut TetraContext, text: &str, color: Color, x: f32, y: f32, center_vertical: bool) {
+    pub fn draw_text_center(&self, ctx: &mut Context, text: &str, color: Color, x: f32, y: f32, center_vertical: bool) {
         let mut len = 0.0;
 
         let x_offset = (text
@@ -130,7 +130,7 @@ impl Font {
 }
 
 pub(crate) fn iterate_fontsheet(
-    ctx: &mut TetraContext,
+    ctx: &mut Context,
     chars: String,
     font_width: SizeInt,
     font_height: SizeInt,

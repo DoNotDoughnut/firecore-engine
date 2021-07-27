@@ -12,15 +12,15 @@ pub use backend::{add_music, add_sound};
 
 pub use audio::serialized;
 
-use crate::Context;
+use crate::EngineContext;
 
-pub fn play_music(ctx: &mut Context, id: music::MusicId) {
+pub fn play_music(ctx: &mut EngineContext, id: music::MusicId) {
     if let Err(err) = music::play_music(ctx, id) {
         log::warn!("Could not play music id {:x} with error {}", id, err);
     }
 }
 
-pub fn play_music_named(ctx: &mut Context, music: &str) {
+pub fn play_music_named(ctx: &mut EngineContext, music: &str) {
     if let Err(err) = music::play_music_named(ctx, music) {
         log::warn!(
             "Could not play music named \"{}\" with error {}",
@@ -29,7 +29,7 @@ pub fn play_music_named(ctx: &mut Context, music: &str) {
     }
 }
 
-pub fn play_sound(ctx: &Context, sound: &sound::Sound) {
+pub fn play_sound(ctx: &EngineContext, sound: &sound::Sound) {
     if let Err(err) = sound::play_sound(ctx, &sound) {
         log::warn!("Could not play sound {} with error {}", sound, err);
     }

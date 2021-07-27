@@ -2,17 +2,17 @@ use crate::tetra::input::{self, GamepadButton};
 use enum_map::EnumMap;
 use hashbrown::HashSet;
 
-use crate::{Context, input::Control};
+use crate::{EngineContext, input::Control};
 
 pub type ButtonSet = HashSet<GamepadButton>;
 pub type ButtonMap = EnumMap<Control, GamepadButton>;
 
-pub fn pressed(ctx: &Context, control: Control) -> bool {
-    input::is_gamepad_button_pressed(ctx, 0, ctx.game.controls.controller[control])
+pub fn pressed(ctx: &EngineContext, control: Control) -> bool {
+    input::is_gamepad_button_pressed(ctx, 0, ctx.controls.controller[control])
 }
 
-pub fn down(ctx: &Context, control: Control) -> bool {
-    input::is_gamepad_button_down(ctx, 0, ctx.game.controls.controller[control])
+pub fn down(ctx: &EngineContext, control: Control) -> bool {
+    input::is_gamepad_button_down(ctx, 0, ctx.controls.controller[control])
 }
 
 pub fn default_button_map() -> ButtonMap {

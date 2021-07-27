@@ -9,7 +9,9 @@ use {
     tetra::audio::{Sound as Audio, SoundInstance as AudioInstance},
 };
 
-use tetra::{graphics::Texture, TetraContext};
+use std::ops::{Deref, DerefMut};
+
+use tetra::{Context, graphics::Texture};
 
 use crate::{
     font::SerializedFonts,
@@ -20,13 +22,29 @@ use crate::{
     },
 };
 
-pub struct GameContext {
+pub struct EngineContext {
+    pub tetra: Context,
     pub text_renderer: TextRenderer,
     pub controls: GameControls,
     #[cfg(feature = "audio")]
     pub audio: GameAudio,
+
     pub(crate) white: Texture,
     pub(crate) panel: Texture,
+}
+
+impl Deref for EngineContext {
+    type Target = Context;
+
+    fn deref(&self) -> &Self::Target {
+        &self.tetra
+    }
+}
+
+impl DerefMut for EngineContext {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.tetra
+    }
 }
 
 pub struct GameControls {
@@ -46,16 +64,16 @@ pub struct GameAudio {
     pub sound: GameAudioMap<Sound>,
 }
 
-impl GameContext {
-    pub fn new(ctx: &mut TetraContext, fonts: SerializedFonts) -> tetra::Result<Self> {
+impl EngineContext {
+    pub fn new(mut ctx: Context, fonts: SerializedFonts) -> tetra::Result<Self> {
         Ok(Self {
-            text_renderer: TextRenderer::new(ctx, fonts)?,
+            text_renderer: TextRenderer::new(&mut ctx, fonts)?,
             controls: GameControls {
                 keyboard: default_key_map(),
                 controller: default_button_map(),
             },
             white: byte_texture(
-                ctx,
+                &mut ctx,
                 &[
                     0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49,
                     0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02,
@@ -69,9 +87,10 @@ impl GameContext {
                     0x60, 0x82,
                 ],
             ),
-            panel: byte_texture(ctx, include_bytes!("../assets/panel.png")),
+            panel: byte_texture(&mut ctx, include_bytes!("../assets/panel.png")),
             #[cfg(feature = "audio")]
             audio: Default::default(),
+            tetra: ctx,
         })
     }
 
