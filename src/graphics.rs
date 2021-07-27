@@ -213,7 +213,9 @@ pub fn fade_in(
 pub trait TextureManager {
     type Id: Eq + std::hash::Hash + core::fmt::Display;
 
-    fn map(&mut self) -> &mut hashbrown::HashMap<Self::Id, Texture>;
+    fn map(&self) -> &hashbrown::HashMap<Self::Id, Texture>;
+
+    fn map_mut(&mut self) -> &mut hashbrown::HashMap<Self::Id, Texture>;
 
     fn name() -> &'static str {
         let name = std::any::type_name::<Self>();
@@ -221,10 +223,10 @@ pub trait TextureManager {
     }
 
     fn set(&mut self, map: hashbrown::HashMap<Self::Id, Texture>) {
-        *self.map() = map;
+        *self.map_mut() = map;
     }
 
-    fn get(&mut self, id: &Self::Id) -> &Texture {
+    fn get(&self, id: &Self::Id) -> &Texture {
         self.try_get(id).unwrap_or_else(|| {
             panic!(
                 "Could not get texture from texture manager \"{}\" with id {}",
@@ -234,7 +236,7 @@ pub trait TextureManager {
         })
     }
 
-    fn try_get(&mut self, id: &Self::Id) -> Option<&Texture> {
+    fn try_get(&self, id: &Self::Id) -> Option<&Texture> {
         self.map().get(id)
     }
 }
