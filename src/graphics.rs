@@ -210,42 +210,31 @@ pub fn fade_in(
     );
 }
 
-use hashbrown::HashMap;
-use std::{fmt::Display, hash::Hash};
-
 pub trait TextureManager {
-    type Id: Eq + Hash + Display;
+    type Id: Eq + std::hash::Hash + core::fmt::Display;
 
-    fn map<'a>() -> &'a mut Option<HashMap<Self::Id, Texture>>;
+    fn map(&mut self) -> &mut hashbrown::HashMap<Self::Id, Texture>;
 
     fn name() -> &'static str {
         let name = std::any::type_name::<Self>();
         name.split("::").last().unwrap_or(name)
     }
 
-    fn set(map: HashMap<Self::Id, Texture>) {
-        *Self::map() = Some(map);
+    fn set(&mut self, map: hashbrown::HashMap<Self::Id, Texture>) {
+        *self.map() = map;
     }
 
-    fn get(id: &Self::Id) -> &Texture {
-        Self::try_get(id).unwrap_or_else(|| {
+    fn get(&mut self, id: &Self::Id) -> &Texture {
+        self.try_get(id).unwrap_or_else(|| {
             panic!(
-                "Could not get texture from exture manager \"{}\" with id {}",
+                "Could not get texture from texture manager \"{}\" with id {}",
                 Self::name(),
                 id
             )
         })
     }
 
-    fn try_get(id: &Self::Id) -> Option<&Texture> {
-        Self::map()
-            .as_ref()
-            .unwrap_or_else(|| {
-                panic!(
-                    "Texture manager \"{}\" has not been initialized!",
-                    Self::name()
-                )
-            })
-            .get(id)
+    fn try_get(&mut self, id: &Self::Id) -> Option<&Texture> {
+        self.map().get(id)
     }
 }
