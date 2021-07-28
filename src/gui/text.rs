@@ -17,14 +17,14 @@ pub struct MessageBox {
     pub font: FontId,
     pub message: Message,
 
-    page: usize,
-    line: usize,
-
-    accumulator: f32,
-
     timer: Timer,
     button: Button,
 
+    page: usize,
+    line: usize,
+    accumulator: f32,
+
+    waiting: bool,
     finished: bool,
 }
 
@@ -45,22 +45,16 @@ impl MessageBox {
     pub fn new(origin: Vec2<f32>, font: FontId) -> Self {
         Self {
             alive: false,
-
             origin,
-
             font,
             message: Default::default(),
-
+            timer: Default::default(),
+            button: Default::default(),
             page: 0,
             line: 0,
-
             accumulator: 0.0,
-
-            // can_continue: false,
+            waiting: false,
             finished: false,
-            timer: Default::default(),
-
-            button: Default::default(),
         }
     }
 
@@ -84,16 +78,20 @@ impl MessageBox {
         self.message.color = color;
     }
 
-    pub fn len(&self) -> usize {
-        self.message.pages.len()
-    }
-
     pub fn is_empty(&self) -> bool {
-        self.len() == 0
+        self.pages() == 0
     }
 
     pub fn page(&self) -> usize {
         self.page
+    }
+
+    pub fn pages(&self) -> usize {
+        self.message.pages.len()
+    }
+
+    pub fn waiting(&self) -> bool {
+        self.waiting
     }
 
     fn reset_page(&mut self) {
@@ -116,12 +114,14 @@ impl MessageBox {
                                 self.timer.accumulator = 0.0;
                                 self.timer.length = wait;
                                 self.timer.alive = true;
+                                self.waiting = true;
                             }
                             true => {
                                 self.timer.accumulator += delta;
                                 if self.timer.accumulator >= self.timer.length {
+                                    self.waiting = false;
                                     self.timer.alive = false;
-                                    match self.page + 1 >= self.len() {
+                                    match self.page + 1 >= self.pages() {
                                         true => self.finished = true,
                                         false => {
                                             self.page += 1;
@@ -132,6 +132,9 @@ impl MessageBox {
                             }
                         },
                         None => {
+
+                            self.waiting = true;
+
                             self.button.position += match self.button.direction {
                                 true => delta,
                                 false => -delta,
@@ -142,7 +145,8 @@ impl MessageBox {
                             }
 
                             if pressed(ctx, Control::A) {
-                                match self.page + 1 >= self.len() {
+                                self.waiting = false;
+                                match self.page + 1 >= self.pages() {
                                     true => self.finished = true,
                                     false => {
                                         self.page += 1;
@@ -209,13 +213,12 @@ impl Reset for MessageBox {
         self.page = 0;
         self.reset_page();
         self.button = Default::default();
-        self.finished = false;
     }
 }
 
 impl Completable for MessageBox {
     fn finished(&self) -> bool {
-        (!(self.page < self.len()) && self.finished) || self.is_empty()
+        self.finished || self.is_empty()
     }
 }
 
