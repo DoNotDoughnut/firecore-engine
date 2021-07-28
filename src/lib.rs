@@ -13,6 +13,7 @@ pub const WIDTH: f32 = 240.0;
 pub const HEIGHT: f32 = 160.0;
 
 pub use context::EngineContext;
+pub use tetra::run;
 
 pub fn build(
     builder: &mut tetra::ContextBuilder,

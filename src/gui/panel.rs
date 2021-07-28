@@ -14,12 +14,11 @@ pub struct Panel;
 impl Panel {
     pub const BACKGROUND: Color = Color::rgb(248.0 / 255.0, 248.0 / 255.0, 248.0 / 255.0);
 
-    pub fn draw(&self, ctx: &mut EngineContext, x: f32, y: f32, w: f32, h: f32) {
-        self.draw_color(ctx, x, y, w, h, Color::WHITE)
+    pub fn draw(ctx: &mut EngineContext, x: f32, y: f32, w: f32, h: f32) {
+        Self::draw_color(ctx, x, y, w, h, Color::WHITE)
     }
 
-    pub fn draw_color(&self, ctx_: &mut EngineContext, x: f32, y: f32, w: f32, h: f32, color: Color) {
-
+    pub fn draw_color(ctx_: &mut EngineContext, x: f32, y: f32, w: f32, h: f32, color: Color) {
         let panel = &ctx_.panel;
         let ctx = &mut ctx_.tetra;
 
@@ -67,7 +66,6 @@ impl Panel {
     }
 
     pub fn draw_text(
-        &self,
         ctx: &mut EngineContext,
         x: f32,
         y: f32,
@@ -79,7 +77,7 @@ impl Panel {
     ) {
         let h = 22.0 + ((text.len() + if add_cancel { 1 } else { 0 }) << 4) as f32;
         let y = if from_bottom { y - h } else { y };
-        self.draw(ctx, x, y, w, h);
+        Self::draw(ctx, x, y, w, h);
         let tx = x + 15.0;
         let ty = y + 11.0;
         for (index, text) in text.iter().enumerate() {
