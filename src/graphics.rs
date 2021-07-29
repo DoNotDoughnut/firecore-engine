@@ -6,7 +6,11 @@ use tetra::{
 
 use crate::{font::FontId, context::EngineContext};
 
-pub mod text;
+mod text;
+mod texture;
+
+pub use self::text::*;
+pub use texture::*;
 
 pub const LIGHTGRAY: Color = Color::rgb(0.78, 0.78, 0.78);
 pub const GRAY: Color = Color::rgb(0.51, 0.51, 0.51);
@@ -208,35 +212,4 @@ pub fn fade_in(
             position
         },
     );
-}
-
-pub trait TextureManager {
-    type Id: Eq + std::hash::Hash + core::fmt::Display;
-
-    fn map(&self) -> &hashbrown::HashMap<Self::Id, Texture>;
-
-    fn map_mut(&mut self) -> &mut hashbrown::HashMap<Self::Id, Texture>;
-
-    fn name() -> &'static str {
-        let name = std::any::type_name::<Self>();
-        name.split("::").last().unwrap_or(name)
-    }
-
-    fn set(&mut self, map: hashbrown::HashMap<Self::Id, Texture>) {
-        *self.map_mut() = map;
-    }
-
-    fn get(&self, id: &Self::Id) -> &Texture {
-        self.try_get(id).unwrap_or_else(|| {
-            panic!(
-                "Could not get texture from texture manager \"{}\" with id {}",
-                Self::name(),
-                id
-            )
-        })
-    }
-
-    fn try_get(&self, id: &Self::Id) -> Option<&Texture> {
-        self.map().get(id)
-    }
 }

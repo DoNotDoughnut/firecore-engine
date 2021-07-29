@@ -15,7 +15,7 @@ use tetra::{Context, graphics::Texture};
 
 use crate::{
     font::SerializedFonts,
-    graphics::{byte_texture, text::TextRenderer},
+    graphics::{byte_texture, TextRenderer},
     input::{
         controller::{default_button_map, ButtonMap},
         keyboard::{default_key_map, KeyMap},

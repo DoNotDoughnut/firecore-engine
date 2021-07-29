@@ -24,3 +24,8 @@ pub fn date() -> u64 {
         .unwrap_or_default()
         % 1000
 }
+
+pub fn type_name<T: ?Sized>() -> &'static str {
+    let name = std::any::type_name::<T>();
+    name.split("::").last().unwrap_or(name)
+}
