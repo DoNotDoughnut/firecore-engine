@@ -169,7 +169,7 @@ impl MessageBox {
                     let (string, finished) = if line.len() > len {
                         (&line[..len], false)
                     } else {
-                        (line.as_str(), true)
+                        (line.as_str(), self.line + 1 >= page.lines.len())
                     };
 
                     let y = (self.line << 4) as f32;
@@ -212,6 +212,7 @@ impl Reset for MessageBox {
     fn reset(&mut self) {
         self.page = 0;
         self.reset_page();
+        self.finished = false;
         self.button = Default::default();
     }
 }

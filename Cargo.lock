@@ -304,7 +304,6 @@ name = "firecore-dependencies"
 version = "0.5.0-beta.2021-07-05"
 source = "git+https://github.com/DoNotDoughnut/firecore-dependencies#d198f00ae9d88f7186de7d619dfeed1ec2c077cf"
 dependencies = [
- "bincode",
  "tinystr",
 ]
 
@@ -312,10 +311,10 @@ dependencies = [
 name = "firecore-engine"
 version = "0.2.0"
 dependencies = [
+ "bincode",
  "dashmap",
  "enum-map",
  "firecore-audio",
- "firecore-dependencies",
  "firecore-text",
  "hashbrown",
  "log",

@@ -1,17 +1,9 @@
-#[cfg(feature = "audio")]
-use {
-    dashmap::DashMap,
-    firecore_audio::{
-        music::{MusicId, MusicName},
-        sound::Sound,
-    },
-    std::sync::Arc,
-    tetra::audio::{Sound as Audio, SoundInstance as AudioInstance},
-};
-
 use std::ops::{Deref, DerefMut};
 
 use tetra::{Context, graphics::Texture};
+
+#[cfg(feature = "audio")]
+pub mod audio;
 
 use crate::{
     font::SerializedFonts,
@@ -27,7 +19,7 @@ pub struct EngineContext {
     pub text_renderer: TextRenderer,
     pub controls: GameControls,
     #[cfg(feature = "audio")]
-    pub audio: GameAudio,
+    pub audio: audio::GameAudio,
 
     pub(crate) white: Texture,
     pub(crate) panel: Texture,
@@ -50,18 +42,6 @@ impl DerefMut for EngineContext {
 pub struct GameControls {
     pub keyboard: KeyMap,
     pub controller: ButtonMap,
-}
-
-#[cfg(feature = "audio")]
-pub type GameAudioMap<K, V = Audio> = Arc<DashMap<K, V>>;
-
-#[cfg(feature = "audio")]
-#[derive(Default)]
-pub struct GameAudio {
-    pub music_id: GameAudioMap<MusicName, MusicId>,
-    pub music: GameAudioMap<MusicId>, // To - do: looping to specific points
-    pub current_music: Option<(MusicId, AudioInstance)>,
-    pub sound: GameAudioMap<Sound>,
 }
 
 impl EngineContext {
@@ -94,16 +74,4 @@ impl EngineContext {
         })
     }
 
-    #[cfg(feature = "audio")]
-    pub fn audio(&self, audio_data: crate::audio::serialized::SerializedAudio) {
-        for music_data in audio_data.music {
-            let music = self.audio.music.clone();
-            let ids = self.audio.music_id.clone();
-            std::thread::spawn(move || crate::audio::add_music(&music, &ids, music_data));
-        }
-        for sound_data in audio_data.sounds {
-            let sounds = self.audio.sound.clone();
-            std::thread::spawn(move || crate::audio::add_sound(&sounds, sound_data));
-        }
-    }
 }

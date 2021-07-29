@@ -7,7 +7,7 @@ use crate::{
         sound::Sound,
         music::{MusicId, MusicName},
     },
-    context::GameAudioMap,
+    context::audio::GameAudioMap,
 };
 
 use tetra::audio::Sound as Audio;

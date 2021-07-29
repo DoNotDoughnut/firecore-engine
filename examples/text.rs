@@ -10,7 +10,7 @@ use firecore_engine as engine;
 fn main() -> Result {
     let mut ctx = engine::build(
         &mut ContextBuilder::new("MessageBox", engine::WIDTH as _, engine::HEIGHT as _),
-        firecore_dependencies::ser::deserialize(include_bytes!(
+        bincode::deserialize(include_bytes!(
             "../../../pokemon-game/build/data/fonts.bin"
         ))
         .unwrap(),
