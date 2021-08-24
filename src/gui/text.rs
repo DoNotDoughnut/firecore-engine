@@ -17,7 +17,6 @@ pub struct MessageBox {
     pub font: FontId,
     pub message: Message,
 
-    timer: Timer,
     button: Button,
 
     page: usize,
@@ -26,13 +25,6 @@ pub struct MessageBox {
 
     waiting: bool,
     finished: bool,
-}
-
-#[derive(Default, Clone, Copy)]
-struct Timer {
-    length: f32,
-    accumulator: f32,
-    alive: bool,
 }
 
 #[derive(Default, Clone, Copy)]
@@ -48,7 +40,6 @@ impl MessageBox {
             origin,
             font,
             message: Default::default(),
-            timer: Default::default(),
             button: Default::default(),
             page: 0,
             line: 0,
@@ -112,34 +103,24 @@ impl MessageBox {
                                 .unwrap_or_default()
                         {
                             self.accumulator += delta * 30.0;
-                        } else if self.line < page.lines.len() - 1 {
-                            self.line += 1;
-                            self.accumulator = 0.0;
                         } else {
-                            self.waiting = true;
-                            self.update(ctx, delta);
+                            self.accumulator = 0.0;
+                            if self.line < page.lines.len() - 1 {
+                                self.line += 1;
+                            } else {
+                                self.waiting = true;
+                            }
                         }
                     }
                     true => match page.wait {
-                        Some(wait) => match self.timer.alive {
-                            false => {
-                                self.timer.accumulator = 0.0;
-                                self.timer.length = wait;
-                                self.timer.alive = true;
-                                self.update(ctx, delta);
-                            }
-                            true => {
-                                self.timer.accumulator += delta;
-                                if self.timer.accumulator >= self.timer.length {
-                                    self.timer.alive = false;
-                                    self.finish_waiting();
-                                }
-                            }
-                        },
-                        None => match pressed(ctx, Control::A) {
-                            true => {
+                        Some(wait) => {
+                            self.accumulator += delta;
+                            if self.accumulator >= wait {
                                 self.finish_waiting();
                             }
+                        }
+                        None => match pressed(ctx, Control::A) {
+                            true => self.finish_waiting(),
                             false => {
                                 self.button.position += match self.button.direction {
                                     true => delta,
