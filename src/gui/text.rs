@@ -104,11 +104,20 @@ impl MessageBox {
             match self.message.pages.get(self.page) {
                 Some(page) => match self.waiting {
                     false => {
-                        if (self.accumulator as usize) < page.lines[self.line].len() {
+                        if (self.accumulator as usize)
+                            < page
+                                .lines
+                                .get(self.line)
+                                .map(String::len)
+                                .unwrap_or_default()
+                        {
                             self.accumulator += delta * 30.0;
                         } else if self.line < page.lines.len() - 1 {
                             self.line += 1;
                             self.accumulator = 0.0;
+                        } else {
+                            self.waiting = true;
+                            self.update(ctx, delta);
                         }
                     }
                     true => match page.wait {
@@ -117,49 +126,45 @@ impl MessageBox {
                                 self.timer.accumulator = 0.0;
                                 self.timer.length = wait;
                                 self.timer.alive = true;
-                                self.waiting = true;
+                                self.update(ctx, delta);
                             }
                             true => {
                                 self.timer.accumulator += delta;
                                 if self.timer.accumulator >= self.timer.length {
-                                    self.waiting = false;
                                     self.timer.alive = false;
-                                    match self.page + 1 >= self.pages() {
-                                        true => self.finished = true,
-                                        false => {
-                                            self.page += 1;
-                                            self.reset_page();
-                                        }
-                                    }
+                                    self.finish_waiting();
                                 }
                             }
                         },
-                        None => {
-                            self.waiting = true;
-
-                            self.button.position += match self.button.direction {
-                                true => delta,
-                                false => -delta,
-                            } * 7.5;
-
-                            if self.button.position.abs() > 3.0 {
-                                self.button.direction = !self.button.direction;
+                        None => match pressed(ctx, Control::A) {
+                            true => {
+                                self.finish_waiting();
                             }
+                            false => {
+                                self.button.position += match self.button.direction {
+                                    true => delta,
+                                    false => -delta,
+                                } * 7.5;
 
-                            if pressed(ctx, Control::A) {
-                                self.waiting = false;
-                                match self.page + 1 >= self.pages() {
-                                    true => self.finished = true,
-                                    false => {
-                                        self.page += 1;
-                                        self.reset_page();
-                                    }
+                                if self.button.position.abs() > 3.0 {
+                                    self.button.direction = !self.button.direction;
                                 }
                             }
-                        }
+                        },
                     },
                 },
                 None => self.finished = true,
+            }
+        }
+    }
+
+    fn finish_waiting(&mut self) {
+        self.waiting = false;
+        match self.page + 1 >= self.pages() {
+            true => self.finished = true,
+            false => {
+                self.page += 1;
+                self.reset_page();
             }
         }
     }
