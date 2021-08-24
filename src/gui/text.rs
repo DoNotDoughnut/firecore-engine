@@ -101,14 +101,17 @@ impl MessageBox {
 
     pub fn update(&mut self, ctx: &EngineContext, delta: f32) {
         if self.alive {
-            if let Some(page) = self.message.pages.get(self.page) {
-                if (self.accumulator as usize) < page.lines[self.line].len() {
-                    self.accumulator += delta * 30.0;
-                } else if self.line < page.lines.len() - 1 {
-                    self.line += 1;
-                    self.accumulator = 0.0;
-                } else {
-                    match page.wait {
+            match self.message.pages.get(self.page) {
+                Some(page) => match self.waiting {
+                    false => {
+                        if (self.accumulator as usize) < page.lines[self.line].len() {
+                            self.accumulator += delta * 30.0;
+                        } else if self.line < page.lines.len() - 1 {
+                            self.line += 1;
+                            self.accumulator = 0.0;
+                        }
+                    }
+                    true => match page.wait {
                         Some(wait) => match self.timer.alive {
                             false => {
                                 self.timer.accumulator = 0.0;
@@ -132,7 +135,6 @@ impl MessageBox {
                             }
                         },
                         None => {
-
                             self.waiting = true;
 
                             self.button.position += match self.button.direction {
@@ -155,8 +157,9 @@ impl MessageBox {
                                 }
                             }
                         }
-                    }
-                }
+                    },
+                },
+                None => self.finished = true,
             }
         }
     }
