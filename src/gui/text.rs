@@ -115,7 +115,7 @@ impl MessageBox {
                     true => match page.wait {
                         Some(wait) => {
                             self.accumulator += delta;
-                            if self.accumulator >= wait {
+                            if self.accumulator.abs() >= wait.abs() {
                                 self.finish_waiting();
                             }
                         }
@@ -155,7 +155,7 @@ impl MessageBox {
             if let Some(page) = self.message.pages.get(self.page) {
                 if let Some(line) = page.lines.get(self.line) {
                     let len = self.accumulator as usize;
-                    let (string, finished) = if line.len() > len {
+                    let (string, finished) = if line.len() > len && !self.waiting {
                         (&line[..len], false)
                     } else {
                         (line.as_str(), self.line + 1 >= page.lines.len())

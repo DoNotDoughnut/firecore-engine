@@ -1,3 +1,4 @@
+#[derive(Debug, Clone, Copy)]
 pub struct ProgressBar {
     width: f32,
     gap: f32,
@@ -50,4 +51,10 @@ impl ProgressBar {
 		self.width + self.gap
 	}
 
+}
+
+impl Default for ProgressBar {
+    fn default() -> Self {
+        Self::new(48.0)
+    }
 }

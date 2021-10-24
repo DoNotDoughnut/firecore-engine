@@ -69,15 +69,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
-name = "bincode"
-version = "1.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "bindgen"
 version = "0.56.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -317,7 +308,9 @@ dependencies = [
 
 [[package]]
 name = "firecore-audio"
-version = "0.0.2"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24ea97d3b39d5cd396f5f2dfc5dcf2e31342d4e5a2adaff6b86a47806ba2ffeb"
 dependencies = [
  "serde",
  "tinystr",
@@ -325,12 +318,12 @@ dependencies = [
 
 [[package]]
 name = "firecore-battle"
-version = "0.0.7"
+version = "0.0.6-alpha.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "893ba1b27e407fe1a97d7f761b76ba3de17981703b3edf7bf67556d097af307c"
+checksum = "29096c3c47953a49c4e9b4e32f4886c14f2e64106af457f035d5f3ee9e9ec448"
 dependencies = [
  "crossbeam-channel",
- "firecore-pokedex",
+ "firecore-pokedex 0.0.6-alpha.1",
  "hashbrown",
  "log",
  "rand",
@@ -340,9 +333,8 @@ dependencies = [
 
 [[package]]
 name = "firecore-battle-gui"
-version = "0.0.1"
+version = "0.0.1-alpha.2"
 dependencies = [
- "arrayvec",
  "crossbeam-channel",
  "firecore-battle",
  "firecore-pokedex-engine",
@@ -353,9 +345,10 @@ dependencies = [
 
 [[package]]
 name = "firecore-engine"
-version = "0.0.2"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5ae56a6dc9d82b02c34b3f11aee0c61a7c39c03d35915f83b85bbf35150478d"
 dependencies = [
- "bincode",
  "dashmap",
  "enum-map",
  "firecore-audio",
@@ -368,9 +361,22 @@ dependencies = [
 
 [[package]]
 name = "firecore-pokedex"
-version = "0.0.6"
+version = "0.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04b320737be6651fc70e77031fbd4c8717e3820f44a431e625ba77c1849987be"
+checksum = "4891f805d6409785dd59145ce582fc2ea178fd4f0f15d386b464e3340e9382e0"
+dependencies = [
+ "arrayvec",
+ "hashbrown",
+ "rand",
+ "serde",
+ "tinystr",
+]
+
+[[package]]
+name = "firecore-pokedex"
+version = "0.0.6-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5420db6131c1c6cfa5991e6378060ba5eeb40c30a83d0b2cb96031af1067f685"
 dependencies = [
  "arrayvec",
  "hashbrown",
@@ -381,10 +387,12 @@ dependencies = [
 
 [[package]]
 name = "firecore-pokedex-engine"
-version = "0.0.2-alpha.1"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "36c928e12d37ee3eee7a19e342d2049c3f3108fb9f2ad7798ecb26da09f07df5"
 dependencies = [
  "firecore-engine",
- "firecore-pokedex",
+ "firecore-pokedex 0.0.5",
  "hashbrown",
  "log",
  "serde",
@@ -413,6 +421,8 @@ dependencies = [
 [[package]]
 name = "firecore-text"
 version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63fc8bf14ed83ed41f97f3b91c363ab6a47cd903d1bd605f0c066d1db6b33290"
 dependencies = [
  "serde",
 ]
@@ -697,9 +707,9 @@ checksum = "19b17cddbe7ec3f8bc800887bab5e717348c95ea2ca0b1bf0837fb964dc67099"
 
 [[package]]
 name = "pkg-config"
-version = "0.3.22"
+version = "0.3.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12295df4f294471248581bc09bef3c38a5e46f1e36d6a37353621a0c6c357e1f"
+checksum = "10e2fcbb64ecbe64c8e040a386c3104d384583af58b956d870aaaf229df6e66d"
 
 [[package]]
 name = "png"
