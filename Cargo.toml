@@ -1,19 +1,28 @@
 [package]
 name = "firecore-engine"
-version = "0.2.0"
-authors = ["Rhys Holloway <rhyswilliamholloway@gmail.com>"]
+description = "Base engine for my games"
+version = "0.0.1"
+authors = ["Rhys H <donotdoughnut99@gmail.com>"]
 edition = "2018"
+license = "MIT"
+repository = "https://github.com/fiirecore/engine"
+readme = "README.md"
 
 [features]
 default = []
-audio = ["tetra/audio", "tetra/audio_vorbis", "dashmap"]
+audio = ["firecore-tetra/audio", "firecore-tetra/audio_vorbis", "dashmap"]
 
 [dependencies]
-tetra = { git="https://github.com/DoNotDoughnut/tetra", branch="main", default-features=false, features=["serde_support", "texture_png", "sdl2_static_link", "sdl2_bundled"] }
-firecore-text = { git="https://github.com/DoNotDoughnut/firecore-text" }
-firecore-audio = { git="https://github.com/DoNotDoughnut/firecore-audio" }
-enum-map = { version="1", features=["serde"] }
-serde = { version="1", features=["derive"] }
+firecore-tetra = { version = "0.0.1", default-features = false, features = [
+    "serde_support",
+    "texture_png",
+    "sdl2_static_link",
+    "sdl2_bundled",
+] }
+firecore-text = "0.0.1"
+firecore-audio = "0.0.1"
+enum-map = { version = "1", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
 hashbrown = "0.11"
 dashmap = { version = "4", optional = true }
 

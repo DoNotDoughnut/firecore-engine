@@ -1,3 +1,5 @@
+extern crate firecore_tetra as tetra;
+
 use engine::{
     gui::MessageBox,
     tetra::{graphics::Color, ContextBuilder, Result, State},

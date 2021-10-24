@@ -1,5 +1,5 @@
 pub extern crate firecore_text as text;
-pub extern crate tetra;
+pub extern crate firecore_tetra as tetra;
 
 pub mod audio;
 pub mod context;
