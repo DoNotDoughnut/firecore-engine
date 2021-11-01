@@ -164,7 +164,7 @@ impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
         opponent: &mut GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
-        while !text.finished() {
+        if !text.finished() {
             text.update(ctx, delta);
         }
 
