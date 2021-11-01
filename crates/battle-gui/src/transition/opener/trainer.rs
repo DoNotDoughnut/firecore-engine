@@ -26,8 +26,8 @@ impl TrainerBattleOpener {
     }
 }
 
-impl<ID: Default, const AS: usize> BattleOpener<ID, AS> for TrainerBattleOpener {
-    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID, AS>) {
+impl<ID: Default> BattleOpener<ID> for TrainerBattleOpener {
+    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID>) {
         if let Some(id) = &opponent.trainer {
             self.trainer = Some(ctx.trainer_textures.get(id).clone());
         }

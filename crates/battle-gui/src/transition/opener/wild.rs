@@ -34,8 +34,8 @@ impl WildBattleOpener {
     }
 }
 
-impl<ID, const AS: usize> BattleOpener<ID, AS> for WildBattleOpener {
-    fn spawn(&mut self, _: &PokedexClientContext, _: &GuiRemotePlayer<ID, AS>) {}
+impl<ID> BattleOpener<ID> for WildBattleOpener {
+    fn spawn(&mut self, _: &PokedexClientContext, _: &GuiRemotePlayer<ID>) {}
 
     fn update(&mut self, delta: f32) {
         self.opener.update(delta);

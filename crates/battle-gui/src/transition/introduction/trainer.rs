@@ -37,13 +37,13 @@ impl TrainerBattleIntroduction {
     }
 }
 
-impl<ID: Default, const AS: usize> BattleIntroduction<ID, AS> for TrainerBattleIntroduction {
+impl<ID: Default> BattleIntroduction<ID> for TrainerBattleIntroduction {
     fn spawn(
         &mut self,
         ctx: &PokedexClientContext,
         _battle_type: BattleType,
-        player: &GuiLocalPlayer<ID, AS>,
-        opponent: &GuiRemotePlayer<ID, AS>,
+        player: &GuiLocalPlayer<ID>,
+        opponent: &GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
         text.clear();
@@ -79,8 +79,8 @@ impl<ID: Default, const AS: usize> BattleIntroduction<ID, AS> for TrainerBattleI
         &mut self,
         ctx: &EngineContext,
         delta: f32,
-        player: &mut GuiLocalPlayer<ID, AS>,
-        opponent: &mut GuiRemotePlayer<ID, AS>,
+        player: &mut GuiLocalPlayer<ID>,
+        opponent: &mut GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
         self.introduction.update(ctx, delta, player, opponent, text);

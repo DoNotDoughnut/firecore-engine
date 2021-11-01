@@ -141,9 +141,9 @@ impl MessageBox {
 
     fn finish_waiting(&mut self) {
         self.waiting = false;
-        match self.page + 1 >= self.pages() {
-            true => self.finished = true,
-            false => {
+        match self.page < self.pages() {
+            false => self.finished = true,
+            true => {
                 self.page += 1;
                 self.reset_page();
             }

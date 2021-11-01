@@ -28,7 +28,7 @@ impl<'d> MovePanel<'d> {
         for (index, instance) in instance.moves.iter().enumerate() {
             self.names[index] = Some((
                 instance.0,
-                if instance.empty() {
+                if instance.is_empty() {
                     TextColor::Red
                 } else {
                     TextColor::Black

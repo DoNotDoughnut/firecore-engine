@@ -1,6 +1,9 @@
 use pokedex::{
     ailment::LiveAilment,
-    pokemon::{owned::OwnedPokemon, Experience, Health, Level, Pokemon},
+    pokemon::{
+        owned::{OwnablePokemon, OwnedPokemon},
+        Experience, Health, Level, Pokemon,
+    },
 };
 
 use battle::{
@@ -14,7 +17,7 @@ type Active = usize;
 type PartyIndex = usize;
 
 // #[deprecated(note = "edit")]
-pub trait PlayerView<'d, ID, const AS: usize> {
+pub trait PlayerView<'d, ID> {
     fn id(&self) -> &ID;
 
     fn name(&self) -> &str;
@@ -30,9 +33,7 @@ pub trait PlayerView<'d, ID, const AS: usize> {
     fn replace(&mut self, active: Active, new: Option<PartyIndex>);
 }
 
-impl<'d, ID, A: ActivePokemon, P: GuiPokemonView<'d>, const AS: usize> PlayerView<'d, ID, AS>
-    for PlayerParty<ID, A, P, AS>
-{
+impl<'d, ID, A: ActivePokemon, P: GuiPokemonView<'d>> PlayerView<'d, ID> for PlayerParty<ID, A, P> {
     fn id(&self) -> &ID {
         &self.id
     }
@@ -74,7 +75,7 @@ pub trait GuiPokemonView<'d>: PokemonView {
     fn level(&self) -> Level;
 
     fn set_hp(&mut self, hp: f32);
-    fn hp(&self) -> f32;
+    fn percent_hp(&self) -> f32;
 
     fn set_ailment(&mut self, effect: LiveAilment);
     fn ailment(&mut self) -> Option<&mut LiveAilment>;
@@ -109,8 +110,8 @@ impl<'d> GuiPokemonView<'d> for OwnedPokemon<'d> {
         self.hp = (hp.max(0.0) * self.max_hp() as f32) as Health
     }
 
-    fn hp(&self) -> f32 {
-        self.percent_hp()
+    fn percent_hp(&self) -> f32 {
+        OwnablePokemon::percent_hp(self)
     }
 
     fn set_ailment(&mut self, ailment: LiveAilment) {
@@ -165,7 +166,7 @@ impl<'d> GuiPokemonView<'d> for Option<InitUnknownPokemon<'d>> {
         }
     }
 
-    fn hp(&self) -> f32 {
+    fn percent_hp(&self) -> f32 {
         self.as_ref().map(|v| v.hp).unwrap_or_default()
     }
 

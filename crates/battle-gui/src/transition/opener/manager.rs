@@ -30,12 +30,12 @@ impl BattleOpenerManager {
         }
     }
 
-    pub fn begin<ID: Default, const AS: usize>(
+    pub fn begin<ID: Default>(
         &mut self,
         ctx: &PokedexClientContext,
         state: &mut TransitionState,
         battle_type: BattleType,
-        opponent: &GuiRemotePlayer<ID, AS>,
+        opponent: &GuiRemotePlayer<ID>,
     ) {
         *state = TransitionState::Run;
         self.current = match battle_type {
@@ -43,7 +43,7 @@ impl BattleOpenerManager {
             BattleType::Trainer => Openers::Trainer,
             BattleType::GymLeader => Openers::Trainer,
         };
-        let current = self.get_mut::<ID, AS>();
+        let current = self.get_mut::<ID>();
         current.reset();
         current.spawn(ctx, opponent);
     }
@@ -52,43 +52,43 @@ impl BattleOpenerManager {
     //     *state = TransitionState::Begin;
     // }
 
-    pub fn update<ID: Default, const AS: usize>(
+    pub fn update<ID: Default>(
         &mut self,
         state: &mut TransitionState,
         delta: f32,
     ) {
-        let current = self.get_mut::<ID, AS>();
+        let current = self.get_mut::<ID>();
         current.update(delta);
         if current.finished() {
             *state = TransitionState::End;
         }
     }
 
-    pub fn draw_below_panel<ID: Default, const AS: usize>(
+    pub fn draw_below_panel<ID: Default>(
         &self,
         ctx: &mut EngineContext,
         player: &[ActivePokemonRenderer],
         opponent: &[ActivePokemonRenderer],
     ) {
-        self.get::<ID, AS>().draw_below_panel(ctx, player, opponent);
+        self.get::<ID>().draw_below_panel(ctx, player, opponent);
     }
 
-    pub fn draw<ID: Default, const AS: usize>(&self, ctx: &mut EngineContext) {
-        self.get::<ID, AS>().draw(ctx);
+    pub fn draw<ID: Default>(&self, ctx: &mut EngineContext) {
+        self.get::<ID>().draw(ctx);
     }
 
-    pub fn offset<ID: Default, const AS: usize>(&self) -> f32 {
-        self.get::<ID, AS>().offset()
+    pub fn offset<ID: Default>(&self) -> f32 {
+        self.get::<ID>().offset()
     }
 
-    fn get<ID: Default, const AS: usize>(&self) -> &dyn BattleOpener<ID, AS> {
+    fn get<ID: Default>(&self) -> &dyn BattleOpener<ID> {
         match self.current {
             Openers::Wild => &self.wild,
             Openers::Trainer => &self.trainer,
         }
     }
 
-    fn get_mut<ID: Default, const AS: usize>(&mut self) -> &mut dyn BattleOpener<ID, AS> {
+    fn get_mut<ID: Default>(&mut self) -> &mut dyn BattleOpener<ID> {
         match self.current {
             Openers::Wild => &mut self.wild,
             Openers::Trainer => &mut self.trainer,

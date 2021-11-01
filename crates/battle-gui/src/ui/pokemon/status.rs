@@ -104,7 +104,7 @@ impl PokemonStatusGui {
                 HealthBar::with_size(
                     dex,
                     pokemon
-                        .map(|pokemon| HealthBar::width(pokemon.hp(), pokemon.max_hp()))
+                        .map(|pokemon| HealthBar::width(pokemon.percent_hp()))
                         .unwrap_or_default(),
                 ),
                 hb,
@@ -370,7 +370,7 @@ impl PokemonStatusData {
             self.name = pokemon.name().to_owned();
         }
         if pokemon.level() == previous {
-            health.resize(pokemon.hp(), reset);
+            health.resize(pokemon.percent_hp(), reset);
         }
         if reset {
             self.level = PokemonStatusGui::level(pokemon.level());

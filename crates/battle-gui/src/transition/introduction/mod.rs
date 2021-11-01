@@ -30,13 +30,13 @@ impl Default for Introductions {
     }
 }
 
-pub(crate) trait BattleIntroduction<ID: Default, const AS: usize>: Completable {
+pub(crate) trait BattleIntroduction<ID: Default>: Completable {
     fn spawn(
         &mut self,
         ctx: &PokedexClientContext,
         battle_type: BattleType,
-        player: &GuiLocalPlayer<ID, AS>,
-        opponent: &GuiRemotePlayer<ID, AS>,
+        player: &GuiLocalPlayer<ID>,
+        opponent: &GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     );
 
@@ -44,8 +44,8 @@ pub(crate) trait BattleIntroduction<ID: Default, const AS: usize>: Completable {
         &mut self,
         ctx: &EngineContext,
         delta: f32,
-        player: &mut GuiLocalPlayer<ID, AS>,
-        opponent: &mut GuiRemotePlayer<ID, AS>,
+        player: &mut GuiLocalPlayer<ID>,
+        opponent: &mut GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     );
 
@@ -69,13 +69,13 @@ impl BattleIntroductionManager {
         }
     }
 
-    pub fn begin<ID: Default, const AS: usize>(
+    pub fn begin<ID: Default>(
         &mut self,
         ctx: &PokedexClientContext,
         state: &mut TransitionState,
         battle_type: BattleType,
-        player: &GuiLocalPlayer<ID, AS>,
-        opponent: &GuiRemotePlayer<ID, AS>,
+        player: &GuiLocalPlayer<ID>,
+        opponent: &GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
         *state = TransitionState::Run;
@@ -93,13 +93,13 @@ impl BattleIntroductionManager {
         text.clear();
     }
 
-    pub fn update<ID: Default, const AS: usize>(
+    pub fn update<ID: Default>(
         &mut self,
         state: &mut TransitionState,
         ctx: &EngineContext,
         delta: f32,
-        player: &mut GuiLocalPlayer<ID, AS>,
-        opponent: &mut GuiRemotePlayer<ID, AS>,
+        player: &mut GuiLocalPlayer<ID>,
+        opponent: &mut GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
         let current = self.get_mut();
@@ -109,23 +109,23 @@ impl BattleIntroductionManager {
         }
     }
 
-    pub fn draw<ID: Default, const AS: usize>(
+    pub fn draw<ID: Default>(
         &self,
         ctx: &mut EngineContext,
         player: &[ActivePokemonRenderer],
         opponent: &[ActivePokemonRenderer],
     ) {
-        self.get::<ID, AS>().draw(ctx, player, opponent);
+        self.get::<ID>().draw(ctx, player, opponent);
     }
 
-    fn get<ID: Default, const AS: usize>(&self) -> &dyn BattleIntroduction<ID, AS> {
+    fn get<ID: Default>(&self) -> &dyn BattleIntroduction<ID> {
         match self.current {
             Introductions::Basic => &self.basic,
             Introductions::Trainer => &self.trainer,
         }
     }
 
-    fn get_mut<ID: Default, const AS: usize>(&mut self) -> &mut dyn BattleIntroduction<ID, AS> {
+    fn get_mut<ID: Default>(&mut self) -> &mut dyn BattleIntroduction<ID> {
         match self.current {
             Introductions::Basic => &mut self.basic,
             Introductions::Trainer => &mut self.trainer,

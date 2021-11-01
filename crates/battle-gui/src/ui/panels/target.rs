@@ -23,7 +23,7 @@ impl TargetPanel {
         }
     }
 
-    pub fn update_names<'d, ID, P: GuiPokemonView<'d>, const AS: usize>(&mut self, targets: &PlayerParty<ID, usize, P, AS>) {
+    pub fn update_names<'d, ID, P: GuiPokemonView<'d>>(&mut self, targets: &PlayerParty<ID, usize, P>) {
         self.names.clear();
         self.names.extend(targets.active.iter().map(|i| {
             i.map(|index| targets.pokemon.get(index))

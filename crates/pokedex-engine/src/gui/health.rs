@@ -59,8 +59,8 @@ impl HealthBar {
         &ctx.health_bar
     }
 
-    pub fn width(current: Health, max: Health) -> f32 {
-        current as f32 * Self::WIDTH / max as f32
+    pub fn width(percent_hp: f32) -> f32 {
+        percent_hp as f32 * Self::WIDTH
     }
 
     pub fn resize_hp(&mut self, current: Health, max: Health, reset: bool) {

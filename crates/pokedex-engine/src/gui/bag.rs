@@ -53,7 +53,7 @@ impl BagGui {
         }
     }
 
-    pub fn input<'d>(&self, ctx: &EngineContext, items: &mut [ItemStack<&'d Item>]) {
+    pub fn input<'d>(&self, ctx: &EngineContext, items: &[ItemStack<&'d Item>]) {
         match self.selecting.get() {
             true => {
                 // match self.select_text {
@@ -174,8 +174,7 @@ impl BagGui {
         selected
             .map(|selected| {
                 self.selected.set(None);
-                let item = items[selected]
-                    .decrement()
+                let item = items[selected].try_use()
                     .then(|| items[selected].item);
                 self.despawn();
                 item

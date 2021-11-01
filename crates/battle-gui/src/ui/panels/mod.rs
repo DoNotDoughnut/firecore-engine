@@ -65,7 +65,7 @@ impl<'d> BattlePanel<'d> {
         self.spawn();
     }
 
-    pub fn target<ID, P: GuiPokemonView<'d>, const AS: usize>(&mut self, targets: &PlayerParty<ID, usize, P, AS>) {
+    pub fn target<ID, P: GuiPokemonView<'d>>(&mut self, targets: &PlayerParty<ID, usize, P>) {
         self.targets.update_names(targets);
     }
 

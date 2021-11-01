@@ -33,8 +33,8 @@ impl Default for Openers {
     }
 }
 
-pub(crate) trait BattleOpener<ID, const AS: usize>: Completable {
-    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID, AS>);
+pub(crate) trait BattleOpener<ID>: Completable {
+    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID>);
 
     fn update(&mut self, delta: f32);
 
@@ -80,10 +80,10 @@ impl DefaultBattleOpener {
 }
 
 impl DefaultBattleOpener {
-    pub fn spawn<ID: Default, const AS: usize>(
+    pub fn spawn<ID: Default>(
         &mut self,
         _: &PokedexClientContext,
-        _: &GuiRemotePlayer<ID, AS>,
+        _: &GuiRemotePlayer<ID>,
     ) {
     }
 

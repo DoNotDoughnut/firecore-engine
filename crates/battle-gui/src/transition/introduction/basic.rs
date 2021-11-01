@@ -43,8 +43,8 @@ impl BasicBattleIntroduction {
         }
     }
 
-    #[deprecated(note = "bad code, return vec of string (lines)")]
-    pub(crate) fn concatenate<'d, ID, P: GuiPokemonView<'d>, const AS: usize>(party: &PlayerParty<ID, usize, P, AS>) -> String {
+    /// To - do: fix this function
+    pub(crate) fn concatenate<'d, ID, P: GuiPokemonView<'d>>(party: &PlayerParty<ID, usize, P>) -> String {
         let mut string = String::with_capacity(
             party
                 .active_iter()
@@ -66,10 +66,10 @@ impl BasicBattleIntroduction {
         string
     }
 
-    pub(crate) fn common_setup<ID: Default, const AS: usize>(
+    pub(crate) fn common_setup<ID: Default>(
         &mut self,
         text: &mut MessageBox,
-        player: &GuiLocalPlayer<ID, AS>,
+        player: &GuiLocalPlayer<ID>,
     ) {
         text.push(MessagePage {
             lines: vec![format!("Go! {}!", Self::concatenate(&player.player))],
@@ -136,13 +136,13 @@ impl BasicBattleIntroduction {
 
 }
 
-impl<ID: Default, const AS: usize> BattleIntroduction<ID, AS> for BasicBattleIntroduction {
+impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
     fn spawn(
         &mut self,
         _: &PokedexClientContext,
         _: BattleType,
-        player: &GuiLocalPlayer<ID, AS>,
-        opponent: &GuiRemotePlayer<ID, AS>,
+        player: &GuiLocalPlayer<ID>,
+        opponent: &GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
         text.clear();
@@ -160,11 +160,13 @@ impl<ID: Default, const AS: usize> BattleIntroduction<ID, AS> for BasicBattleInt
         &mut self,
         ctx: &EngineContext,
         delta: f32,
-        player: &mut GuiLocalPlayer<ID, AS>,
-        opponent: &mut GuiRemotePlayer<ID, AS>,
+        player: &mut GuiLocalPlayer<ID>,
+        opponent: &mut GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
-        text.update(ctx, delta);
+        while !text.finished() {
+            text.update(ctx, delta);
+        }
 
         if text.page() + 1 == text.pages() && self.counter < Self::PLAYER_DESPAWN {
             self.counter += delta * 180.0;

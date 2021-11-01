@@ -83,7 +83,7 @@ impl<'d> LevelUpMovePanel<'d> {
                     if a {
                         self.move_panel.names[self.move_panel.cursor] =
                         Some((pokemon_move, TextColor::Black));
-                        pokemon.moves.add(Some(self.move_panel.cursor), &pokemon_move.id);
+                        pokemon.moves.add(Some(self.move_panel.cursor), pokemon_move);
                         return Some((self.move_panel.cursor, pokemon_move));
                     }
                 }

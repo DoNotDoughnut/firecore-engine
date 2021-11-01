@@ -8,7 +8,7 @@ use context::BattleGuiContext;
 use log::{warn, debug};
 use hashbrown::HashMap;
 
-use pokedex::{Dex, Initializable, context::PokedexClientContext, gui::{bag::BagGui, party::PartyGui}, item::{Item, bag::Bag, usage::ItemUsageKind}, moves::{Move, MoveTarget}, pokemon::{Pokemon, owned::OwnedPokemon, party::Party}, types::Effective};
+use pokedex::{Dex, Initializable, context::PokedexClientContext, gui::{bag::BagGui, party::PartyGui}, item::{Item, bag::OwnedBag, usage::ItemUsageKind}, moves::{Move, MoveTarget}, pokemon::{Pokemon, owned::OwnedPokemon, party::Party}, types::Effective};
 
 use pokedex::engine::{
     graphics::ZERO, 
@@ -43,7 +43,7 @@ use action::*;
 
 use self::transition::TransitionState;
 
-pub struct BattlePlayerGui<'d, ID: Default + Eq + Hash, const AS: usize> {
+pub struct BattlePlayerGui<'d, ID: Default + Eq + Hash> {
 
     context: BattleGuiContext,
 
@@ -56,15 +56,15 @@ pub struct BattlePlayerGui<'d, ID: Default + Eq + Hash, const AS: usize> {
 
     pub data: BattleData,
 
-    pub local: GuiLocalPlayer<'d, ID, AS>,
-    pub remotes: HashMap<ID, GuiRemotePlayer<'d, ID, AS>>,
+    pub local: GuiLocalPlayer<'d, ID>,
+    pub remotes: HashMap<ID, GuiRemotePlayer<'d, ID>>,
 
-    client: MpscClient<ID, AS>,
-    endpoint: MpscEndpoint<ID, AS>,
+    client: MpscClient<ID>,
+    endpoint: MpscEndpoint<ID>,
 
-    pokedex: &'d dyn Dex<Pokemon>,
-    movedex: &'d dyn Dex<Move>,
-    itemdex: &'d dyn Dex<Item>,
+    pokedex: &'d dyn Dex<'d, Pokemon, &'d Pokemon>,
+    movedex: &'d dyn Dex<'d, Move, &'d Move>,
+    itemdex: &'d dyn Dex<'d, Item, &'d Item>,
 
 }
 
@@ -84,10 +84,11 @@ enum BattlePlayerState<'d, ID> {
     /// Current, Max
     Select(usize, usize),
     Moving(MoveQueue<'d, ID>),
-    // Winner(Option<ID>),
+    PlayerEnd,
+    GameEnd(Option<ID>),
 }
 
-impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerGui<'d, ID, AS> {
+impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
 
     pub fn new(ctx: &mut Context, dex: &PokedexClientContext<'d>, party: Rc<PartyGui>, bag: Rc<BagGui>) -> Self where ID: Default {
         let context = BattleGuiContext::new(ctx);
@@ -101,7 +102,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
             state: BattlePlayerState::WaitToStart,
             should_select: false,
             data: Default::default(),
-            local: ActivePlayer::new(PlayerParty::new(Default::default(), None, Default::default())),
+            local: ActivePlayer::new(PlayerParty::new(Default::default(), None, Default::default(), Default::default())),
             remotes: Default::default(),
             client,
             endpoint,
@@ -112,17 +113,17 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
         }
     }
 
-    pub fn endpoint(&self) -> MpscEndpoint<ID, AS> {
-        self.endpoint.clone()
+    pub fn endpoint(&self) -> &MpscEndpoint<ID> {
+        &self.endpoint
     }
 
-    // pub fn winner(&self) -> Option<Option<ID>> {
-    //     if let BattlePlayerState::Winner(w) = &self.state {
-    //         Some(w.clone())
-    //     } else {
-    //         None
-    //     }
-    // }
+    pub fn winner(&self) -> Option<Option<&ID>> {
+        if let BattlePlayerState::GameEnd(w) = &self.state {
+            Some(w.as_ref())
+        } else {
+            None
+        }
+    }
 
     pub fn battling(&self) -> bool {
         !matches!(self.state, BattlePlayerState::WaitToStart | BattlePlayerState::Opening(..) | BattlePlayerState::Introduction(..))
@@ -224,7 +225,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
                         match &self.state {
                             BattlePlayerState::Select(..) => {
                                 self.gui.panel.despawn();
-                                self.state = BattlePlayerState::Select(0, AS);
+                                self.state = BattlePlayerState::Select(0, self.local.player.active.len());
                             },
                             _ => self.state = BattlePlayerState::Select(i, i+1),
                         }
@@ -237,9 +238,12 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
                     Some(instance) => if let Ok(_) = party.try_push(instance) {},
                     None => warn!("Could not initialize caught pokemon.")
                 }
-                ServerMessage::End => {
-
+                ServerMessage::PlayerEnd(..) => {
+                    self.state = BattlePlayerState::PlayerEnd;
                 },
+                ServerMessage::GameEnd(winner) => {
+                    self.state = BattlePlayerState::GameEnd(winner);
+                }
                 // ServerMessage::AddMove(pokemon, index, move_ref) => if pokemon.team == self.local.party.id {
                 //     if let Some(pokemon) = self.local.party.pokemon.get_mut(pokemon.index) {
                 //         debug!("to - do: set move to its index.");
@@ -252,7 +256,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
         }
     }
 
-    pub fn update(&mut self, ctx: &EngineContext, dex: &PokedexClientContext, delta: f32, bag: &mut Bag<'d>) {
+    pub fn update(&mut self, ctx: &EngineContext, dex: &PokedexClientContext, delta: f32, bag: &mut OwnedBag<&'d Item>) {
         match &mut self.state {
             BattlePlayerState::WaitToStart => (),
             BattlePlayerState::Opening(state) => match state {
@@ -263,7 +267,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
                     }
                     self.update(ctx, dex, delta, bag);
                 }
-                TransitionState::Run => self.gui.opener.update::<ID, AS>(state, delta),
+                TransitionState::Run => self.gui.opener.update::<ID>(state, delta),
                 TransitionState::End => {
                     self.state = BattlePlayerState::Introduction(TransitionState::default());
                     self.update(ctx, dex, delta, bag);
@@ -290,7 +294,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
             }
             BattlePlayerState::WaitToSelect => if self.should_select {
                 self.should_select = false;
-                self.state = BattlePlayerState::Select(0, AS);
+                self.state = BattlePlayerState::Select(0, self.local.player.active.len());
             }
             BattlePlayerState::Select(current, max) => {
                 self.gui.bounce.update(delta);
@@ -434,7 +438,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
                                 self.gui.text.reset();
 
                                 let user = match user_id.team() == self.local.player.id() {
-                                    true => Some((&mut self.local.player as &mut dyn PlayerView<'d, ID, AS>, &mut self.local.renderer)),
+                                    true => Some((&mut self.local.player as &mut dyn PlayerView<'d, ID>, &mut self.local.renderer)),
                                     false => self.remotes.get_mut(user_id.team()).map(|p| (&mut p.player as _, &mut p.renderer))
                                 };
 
@@ -503,7 +507,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
                                                                                     target.set_exp(experience);
                                                                                     if let Some(user_pokemon) = target.instance() {
                                                                                         let movedex = self.movedex;
-                                                                                        let moves = user_pokemon.on_level_up(previous).flat_map(|id| movedex.try_get(&id)).collect();
+                                                                                        let moves = user_pokemon.on_level_up(movedex, previous).flat_map(|id| movedex.try_get(&id)).collect();
                                                                                         queue.actions.push_front(Indexed(target_id.clone(), BattleClientGuiAction::SetExp(previous, experience, moves)));
                                                                                     }
                                                                                 }
@@ -642,7 +646,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
                         // log::trace!("update current");
 
                         let user = if user_id.team() == self.local.player.id() {
-                            Some((&mut self.local.player as &mut dyn PlayerView<'d, ID, AS>, &mut self.local.renderer))
+                            Some((&mut self.local.player as &mut dyn PlayerView<'d, ID>, &mut self.local.renderer))
                         } else {
                             self.remotes.get_mut(user_id.team()).map(|p| (&mut p.player as _, &mut p.renderer))
                         };
@@ -818,7 +822,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
                                 BattleClientGuiCurrent::LevelUp => match self.gui.level_up.alive() {
                                     true => match self.local.player.pokemon.get_mut(user_id.index()) {
                                         Some(pokemon) => if let Some((index, move_ref)) = self.gui.level_up.update(ctx, &mut self.gui.text, delta, pokemon) {
-                                            self.client.send(ClientMessage::LearnMove(user_id.index(), move_ref.id, index as _));
+                                            self.client.send(ClientMessage::LearnMove(user_id.index(), move_ref.id, Some(index)));
                                         }
                                         None => {
                                             warn!("Could not get user's active pokemon at {:?}", user_id);
@@ -834,25 +838,26 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
                     },
                 }
             }
+            BattlePlayerState::PlayerEnd | BattlePlayerState::GameEnd(..) => (),
         }
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext, dex: &PokedexClientContext, party: &Party<OwnedPokemon<'d>>, bag: &Bag<'d>) {
+    pub fn draw(&self, ctx: &mut EngineContext, dex: &PokedexClientContext, party: &Party<OwnedPokemon<'d>>, bag: &OwnedBag<&'d Item>) {
         if !matches!(self.state, BattlePlayerState::WaitToStart) {
             self.gui.background.draw(ctx, 0.0);
             self.remotes.values().for_each(|remote| remote.renderer.iter().for_each(|active| active.draw(ctx)));
             match &self.state {
                 BattlePlayerState::WaitToStart => unreachable!(),
                 BattlePlayerState::Opening(..) => {
-                    self.gui.background.draw(ctx, self.gui.opener.offset::<ID, AS>());
-                    self.gui.opener.draw_below_panel::<ID, AS>(ctx, &self.local.renderer, &self.remotes.values().next().unwrap().renderer);
+                    self.gui.background.draw(ctx, self.gui.opener.offset::<ID>());
+                    self.gui.opener.draw_below_panel::<ID>(ctx, &self.local.renderer, &self.remotes.values().next().unwrap().renderer);
                     self.gui.trainer.draw(ctx);
                     self.gui.draw_panel(ctx);
-                    self.gui.opener.draw::<ID, AS>(ctx);
+                    self.gui.opener.draw::<ID>(ctx);
                 }
                 BattlePlayerState::Introduction(..) => {
                     self.gui.background.draw(ctx, 0.0);
-                    self.gui.introduction.draw::<ID, AS>(ctx, &self.local.renderer, &self.remotes.values().next().unwrap().renderer);
+                    self.gui.introduction.draw::<ID>(ctx, &self.local.renderer, &self.remotes.values().next().unwrap().renderer);
                     self.gui.trainer.draw(ctx);
                     self.gui.draw_panel(ctx);
                     self.gui.text.draw(ctx);
@@ -888,11 +893,11 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
                         self.party.draw(ctx, party)
                     }
                 },
-                // BattlePlayerState::Winner(..) => {
-                //     self.local.renderer.iter().for_each(|active| active.draw(ctx));
-                //     self.gui.draw_panel(ctx);
-                //     self.gui.text.draw(ctx);
-                // }
+                BattlePlayerState::GameEnd(..) | BattlePlayerState::PlayerEnd => {
+                    self.local.renderer.iter().for_each(|active| active.draw(ctx));
+                    self.gui.draw_panel(ctx);
+                    self.gui.text.draw(ctx);
+                }
             }
         }
     }

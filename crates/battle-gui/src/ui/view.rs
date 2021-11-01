@@ -1,5 +1,3 @@
-
-
 use pokedex::{
     context::PokedexClientContext,
     engine::{graphics::ZERO, tetra::graphics::Color, EngineContext},
@@ -19,32 +17,26 @@ use crate::{
     view::InitUnknownPokemon,
 };
 
-pub type InitLocalPlayer<'d, ID, const AS: usize> = PlayerParty<ID, usize, OwnedPokemon<'d>, AS>;
-pub type InitRemotePlayer<'d, ID, const AS: usize> =
-    PlayerParty<ID, usize, Option<InitUnknownPokemon<'d>>, AS>;
+pub type InitLocalPlayer<'d, ID> = PlayerParty<ID, usize, OwnedPokemon<'d>>;
+pub type InitRemotePlayer<'d, ID> = PlayerParty<ID, usize, Option<InitUnknownPokemon<'d>>>;
 
-pub type GuiLocalPlayer<'d, ID, const AS: usize> = ActivePlayer<ID, OwnedPokemon<'d>, AS>;
-pub type GuiRemotePlayer<'d, ID, const AS: usize> =
-    ActivePlayer<ID, Option<InitUnknownPokemon<'d>>, AS>;
+pub type GuiLocalPlayer<'d, ID> = ActivePlayer<ID, OwnedPokemon<'d>>;
+pub type GuiRemotePlayer<'d, ID> = ActivePlayer<ID, Option<InitUnknownPokemon<'d>>>;
 
-pub struct ActivePlayer<ID, P, const AS: usize> {
-    pub player: PlayerParty<ID, usize, P, AS>,
+pub struct ActivePlayer<ID, P> {
+    pub player: PlayerParty<ID, usize, P>,
     pub renderer: Vec<ActivePokemonRenderer>,
     pub trainer: Option<TrainerId>,
 }
 
-impl<ID, P, const AS: usize> ActivePlayer<ID, P, AS> {
-    pub fn new(player: PlayerParty<ID, usize, P, AS>) -> Self {
-
-        let a = vec![Default::default(); AS];
-
+impl<ID, P> ActivePlayer<ID, P> {
+    pub fn new(player: PlayerParty<ID, usize, P>) -> Self {
         Self {
             player,
-            renderer: a,
-            trainer: Default::default(),
+            renderer: Vec::new(),
+            trainer: None,
         }
     }
-
 }
 
 #[derive(Default, Clone)]
@@ -72,14 +64,14 @@ impl ActivePokemonRenderer {
     }
 }
 
-impl<'d, ID, const AS: usize> ActivePlayer<ID, OwnedPokemon<'d>, AS> {
+impl<'d, ID> ActivePlayer<ID, OwnedPokemon<'d>> {
     pub fn init(&mut self, ctx: &BattleGuiContext, dex: &PokedexClientContext) {
         let size = self.player.active.len() as u8;
 
         for (i, index) in self.player.active.iter().enumerate() {
             let position = BattleGuiPositionIndex::new(BattleGuiPosition::Bottom, i as u8, size);
             let pokemon = (*index).map(|index| &self.player.pokemon[index]);
-            self.renderer[i] = ActivePokemonRenderer {
+            let r = ActivePokemonRenderer {
                 pokemon: PokemonRenderer::with(
                     ctx,
                     dex,
@@ -88,12 +80,13 @@ impl<'d, ID, const AS: usize> ActivePlayer<ID, OwnedPokemon<'d>, AS> {
                     PokemonTexture::Back,
                 ),
                 status: PokemonStatusGui::with_known(ctx, dex, position, pokemon),
-            }
+            };
+            self.renderer.push(r);
         }
     }
 }
 
-impl<'d, ID, const AS: usize> ActivePlayer<ID, Option<InitUnknownPokemon<'d>>, AS> {
+impl<'d, ID> ActivePlayer<ID, Option<InitUnknownPokemon<'d>>> {
     pub fn init(&mut self, ctx: &BattleGuiContext, dex: &PokedexClientContext) {
         let size = self.player.active.len() as u8;
 
@@ -102,7 +95,7 @@ impl<'d, ID, const AS: usize> ActivePlayer<ID, Option<InitUnknownPokemon<'d>>, A
             let pokemon = (*index)
                 .map(|index| self.player.pokemon[index].as_ref())
                 .flatten();
-            self.renderer[i] = ActivePokemonRenderer {
+            let r = ActivePokemonRenderer {
                 pokemon: PokemonRenderer::with(
                     ctx,
                     dex,
@@ -112,6 +105,7 @@ impl<'d, ID, const AS: usize> ActivePlayer<ID, Option<InitUnknownPokemon<'d>>, A
                 ),
                 status: PokemonStatusGui::with_unknown(ctx, dex, position, pokemon),
             };
+            self.renderer.push(r);
         }
         self.trainer = Some("rival".parse().unwrap());
     }

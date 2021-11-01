@@ -16,8 +16,8 @@ audio = ["firecore-pokedex-engine/audio"]
 
 [dependencies]
 log = "0.4"
-# firecore-battle = { git = "https://github.com/fiirecore/battle", rev = "78b95ef", default-features = false, features = ["mpsc_endpoint"] }
-firecore-battle = { version = "0.0.7", default-features = false, features = ["mpsc_endpoint"] }
+firecore-battle = { git = "https://github.com/fiirecore/battle", default-features = false, features = ["mpsc_endpoint"] }
+# firecore-battle = { version = "0.0.7", default-features = false, features = ["mpsc_endpoint"] }
 firecore-pokedex-engine = { path = "../pokedex-engine", default-features = false }
 rand = { version = "0.8", default-features = false }
 crossbeam-channel = "0.5"
