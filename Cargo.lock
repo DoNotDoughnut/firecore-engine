@@ -326,7 +326,7 @@ dependencies = [
 [[package]]
 name = "firecore-battle"
 version = "0.0.8"
-source = "git+https://github.com/fiirecore/battle#d879c5c99f2c658359ca34eeba757b572d188c2a"
+source = "git+https://github.com/fiirecore/battle?rev=76d3b4b#76d3b4b7b8f62e131215a171926cb7267cec7d73"
 dependencies = [
  "crossbeam-channel",
  "firecore-pokedex",
@@ -367,7 +367,7 @@ dependencies = [
 [[package]]
 name = "firecore-pokedex"
 version = "0.0.7"
-source = "git+https://github.com/fiirecore/pokedex#397bd601164c4ea89d1ba4b9b30be188c07172e1"
+source = "git+https://github.com/fiirecore/pokedex?rev=a99a3439#a99a343960c2699612881fa74a298ea0398429fc"
 dependencies = [
  "arrayvec",
  "hashbrown",
