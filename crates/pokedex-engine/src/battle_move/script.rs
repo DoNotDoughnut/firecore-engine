@@ -17,7 +17,7 @@ pub struct BattleActionScript {
     pub current: Option<BattleActionInstance>,
 
     #[serde(skip)]
-    pub texture: Option<Vec2<f32>>,
+    pub texture: Option<Vec2>,
 
     // #[serde(skip)]
     // pub texture: Option<Texture2D>,
@@ -47,7 +47,7 @@ pub enum BattleAction {
 #[derive(Debug, Clone)]
 pub enum BattleActionInstance {
     MoveAndReturn(f32, f32, bool),
-    MoveTexture(Vec2<f32>, f32),
+    MoveTexture(Vec2, f32),
     SpawnTexture(f32, f32),
     Wait(f32),
     DespawnTexture,

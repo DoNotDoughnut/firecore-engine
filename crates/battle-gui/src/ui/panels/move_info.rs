@@ -1,9 +1,11 @@
+use core::ops::Deref;
+
 use pokedex::{
     engine::{
-        graphics::{draw_text_left, draw_text_right},
+        graphics::{draw_text_left, draw_text_right, DrawParams},
         gui::Panel,
         text::TextColor,
-        EngineContext,
+        Context,
     },
     moves::{owned::OwnedMove, Move},
 };
@@ -23,16 +25,17 @@ impl MoveInfoPanel {
         }
     }
 
-    pub fn update_move<'d>(&mut self, instance: &OwnedMove<&'d Move>) {
-        let move_ref = instance.0;
+    pub fn update_move<M: Deref<Target = Move>>(&mut self, instance: &OwnedMove<M>) {
+        let move_ref = &instance.0;
         self.pp = format!("{}/{}", instance.pp(), move_ref.pp);
         self.move_type = format!("TYPE/{:?}", move_ref.pokemon_type);
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext) {
+    pub fn draw(&self, ctx: &mut Context) {
         Panel::draw(ctx, 160.0, 113.0, 80.0, 47.0);
-        draw_text_left(ctx, &0, "PP", TextColor::Black, 168.0, 124.0);
-        draw_text_left(ctx, &0, &self.move_type, TextColor::Black, 168.0, 140.0);
-        draw_text_right(ctx, &0, &self.pp, TextColor::Black, 232.0, 124.0);
+        let p = DrawParams::color(TextColor::Black.into());
+        draw_text_left(ctx, &0, "PP", 168.0, 124.0, p);
+        draw_text_left(ctx, &0, &self.move_type, 168.0, 140.0, p);
+        draw_text_right(ctx, &0, &self.pp, 232.0, 124.0, p);
     }
 }

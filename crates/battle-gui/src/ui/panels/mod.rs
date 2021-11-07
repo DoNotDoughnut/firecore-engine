@@ -1,16 +1,20 @@
+use core::ops::Deref;
+use pokedex::{item::Item, pokemon::Pokemon};
+
+
 use ::battle::party::PlayerParty;
 use pokedex::{
     engine::{
-        input::{pressed, Control},
+        input::controls::{pressed, Control},
         util::{Entity, Reset},
-        EngineContext,
+        Context,
     },
     item::ItemId,
-    moves::MoveTarget,
-    pokemon::owned::OwnedPokemon,
+    moves::{owned::OwnedMove, Move, MoveTarget},
+    pokemon::owned::OwnablePokemon,
 };
 
-use crate::view::GuiPokemonView;
+use crate::view::{GuiPokemonView, PlayerView};
 
 use self::{battle::BattleOptions, fight::FightPanel, target::TargetPanel};
 
@@ -23,13 +27,13 @@ pub mod fight;
 
 pub mod level;
 
-pub struct BattlePanel<'d> {
+pub struct BattlePanel<M: Deref<Target = Move> + Clone> {
     alive: bool,
 
     pub active: BattlePanels,
 
     pub battle: BattleOptions,
-    pub fight: FightPanel<'d>,
+    pub fight: FightPanel<M>,
     pub targets: TargetPanel,
 }
 
@@ -45,7 +49,7 @@ impl Default for BattlePanels {
     }
 }
 
-impl<'d> BattlePanel<'d> {
+impl<M: Deref<Target = Move> + Clone> BattlePanel<M> {
     pub fn new() -> Self {
         Self {
             alive: false,
@@ -56,7 +60,10 @@ impl<'d> BattlePanel<'d> {
         }
     }
 
-    pub fn user(&mut self, instance: &OwnedPokemon<'d>) {
+    pub fn user<P: Deref<Target = Pokemon>, MSET: Deref<Target = [OwnedMove<M>]>, I, G, H>(
+        &mut self,
+        instance: &OwnablePokemon<P, MSET, I, G, H>,
+    ) {
         self.battle.setup(instance);
         self.fight.user(instance);
         self.battle.cursor = 0;
@@ -65,15 +72,11 @@ impl<'d> BattlePanel<'d> {
         self.spawn();
     }
 
-    pub fn target<ID, P: GuiPokemonView<'d>>(&mut self, targets: &PlayerParty<ID, usize, P>) {
+    pub fn target<ID, P: Deref<Target = Pokemon>, I: Deref<Target = Item>>(&mut self, targets: &dyn PlayerView<ID, P, M, I>) {
         self.targets.update_names(targets);
     }
 
-    pub fn input(
-        &mut self,
-        ctx: &EngineContext,
-        pokemon: &OwnedPokemon<'d>,
-    ) -> Option<BattlePanels> {
+    pub fn input<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, H>(&mut self, ctx: &Context, pokemon: &OwnablePokemon<P, MSET, I, G, H>) -> Option<BattlePanels> {
         if self.alive {
             match self.active {
                 BattlePanels::Main => {
@@ -100,7 +103,7 @@ impl<'d> BattlePanel<'d> {
         }
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext) {
+    pub fn draw(&self, ctx: &mut Context) {
         if self.alive {
             match self.active {
                 BattlePanels::Main => self.battle.draw(ctx),
@@ -111,7 +114,7 @@ impl<'d> BattlePanel<'d> {
     }
 }
 
-impl<'d> Entity for BattlePanel<'d> {
+impl<M: Deref<Target = Move> + Clone> Entity for BattlePanel<M> {
     fn spawn(&mut self) {
         self.alive = true;
         self.active = BattlePanels::default();

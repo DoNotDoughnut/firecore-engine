@@ -5,8 +5,8 @@ use core::fmt::Display;
 pub enum PlayAudioError {
     #[cfg(feature = "audio")]
     Missing,
-    #[cfg(feature = "audio")]
-    TetraError(tetra::TetraError),
+    // #[cfg(feature = "audio")]
+    // TetraError(tetra::TetraError),
 }
 
 impl Error for PlayAudioError {}
@@ -16,7 +16,7 @@ impl Display for PlayAudioError {
         #[cfg(feature = "audio")] {
             match self {
                 Self::Missing => write!(f, "Could not find music with specified id!"),
-                Self::TetraError(err) => err.fmt(f),
+                // Self::TetraError(err) => err.fmt(f),
             }
         }
         #[cfg(not(feature = "audio"))] {

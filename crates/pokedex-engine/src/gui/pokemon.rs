@@ -1,6 +1,6 @@
 use pokedex::types::PokemonType;
 
-use engine::tetra::graphics::Color;
+use engine::graphics::Color;
 
 const PLACEHOLDER: Color = Color::rgb(30.0 / 255.0, 30.0 / 255.0, 30.0 / 255.0);
 

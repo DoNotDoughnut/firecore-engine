@@ -1,32 +1,27 @@
-use dashmap::DashMap;
-use firecore_audio::{
-    music::{MusicId, MusicName},
-    serialized::SerializedAudio,
-    sound::Sound,
-};
-use std::sync::Arc;
-use tetra::audio::{Sound as Audio, SoundInstance as AudioInstance};
+use firecore_audio::{MusicId, SoundId, SoundVariant};
+use hashbrown::HashMap;
+use macroquad::audio::Sound as Audio;
 
-pub type GameAudioMap<K, V = Audio> = Arc<DashMap<K, V>>;
+pub type SerializedAudio = (HashMap<MusicId, Vec<u8>>, HashMap<(SoundId, SoundVariant), Vec<u8>>);
+
+use crate::Context;
+
+pub type GameAudioMap<K, V = Audio> = HashMap<K, V>;
 
 #[derive(Default)]
 pub struct GameAudio {
-    pub music_id: GameAudioMap<MusicName, MusicId>,
-    pub music: GameAudioMap<MusicId>, // To - do: looping to specific points
-    pub current_music: Option<(MusicId, AudioInstance)>,
-    pub sound: GameAudioMap<Sound>,
+    pub(crate) music: GameAudioMap<MusicId>,
+    pub(crate) current_music: Option<(MusicId, Audio)>,
+    pub(crate) sounds: GameAudioMap<(SoundId, SoundVariant)>,
 }
 
 impl GameAudio {
-    pub fn init(&self, audio_data: SerializedAudio) {
-        for music_data in audio_data.music {
-            let music = self.music.clone();
-            let ids = self.music_id.clone();
-            std::thread::spawn(move || crate::audio::add_music(&music, &ids, music_data));
+    pub async fn init(ctx: &mut Context, data: SerializedAudio) {
+        for (id, data) in data.0 {
+            crate::audio::add_music(ctx, id, data).await;
         }
-        for sound_data in audio_data.sounds {
-            let sounds = self.sound.clone();
-            std::thread::spawn(move || crate::audio::add_sound(&sounds, sound_data));
+        for ((id, variant), data) in data.1 {
+            crate::audio::add_sound(ctx, id, variant, data).await;
         }
     }
 }

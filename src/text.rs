@@ -1,3 +1,8 @@
+pub use firecore_text::*;
+
+use std::ops::Deref;
+
+use image::ImageError;
 use serde::{Deserialize, Serialize};
 
 pub type FontId = u8;
@@ -25,20 +30,9 @@ pub struct FontSheet<S> {
     pub data: FontSheetData,
 }
 
-pub type FontSheetImage = FontSheet<Vec<u8>>;
-pub type FontSheetFile = FontSheet<String>;
-
-#[derive(Deserialize, Serialize)]
-pub struct SerializedFonts {
-    pub fonts: Vec<FontSheetImage>,
-}
-
 use hashbrown::HashMap;
-use tetra::{
-    graphics::{ImageData, Rectangle, Texture, Color, DrawParams},
-    math::Vec2,
-    Result, Context,
-};
+
+use crate::{Context, graphics::{DrawParams, Image, Texture}};
 
 pub type Fonts = HashMap<FontId, Font>;
 type CharTextures = HashMap<char, Texture>;
@@ -50,15 +44,11 @@ pub struct Font {
 }
 
 impl Font {
-    pub fn draw_text_left(&self, ctx: &mut Context, text: &str, color: Color, x: f32, y: f32) {
-        let mut len = 0;
+    pub fn draw_text_left(&self, text: &str, x: f32, y: f32, params: DrawParams) {
+        let mut len = 0.0;
         for character in text.chars() {
             len += if let Some(texture) = self.chars.get(&character) {
-                texture.draw(
-                    ctx,
-                    DrawParams::position(DrawParams::default(), Vec2::new(x + len as f32, y))
-                        .color(color),
-                );
+                texture.crate_draw(x + len, y, params);
                 texture.width()
             } else {
                 self.width as _
@@ -66,16 +56,12 @@ impl Font {
         }
     }
 
-    pub fn draw_text_right(&self, ctx: &mut Context, text: &str, color: Color, x: f32, y: f32) {
-        let mut len = 0;
+    pub fn draw_text_right(&self, text: &str, x: f32, y: f32, params: DrawParams) {
+        let mut len = 0.0;
         let x = x - self.text_pixel_length(text);
         for character in text.chars() {
             len += if let Some(texture) = self.chars.get(&character) {
-                texture.draw(
-                    ctx,
-                    DrawParams::position(DrawParams::default(), Vec2::new(x + len as f32, y))
-                        .color(color),
-                );
+                texture.crate_draw(x + len, y, params);
                 texture.width()
             } else {
                 self.width as _
@@ -83,7 +69,14 @@ impl Font {
         }
     }
 
-    pub fn draw_text_center(&self, ctx: &mut Context, text: &str, color: Color, x: f32, y: f32, center_vertical: bool) {
+    pub fn draw_text_center(
+        &self,
+        text: &str,
+        center_vertical: bool,
+        x: f32,
+        y: f32,
+        params: DrawParams,
+    ) {
         let mut len = 0.0;
 
         let x_offset = (text
@@ -104,14 +97,7 @@ impl Font {
         for character in text.chars() {
             len += match self.chars.get(&character) {
                 Some(texture) => {
-                    texture.draw(
-                        ctx,
-                        DrawParams::position(
-                            DrawParams::default(),
-                            Vec2::new(x - x_offset + len, y - y_offset),
-                        )
-                        .color(color),
-                    );
+                    texture.crate_draw(x - x_offset + len, y - y_offset, params);
                     texture.width() as f32
                 }
                 None => self.width as f32,
@@ -129,22 +115,26 @@ impl Font {
     }
 }
 
+pub fn insert_font(ctx: &mut Context, font_sheet: &FontSheet<impl Deref<Target = [u8]>>) -> Result<(), ImageError> {
+    ctx.text.add_font_sheet(font_sheet)
+}
+
+
 pub(crate) fn iterate_fontsheet(
-    ctx: &mut Context,
-    chars: String,
+    chars: &str,
     font_width: SizeInt,
     font_height: SizeInt,
-    custom: Vec<CustomChar>,
-    sheet: ImageData,
-) -> Result<CharTextures> {
+    custom: &[CustomChar],
+    sheet: Image,
+) -> Result<CharTextures, ImageError> {
     let mut customchars: HashMap<char, (SizeInt, Option<SizeInt>)> = custom
         .into_iter()
         .map(|cchar| (cchar.id, (cchar.width, cchar.height)))
         .collect();
 
     let chars: Vec<char> = chars.chars().collect();
-    let sheet_width = sheet.width() as _;
-    let sheet_height = sheet.height() as _; // - font_height as u32;
+    let sheet_width = sheet.width();
+    let sheet_height = sheet.height(); // - font_height as u32;
 
     let mut charmap = HashMap::with_capacity(chars.len());
 
@@ -157,30 +147,29 @@ pub(crate) fn iterate_fontsheet(
             charmap.insert(
                 chars[counter],
                 if let Some(cchar) = customchars.remove(&chars[counter]) {
-                    Texture::from_image_data(
-                        ctx,
-                        &sheet.region(Rectangle::new(
+                    Texture::crate_from_image(
+                        &Image::from(sheet.region(
                             x,
                             y,
                             cchar.0 as _,
                             cchar.1.unwrap_or(font_height) as _,
-                        )),
+                        ))
+                        .0,
                     )
                 } else {
-                    Texture::from_image_data(
-                        ctx,
-                        &sheet.region(Rectangle::new(x, y, font_width as _, font_height as _)),
+                    Texture::crate_from_image(
+                        &Image::from(sheet.region(x, y, font_width as _, font_height as _)).0,
                     )
-                }?,
+                },
             );
-            x += font_width as i32;
+            x += font_width as u32;
             counter += 1;
             if counter >= chars.len() {
                 break 'yloop;
             }
         }
         x = 0;
-        y += font_height as i32;
+        y += font_height as u32;
     }
 
     Ok(charmap)

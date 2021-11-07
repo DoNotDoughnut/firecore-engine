@@ -1,14 +1,19 @@
+use core::ops::Deref;
+use pokedex::pokemon::Pokemon;
+
 use pokedex::{
-    context::PokedexClientContext,
+    context::PokedexClientData,
     engine::{
-        graphics::{draw_o_bottom},
-        tetra::graphics::Texture,
+        graphics::Texture,
         util::{Completable, Reset},
-        EngineContext,
+        Context,
     },
 };
 
-use crate::{context::BattleGuiContext, ui::view::{ActivePokemonRenderer, GuiRemotePlayer}};
+use crate::{
+    context::BattleGuiContext,
+    ui::view::{ActivePokemonRenderer, GuiRemotePlayer},
+};
 
 use super::{BattleOpener, DefaultBattleOpener};
 
@@ -26,8 +31,8 @@ impl TrainerBattleOpener {
     }
 }
 
-impl<ID: Default> BattleOpener<ID> for TrainerBattleOpener {
-    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID>) {
+impl<ID: Default, P: Deref<Target = Pokemon>> BattleOpener<ID, P> for TrainerBattleOpener {
+    fn spawn(&mut self, ctx: &PokedexClientData, opponent: &GuiRemotePlayer<ID, P>) {
         if let Some(id) = &opponent.trainer {
             self.trainer = Some(ctx.trainer_textures.get(id).clone());
         }
@@ -39,15 +44,22 @@ impl<ID: Default> BattleOpener<ID> for TrainerBattleOpener {
 
     fn draw_below_panel(
         &self,
-        ctx: &mut EngineContext,
+        ctx: &mut Context,
         player: &[ActivePokemonRenderer],
         opponent: &[ActivePokemonRenderer],
     ) {
-        draw_o_bottom(ctx, self.trainer.as_ref(), 144.0 - self.opener.offset, 74.0);
+        if let Some(texture) = self.trainer.as_ref() {
+            texture.draw(
+                ctx,
+                144.0 - self.opener.offset,
+                74.0 - texture.height(),
+                Default::default(),
+            );
+        }
         self.opener.draw_below_panel(ctx, player, opponent);
     }
 
-    fn draw(&self, ctx: &mut EngineContext) {
+    fn draw(&self, ctx: &mut Context) {
         self.opener.draw(ctx);
     }
 

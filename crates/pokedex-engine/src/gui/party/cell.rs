@@ -1,9 +1,16 @@
-use core::cell::Cell;
-use engine::tetra::graphics::Texture;
+use core::{cell::Cell, ops::Deref};
+use engine::graphics::Texture;
 
-use pokedex::{pokemon::owned::OwnedPokemon, Identifiable};
+use pokedex::{
+    pokemon::{owned::OwnablePokemon, Health, Pokemon},
+    Identifiable,
+};
 
-use crate::{context::PokedexClientContext, gui::{IntegerStr4, health::HealthBar}, texture::PokemonTexture};
+use crate::{
+    context::PokedexClientData,
+    gui::{health::HealthBar, IntegerStr4},
+    texture::PokemonTexture,
+};
 
 #[derive(Default)]
 pub struct PartyCell {
@@ -15,7 +22,11 @@ pub struct PartyCell {
 impl PartyCell {
     pub const ICON_TICK: f32 = 0.15;
 
-    pub fn init<'d>(&self, ctx: &PokedexClientContext, pokemon: &OwnedPokemon<'d>) {
+    pub fn init<P: Deref<Target = Pokemon>, M, I, G>(
+        &self,
+        ctx: &PokedexClientData,
+        pokemon: &OwnablePokemon<P, M, I, G, Health>,
+    ) {
         self.level.update_or_default(pokemon.level as _);
         self.health.update_or_default(pokemon);
         self.icon.set(Some(
@@ -45,7 +56,10 @@ impl CellHealth {
         self.maximum.clear();
         self.percent.set(0.0);
     }
-    pub fn update_or_default<'d>(&self, pokemon: &OwnedPokemon<'d>) {
+    pub fn update_or_default<P: Deref<Target = Pokemon>, M, I, G>(
+        &self,
+        pokemon: &OwnablePokemon<P, M, I, G, Health>,
+    ) {
         self.current.update_or_default(pokemon.hp());
         self.maximum.update_or_default(pokemon.max_hp());
         self.percent.set(pokemon.percent_hp() * HealthBar::WIDTH);

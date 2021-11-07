@@ -1,21 +1,28 @@
+use core::ops::Deref;
+use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
+
 use pokedex::{
-    context::PokedexClientContext,
+    context::PokedexClientData,
     engine::{
-        graphics::{position, ZERO},
+        graphics::{Color, DrawParams, Texture},
         gui::MessageBox,
-        tetra::{
-            graphics::{Color, Rectangle, Texture},
-            Context,
-        },
+        math::{vec2, Rectangle},
         text::MessagePage,
         util::{Completable, Entity, Reset},
-        EngineContext,
+        Context,
     },
 };
 
-use battle::{party::PlayerParty, data::BattleType};
+use battle::{data::BattleType, party::PlayerParty};
 
-use crate::{context::BattleGuiContext, ui::{pokemon::PokemonStatusGui, view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer}}, view::GuiPokemonView};
+use crate::{
+    context::BattleGuiContext,
+    ui::{
+        pokemon::PokemonStatusGui,
+        view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer},
+    },
+    view::BasePokemonView,
+};
 
 use super::BattleIntroduction;
 
@@ -44,7 +51,14 @@ impl BasicBattleIntroduction {
     }
 
     /// To - do: fix this function
-    pub(crate) fn concatenate<'d, ID, P: GuiPokemonView<'d>>(party: &PlayerParty<ID, usize, P>) -> String {
+    pub(crate) fn concatenate<
+        'd,
+        ID,
+        P: Deref<Target = Pokemon>,
+        POKEMON: BasePokemonView<P>,
+    >(
+        party: &PlayerParty<ID, usize, POKEMON>,
+    ) -> String {
         let mut string = String::with_capacity(
             party
                 .active_iter()
@@ -66,10 +80,15 @@ impl BasicBattleIntroduction {
         string
     }
 
-    pub(crate) fn common_setup<ID: Default>(
+    pub(crate) fn common_setup<
+        ID: Default,
+        P: Deref<Target = Pokemon>,
+        M: Deref<Target = Move>,
+        I: Deref<Target = Item>,
+    >(
         &mut self,
         text: &mut MessageBox,
-        player: &GuiLocalPlayer<ID>,
+        player: &GuiLocalPlayer<ID, P, M, I>,
     ) {
         text.push(MessagePage {
             lines: vec![format!("Go! {}!", Self::concatenate(&player.player))],
@@ -79,9 +98,11 @@ impl BasicBattleIntroduction {
 
     pub(crate) fn draw_player(&self, ctx: &mut Context, player: &[ActivePokemonRenderer]) {
         if self.counter < Self::PLAYER_DESPAWN {
-            self.player.draw_region(
+            self.player.draw(
                 ctx,
-                Rectangle::new(
+                41.0 + -self.counter,
+                49.0,
+                DrawParams::source(Rectangle::new(
                     0.0,
                     if self.counter >= Self::PLAYER_T3 {
                         // 78.0
@@ -99,19 +120,18 @@ impl BasicBattleIntroduction {
                     },
                     64.0,
                     64.0,
-                ),
-                position(41.0 + -self.counter, 49.0),
+                )),
             )
         } else {
             for active in player.iter() {
-                active.pokemon.draw(ctx, ZERO, Color::WHITE);
+                active.pokemon.draw(ctx, vec2(0.0, 0.0), Color::WHITE);
             }
         }
     }
 
-    pub(crate) fn draw_opponent(&self, ctx: &mut EngineContext, opponent: &[ActivePokemonRenderer]) {
+    pub(crate) fn draw_opponent(&self, ctx: &mut Context, opponent: &[ActivePokemonRenderer]) {
         for active in opponent.iter() {
-            active.pokemon.draw(ctx, ZERO, Color::WHITE);
+            active.pokemon.draw(ctx, vec2(0.0, 0.0), Color::WHITE);
             active.status.draw(ctx, self.offsets.0, 0.0);
         }
     }
@@ -133,16 +153,17 @@ impl BasicBattleIntroduction {
             }
         }
     }
-
 }
 
-impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
+impl<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
+    BattleIntroduction<ID, P, M, I> for BasicBattleIntroduction
+{
     fn spawn(
         &mut self,
-        _: &PokedexClientContext,
+        _: &PokedexClientData,
         _: BattleType,
-        player: &GuiLocalPlayer<ID>,
-        opponent: &GuiRemotePlayer<ID>,
+        player: &GuiLocalPlayer<ID, P, M, I>,
+        opponent: &GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
         text.clear();
@@ -158,10 +179,10 @@ impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
 
     fn update(
         &mut self,
-        ctx: &EngineContext,
+        ctx: &Context,
         delta: f32,
-        player: &mut GuiLocalPlayer<ID>,
-        opponent: &mut GuiRemotePlayer<ID>,
+        player: &mut GuiLocalPlayer<ID, P, M, I>,
+        opponent: &mut GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
         if !text.finished() {
@@ -202,7 +223,12 @@ impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
         }
     }
 
-    fn draw(&self, ctx: &mut EngineContext, player: &[ActivePokemonRenderer], opponent: &[ActivePokemonRenderer]) {
+    fn draw(
+        &self,
+        ctx: &mut Context,
+        player: &[ActivePokemonRenderer],
+        opponent: &[ActivePokemonRenderer],
+    ) {
         self.draw_opponent(ctx, opponent);
         self.draw_player(ctx, player);
     }

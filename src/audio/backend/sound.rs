@@ -1,20 +1,23 @@
-use crate::EngineContext;
-use crate::audio::sound::Sound;
+use firecore_audio::SoundId;
+
+use crate::Context;
 
 use crate::audio::error::PlayAudioError;
 
-pub fn play_sound(ctx: &EngineContext, sound: &Sound) -> Result<(), PlayAudioError> {
-    match ctx.audio.sound.get(sound) {
+pub fn play_sound(ctx: &Context, sound: &SoundId, variant: Option<u16>) -> Result<(), PlayAudioError> {
+    match ctx.audio.sounds.get(&(*sound, variant)) {
         Some(handle) => {
-            match handle.play(ctx) {
-                Ok(instance) => {
-                    instance.set_volume(0.3);
-                    Ok(())
-                }
-                Err(err) => {
-                    Err(PlayAudioError::TetraError(err))
-                }
-            }
+            macroquad::audio::play_sound_once(*handle);
+            Ok(())
+            // match  handle.play(ctx) {
+            //     Ok(instance) => {
+            //         instance.set_volume(0.3);
+            //         Ok(())
+            //     }
+            //     Err(err) => {
+            //         Err(PlayAudioError::TetraError(err))
+            //     }
+            // }
         }
         None => {
             Err(PlayAudioError::Missing)

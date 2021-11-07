@@ -1,18 +1,18 @@
 use crate::{
-    font::FontId,
-    graphics::{draw_button, draw_text_left},
-    input::{pressed, Control},
+    text::FontId,
+    graphics::{draw_button_for_text, draw_text_left, DrawParams},
+    input::controls::{pressed, Control},
+    math::Vec2,
     util::{Completable, Entity, Reset},
-    EngineContext,
+    Context,
 };
 
-use tetra::math::Vec2;
-use text::{Message, MessagePage, MessagePages, TextColor};
+use crate::text::{Message, MessagePage, MessagePages, TextColor};
 
 #[derive(Default, Clone)]
 pub struct MessageBox {
     alive: bool,
-    origin: Vec2<f32>,
+    origin: Vec2,
 
     pub font: FontId,
     pub message: Message,
@@ -34,7 +34,7 @@ struct Button {
 }
 
 impl MessageBox {
-    pub fn new(origin: Vec2<f32>, font: FontId) -> Self {
+    pub fn new(origin: Vec2, font: FontId) -> Self {
         Self {
             alive: false,
             origin,
@@ -90,7 +90,7 @@ impl MessageBox {
         self.accumulator = 0.0;
     }
 
-    pub fn update(&mut self, ctx: &EngineContext, delta: f32) {
+    pub fn update(&mut self, ctx: &Context, delta: f32) {
         if self.alive {
             match self.message.pages.get(self.page) {
                 Some(page) => match self.waiting {
@@ -150,7 +150,7 @@ impl MessageBox {
         }
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext) {
+    pub fn draw(&self, ctx: &mut Context) {
         if self.alive {
             if let Some(page) = self.message.pages.get(self.page) {
                 if let Some(line) = page.lines.get(self.line) {
@@ -166,9 +166,9 @@ impl MessageBox {
                         ctx,
                         &self.font,
                         string,
-                        self.message.color,
                         self.origin.x,
                         self.origin.y + y,
+                        DrawParams::color(self.message.color.into()),
                     );
 
                     for index in 0..self.line {
@@ -176,19 +176,20 @@ impl MessageBox {
                             ctx,
                             &self.font,
                             &page.lines[index],
-                            self.message.color,
                             self.origin.x,
                             self.origin.y + (index << 4) as f32,
+                            DrawParams::color(self.message.color.into()),
                         );
                     }
 
                     if finished && page.wait.is_none() {
-                        draw_button(
+                        draw_button_for_text(
                             ctx,
                             &self.font,
                             line,
                             self.origin.x,
                             self.origin.y + 2.0 + self.button.position + y,
+                            DrawParams::default(),
                         );
                     }
                 }

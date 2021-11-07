@@ -3,7 +3,7 @@ use pokedex::{
     ailment::Ailment,
     engine::{
         gui::MessageBox,
-        tetra::math::Vec2,
+        math::vec2,
         text::{MessagePage, TextColor},
     },
     item::Item,
@@ -13,7 +13,7 @@ use pokedex::{
 };
 
 pub fn new() -> MessageBox {
-    let mut messagebox = MessageBox::new(super::PANEL_ORIGIN.position + Vec2::new(11.0, 11.0), 1);
+    let mut messagebox = MessageBox::new(vec2(11.0, 11.0 + super::PANEL_Y), 1);
     messagebox.color(TextColor::White);
     messagebox.message.pages.reserve(6);
     messagebox

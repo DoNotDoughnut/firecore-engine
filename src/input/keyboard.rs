@@ -1,38 +1,13 @@
-use enum_map::EnumMap;
-use tetra::input::{self, Key};
+pub use macroquad::prelude::KeyCode as Key;
 
-use crate::{input::Control, EngineContext};
+pub use macroquad::prelude::get_char_pressed;
 
-// pub type KeySet = HashSet<Key>;
-pub type KeyMap = EnumMap<Control, Key>;
+use crate::Context;
 
-pub fn pressed(ctx: &EngineContext, control: Control) -> bool {
-    input::is_key_pressed(ctx, ctx.controls.keyboard[control])
+pub fn is_key_pressed(_: &Context, key: Key) -> bool {
+    macroquad::prelude::is_key_pressed(key)
 }
 
-pub fn down(ctx: &EngineContext, control: Control) -> bool {
-    input::is_key_down(ctx, ctx.controls.keyboard[control])
-        // .iter()
-        // .any(|key| input::is_key_down(ctx, *key))
+pub fn is_key_down(_: &Context, key: Key) -> bool {
+    macroquad::prelude::is_key_down(key)
 }
-
-pub fn default_key_map() -> KeyMap {
-    enum_map::enum_map! {
-        Control::A => Key::X,
-        Control::B => Key::Z,
-        Control::Up => Key::Up,
-        Control::Down => Key::Down,
-        Control::Left => Key::Left,
-        Control::Right => Key::Right,
-        Control::Start => Key::A,
-        Control::Select => Key::S,
-    }
-}
-
-// fn keyset(codes: &[Key]) -> KeySet {
-//     let mut set = HashSet::with_capacity(codes.len());
-//     for code in codes {
-//         set.insert(*code);
-//     }
-//     set
-// }

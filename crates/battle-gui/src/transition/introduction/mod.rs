@@ -1,15 +1,21 @@
+use core::ops::Deref;
+use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
+
 use pokedex::{
-    context::PokedexClientContext,
+    context::PokedexClientData,
     engine::{
         gui::MessageBox,
         util::{Completable, Entity},
-        EngineContext,
+        Context,
     },
 };
 
 use battle::data::BattleType;
 
-use crate::{context::BattleGuiContext, ui::view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer}};
+use crate::{
+    context::BattleGuiContext,
+    ui::view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer},
+};
 
 use super::TransitionState;
 
@@ -30,26 +36,37 @@ impl Default for Introductions {
     }
 }
 
-pub(crate) trait BattleIntroduction<ID: Default>: Completable {
+pub(crate) trait BattleIntroduction<
+    ID: Default,
+    P: Deref<Target = Pokemon>,
+    M: Deref<Target = Move>,
+    I: Deref<Target = Item>,
+>: Completable
+{
     fn spawn(
         &mut self,
-        ctx: &PokedexClientContext,
+        ctx: &PokedexClientData,
         battle_type: BattleType,
-        player: &GuiLocalPlayer<ID>,
-        opponent: &GuiRemotePlayer<ID>,
+        player: &GuiLocalPlayer<ID, P, M, I>,
+        opponent: &GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     );
 
     fn update(
         &mut self,
-        ctx: &EngineContext,
+        ctx: &Context,
         delta: f32,
-        player: &mut GuiLocalPlayer<ID>,
-        opponent: &mut GuiRemotePlayer<ID>,
+        player: &mut GuiLocalPlayer<ID, P, M, I>,
+        opponent: &mut GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     );
 
-    fn draw(&self, ctx: &mut EngineContext, player: &[ActivePokemonRenderer], opponent: &[ActivePokemonRenderer]);
+    fn draw(
+        &self,
+        ctx: &mut Context,
+        player: &[ActivePokemonRenderer],
+        opponent: &[ActivePokemonRenderer],
+    );
 }
 
 pub struct BattleIntroductionManager {
@@ -69,13 +86,13 @@ impl BattleIntroductionManager {
         }
     }
 
-    pub fn begin<ID: Default>(
+    pub fn begin<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>, >(
         &mut self,
-        ctx: &PokedexClientContext,
+        ctx: &PokedexClientData,
         state: &mut TransitionState,
         battle_type: BattleType,
-        player: &GuiLocalPlayer<ID>,
-        opponent: &GuiRemotePlayer<ID>,
+        player: &GuiLocalPlayer<ID, P, M, I>,
+        opponent: &GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
         *state = TransitionState::Run;
@@ -93,39 +110,39 @@ impl BattleIntroductionManager {
         text.clear();
     }
 
-    pub fn update<ID: Default>(
+    pub fn update<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>, >(
         &mut self,
         state: &mut TransitionState,
-        ctx: &EngineContext,
+        ctx: &Context,
         delta: f32,
-        player: &mut GuiLocalPlayer<ID>,
-        opponent: &mut GuiRemotePlayer<ID>,
+        player: &mut GuiLocalPlayer<ID, P, M, I>,
+        opponent: &mut GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
-        let current = self.get_mut();
+        let current = self.get_mut::<ID, P, M, I>();
         current.update(ctx, delta, player, opponent, text);
         if current.finished() {
             *state = TransitionState::End;
         }
     }
 
-    pub fn draw<ID: Default>(
+    pub fn draw<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>, >(
         &self,
-        ctx: &mut EngineContext,
+        ctx: &mut Context,
         player: &[ActivePokemonRenderer],
         opponent: &[ActivePokemonRenderer],
     ) {
-        self.get::<ID>().draw(ctx, player, opponent);
+        self.get::<ID, P, M, I>().draw(ctx, player, opponent);
     }
 
-    fn get<ID: Default>(&self) -> &dyn BattleIntroduction<ID> {
+    fn get<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>, >(&self) -> &dyn BattleIntroduction<ID, P, M, I> {
         match self.current {
             Introductions::Basic => &self.basic,
             Introductions::Trainer => &self.trainer,
         }
     }
 
-    fn get_mut<ID: Default>(&mut self) -> &mut dyn BattleIntroduction<ID> {
+    fn get_mut<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>, >(&mut self) -> &mut dyn BattleIntroduction<ID, P, M, I> {
         match self.current {
             Introductions::Basic => &mut self.basic,
             Introductions::Trainer => &mut self.trainer,

@@ -1,6 +1,5 @@
 use engine::{
-    graphics::TextureManager,
-    tetra::{graphics::Texture, Context, Result},
+    graphics::{Texture, TextureManager}, Context, error::ImageError,
 };
 use hashbrown::HashMap;
 
@@ -33,18 +32,18 @@ impl PokemonTextures {
         }
     }
 
-    pub fn insert(&mut self, ctx: &mut Context, id: PokemonId, pokemon: &SerializedPokemon) -> Result {
+    pub fn insert(&mut self, ctx: &mut Context, id: PokemonId, pokemon: &SerializedPokemon) -> Result<(), ImageError> {
         self.front.insert(
             id,
-            Texture::from_file_data(ctx, &pokemon.front)?,
+            Texture::new(ctx, &pokemon.front)?,
         );
         self.back.insert(
             id,
-            Texture::from_file_data(ctx, &pokemon.back)?,
+            Texture::new(ctx, &pokemon.back)?,
         );
         self.icon.insert(
             id,
-            Texture::from_file_data(ctx, &pokemon.icon)?,
+            Texture::new(ctx, &pokemon.icon)?,
         );
         Ok(())
     }

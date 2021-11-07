@@ -1,14 +1,16 @@
-use battle::party::PlayerParty;
+use core::ops::Deref;
+use pokedex::{pokemon::Pokemon, moves::Move, item::Item};
+
 use pokedex::engine::{
-    graphics::{draw_cursor, draw_text_left},
+    graphics::{draw_cursor, draw_text_left, DrawParams},
     gui::Panel,
-    input::{pressed, Control},
+    input::controls::{pressed, Control},
     text::TextColor,
     util::Reset,
-    EngineContext,
+    Context,
 };
 
-use crate::view::GuiPokemonView;
+use crate::view::{PlayerView};
 
 pub struct TargetPanel {
     pub names: Vec<Option<String>>,
@@ -23,16 +25,14 @@ impl TargetPanel {
         }
     }
 
-    pub fn update_names<'d, ID, P: GuiPokemonView<'d>>(&mut self, targets: &PlayerParty<ID, usize, P>) {
-        self.names.clear();
-        self.names.extend(targets.active.iter().map(|i| {
-            i.map(|index| targets.pokemon.get(index))
-                .flatten()
-                .map(|p| p.name().to_owned())
-        }));
+    pub fn update_names<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>(
+        &mut self,
+        targets: &dyn PlayerView<ID, P, M, I>,
+    ) {
+        self.names = targets.names();
     }
 
-    pub fn input(&mut self, ctx: &EngineContext) {
+    pub fn input(&mut self, ctx: &Context) {
         if pressed(ctx, Control::Up) && self.cursor >= 2 {
             self.cursor -= 2;
         } else if pressed(ctx, Control::Down) && self.cursor <= 2 {
@@ -47,7 +47,7 @@ impl TargetPanel {
         }
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext) {
+    pub fn draw(&self, ctx: &mut Context) {
         Panel::draw(ctx, 0.0, 113.0, 160.0, 47.0);
         for (index, name) in self.names.iter().enumerate() {
             let x_offset = if index % 2 == 1 { 72.0 } else { 0.0 };
@@ -56,12 +56,12 @@ impl TargetPanel {
                 ctx,
                 &0,
                 name.as_ref().map(|name| name.as_str()).unwrap_or("None"),
-                TextColor::Black,
                 16.0 + x_offset,
                 121.0 + y_offset,
+                DrawParams::color(TextColor::Black.into()),
             );
             if index == self.cursor {
-                draw_cursor(ctx, 10.0 + x_offset, 123.0 + y_offset);
+                draw_cursor(ctx, 10.0 + x_offset, 123.0 + y_offset, Default::default());
             }
         }
     }

@@ -1,14 +1,16 @@
 use core::cell::Cell;
+use std::ops::Deref;
 
 use engine::{
-    graphics::{draw_cursor, draw_text_left, position},
-    input::{pressed, Control},
-    tetra::graphics::Texture,
+    graphics::{draw_cursor, draw_text_left, Texture, DrawParams},
+    input::controls::{pressed, Control},
     text::TextColor,
-    EngineContext,
+    Context,
 };
 
-use crate::context::PokedexClientContext;
+use crate::context::PokedexClientData;
+
+use pokedex::{BasicDex, moves::Move, item::Item, pokemon::Pokemon};
 
 pub struct PartySelectMenu {
     pub alive: Cell<bool>,
@@ -30,7 +32,7 @@ pub enum PartySelectAction {
 }
 
 impl PartySelectMenu {
-    pub fn new(ctx: &PokedexClientContext) -> Self {
+    pub fn new(ctx: &PokedexClientData) -> Self {
         Self {
             alive: Default::default(),
             background: ctx.party.select.clone(),
@@ -41,7 +43,7 @@ impl PartySelectMenu {
         }
     }
 
-    pub fn input(&self, ctx: &EngineContext) -> Option<PartySelectAction> {
+    pub fn input(&self, ctx: &Context) -> Option<PartySelectAction> {
         if let Some(is_world) = self.is_world.get() {
             let cursor = self.cursor.get();
             if pressed(ctx, Control::Up) && cursor > 0 {
@@ -91,11 +93,11 @@ impl PartySelectMenu {
         }
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext) {
+    pub fn draw(&self, ctx: &mut Context) {
         if self.alive.get() {
             if let Some(is_world) = self.is_world.get() {
-                self.background.draw(ctx, position(146.0, 83.0));
-                draw_cursor(ctx, 154.0, 94.0 + (self.cursor.get() << 4) as f32);
+                self.background.draw(ctx, 146.0, 83.0, Default::default());
+                draw_cursor(ctx, 154.0, 94.0 + (self.cursor.get() << 4) as f32, Default::default());
                 if is_world {
                     self.world.iter()
                 } else {
@@ -107,9 +109,9 @@ impl PartySelectMenu {
                         ctx,
                         &1,
                         line,
-                        TextColor::Black,
                         161.0,
                         93.0 + (index << 4) as f32,
+                        DrawParams::color(TextColor::Black.into())
                     )
                 });
             }

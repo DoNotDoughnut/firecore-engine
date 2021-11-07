@@ -1,17 +1,12 @@
 [package]
 name = "firecore-audio"
 description = "Utility library for classifying sound/music tracks in my game"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Rhys H <donotdoughnut99@gmail.com>"]
 edition = "2018"
 license = "MIT"
 repository = "https://github.com/fiirecore/engine"
 readme = "README.md"
-
-[features]
-default = []
-serialized = []
-file = ["serialized"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }

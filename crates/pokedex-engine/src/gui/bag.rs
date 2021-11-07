@@ -1,18 +1,17 @@
-use core::cell::Cell;
+use core::{cell::Cell, ops::Deref};
 
 use engine::{
-    graphics::{draw_cursor, draw_o, draw_text_left, position},
+    graphics::{draw_cursor, draw_text_left, DrawParams, Texture},
     gui::Panel,
-    input::{pressed, Control},
-    tetra::graphics::Texture,
+    input::controls::{pressed, Control},
     text::TextColor,
     util::HEIGHT,
-    EngineContext,
+    Context,
 };
 
 use pokedex::item::{Item, ItemStack};
 
-use crate::context::PokedexClientContext;
+use crate::context::PokedexClientData;
 
 // const WORLD_OPTIONS: &[&'static str] = &[
 //     "Use",
@@ -35,12 +34,11 @@ pub struct BagGui {
     select_cursor: Cell<usize>,
     // select_text: Cell<Option<TextOption>>,
     // items: [Cell<Option<TinyStr4>>; 12],
-
     selected: Cell<Option<usize>>,
 }
 
 impl BagGui {
-    pub fn new(ctx: &PokedexClientContext) -> Self {
+    pub fn new(ctx: &PokedexClientData) -> Self {
         Self {
             alive: Default::default(),
             background: ctx.bag_background.clone(),
@@ -53,7 +51,7 @@ impl BagGui {
         }
     }
 
-    pub fn input<'d>(&self, ctx: &EngineContext, items: &[ItemStack<&'d Item>]) {
+    pub fn input<I>(&self, ctx: &Context, items: &[ItemStack<I>]) {
         match self.selecting.get() {
             true => {
                 // match self.select_text {
@@ -63,12 +61,10 @@ impl BagGui {
                     self.selecting.set(false);
                 }
                 if pressed(ctx, Control::Up) && cursor > 0 {
-                    self.select_cursor
-                        .set(self.select_cursor.get() - 1);
+                    self.select_cursor.set(self.select_cursor.get() - 1);
                 }
                 if pressed(ctx, Control::Down) && cursor < BATTLE_OPTIONS.len() {
-                    self.select_cursor
-                        .set(self.select_cursor.get() + 1);
+                    self.select_cursor.set(self.select_cursor.get() + 1);
                 }
                 if pressed(ctx, Control::A) {
                     match cursor {
@@ -109,13 +105,32 @@ impl BagGui {
         }
     }
 
-    pub fn draw<'d>(&self, ctx: &mut EngineContext, dex: &PokedexClientContext, items: &[ItemStack<&'d Item>]) {
-        self.background.draw(ctx, position(0.0, 0.0));
+    pub fn draw<I: Deref<Target = Item>>(
+        &self,
+        ctx: &mut Context,
+        dex: &PokedexClientData,
+        items: &[ItemStack<I>],
+    ) {
+        self.background.draw(ctx, 0.0, 0.0, Default::default());
         let cursor = self.cursor.get();
         for (index, stack) in items.iter().enumerate() {
             let y = 11.0 + (index << 4) as f32;
-            draw_text_left(ctx, &1, &stack.item.name, TextColor::Black, 98.0, y);
-            draw_text_left(ctx, &1, "x", TextColor::Black, 200.0, y);
+            draw_text_left(
+                ctx,
+                &1,
+                &stack.item.name,
+                98.0,
+                y,
+                DrawParams::color(TextColor::Black.into()),
+            );
+            draw_text_left(
+                ctx,
+                &1,
+                "x",
+                200.0,
+                y,
+                DrawParams::color(TextColor::Black.into()),
+            );
             // if let Some(ref count) = self.items.get(index - self.offset.get()).map(|cell| cell.get()).flatten() {
             //     draw_text_left(ctx, &1, &count, TextColor::Black, 208.0, y);
             // }
@@ -124,24 +139,29 @@ impl BagGui {
             ctx,
             &1,
             "Cancel",
-            TextColor::Black,
             98.0,
             11.0 + (items.len() << 4) as f32,
+            DrawParams::color(TextColor::Black.into()),
         );
         if let Some(stack) = items.get(cursor) {
-            draw_o(ctx, dex.item_textures.try_get(&stack.item.id), 8.0, 125.0);
+            if let Some(texture) = dex.item_textures.try_get(&stack.item.id) {
+                texture.draw(ctx, 8.0, 125.0, Default::default());
+            }
             for (index, line) in stack.item.description.lines().enumerate() {
                 draw_text_left(
                     ctx,
                     &1,
                     line,
-                    TextColor::White,
                     41.0,
                     117.0 + (index * 14) as f32,
+                    DrawParams {
+                        color: TextColor::White.into(),
+                        ..Default::default()
+                    },
                 );
             }
         }
-        draw_cursor(ctx, 91.0, 13.0 + (cursor << 4) as f32);
+        draw_cursor(ctx, 91.0, 13.0 + (cursor << 4) as f32, Default::default());
         if self.selecting.get() {
             // if let Some(text) = self.select_text {
             Panel::draw_text(
@@ -169,13 +189,12 @@ impl BagGui {
     //     }
     // }
 
-    pub fn take_selected_despawn<'d>(&self, items: &mut [ItemStack<&'d Item>]) -> Option<&'d Item> {
+    pub fn take_selected_despawn<I: Deref<Target = Item> + Clone>(&self, items: &mut [ItemStack<I>]) -> Option<I> {
         let selected = self.selected.get();
         selected
             .map(|selected| {
                 self.selected.set(None);
-                let item = items[selected].try_use()
-                    .then(|| items[selected].item);
+                let item = items[selected].try_use().then(|| items[selected].item.clone());
                 self.despawn();
                 item
             })

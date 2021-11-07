@@ -1,9 +1,9 @@
 use pokedex::{
     engine::{
-        audio::{play_sound, sound::Sound},
-        graphics::position,
-        tetra::{graphics::Texture, math::Vec2, Context},
-        EngineContext,
+        audio::play_sound,
+        graphics::{DrawParams, Texture},
+        math::Vec2,
+        Context,
     },
     pokemon::PokemonId,
     CRY_ID,
@@ -52,7 +52,7 @@ impl Spawner {
         0.5 * (x - Self::PARABOLA_ORIGIN).powi(2) - 50.0
     }
 
-    pub fn update(&mut self, ctx: &EngineContext, delta: f32) {
+    pub fn update(&mut self, ctx: &Context, delta: f32) {
         match self.spawning {
             SpawnerState::Start => {
                 self.x = Self::ORIGIN;
@@ -63,7 +63,7 @@ impl Spawner {
                 self.x += delta * 20.0;
                 if self.x > Self::LEN {
                     if let Some(id) = self.id {
-                        play_sound(ctx, &Sound::variant(CRY_ID, Some(id)));
+                        play_sound(ctx, &CRY_ID, Some(id));
                     }
                     self.spawning = SpawnerState::Spawning;
                     self.x = 0.0;
@@ -79,15 +79,19 @@ impl Spawner {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context, origin: Vec2<f32>, texture: &Texture) {
+    pub fn draw(&self, ctx: &mut Context, origin: Vec2, texture: &Texture) {
         match self.spawning {
             SpawnerState::Throwing => {
                 if let Some(texture) = self.texture.as_ref() {
                     texture.draw(
                         ctx,
-                        position(origin.x + self.x + Self::OFFSET, origin.y + Self::f(self.x))
-                            .origin(Vec2::new(6.0, 6.0))
-                            .rotation(self.x),
+                        origin.x + self.x + Self::OFFSET,
+                        origin.y + Self::f(self.x),
+                        DrawParams {
+                            rotation: self.x,
+                            origin: Some(Vec2::new(6.0, 6.0)),
+                            ..Default::default()
+                        },
                     )
                 }
             }
@@ -99,7 +103,7 @@ impl Spawner {
                 if y < max {
                     y = max;
                 }
-                texture.draw(ctx, position(origin.x, y)); // change color of texture when spawning here
+                texture.draw(ctx, origin.x, y, DrawParams::default()); // change color of texture when spawning here
             }
             SpawnerState::None | SpawnerState::Start => (),
         }

@@ -1,10 +1,15 @@
+use core::ops::Deref;
+use pokedex::pokemon::Pokemon;
+
 use pokedex::{
-    context::PokedexClientContext,
+    context::PokedexClientData,
     engine::{
-        graphics::{byte_texture, position, LIGHTGRAY},
-        tetra::{graphics::Texture, math::Vec2, Context},
         util::{Completable, Reset},
-        EngineContext,
+        Context,
+        {
+            graphics::{Color, Texture},
+            math::Vec2,
+        },
     },
 };
 
@@ -19,23 +24,24 @@ pub struct WildBattleOpener {
     opener: DefaultBattleOpener,
 
     grass: Texture,
-    offset: Vec2<f32>,
+    offset: Vec2,
 }
 
 impl WildBattleOpener {
+    const LIGHTGRAY: Color = Color::rgb(0.78, 0.78, 0.78);
     const GRASS_WIDTH: f32 = 128.0;
     const GRASS_HEIGHT: f32 = 47.0;
     pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
         Self {
             opener: DefaultBattleOpener::new(gui),
-            grass: byte_texture(ctx, include_bytes!("../../../assets/grass.png")),
+            grass: Texture::new(ctx, include_bytes!("../../../assets/grass.png")).unwrap(),
             offset: Vec2::new(Self::GRASS_WIDTH, Self::GRASS_HEIGHT),
         }
     }
 }
 
-impl<ID> BattleOpener<ID> for WildBattleOpener {
-    fn spawn(&mut self, _: &PokedexClientContext, _: &GuiRemotePlayer<ID>) {}
+impl<ID, P: Deref<Target = Pokemon>> BattleOpener<ID, P> for WildBattleOpener {
+    fn spawn(&mut self, _: &PokedexClientData, _: &GuiRemotePlayer<ID, P>) {}
 
     fn update(&mut self, delta: f32) {
         self.opener.update(delta);
@@ -56,27 +62,35 @@ impl<ID> BattleOpener<ID> for WildBattleOpener {
 
     fn draw_below_panel(
         &self,
-        ctx: &mut EngineContext,
+        ctx: &mut Context,
         player: &[ActivePokemonRenderer],
         opponent: &[ActivePokemonRenderer],
     ) {
         for active in opponent.iter() {
             active
                 .pokemon
-                .draw(ctx, Vec2::new(-self.opener.offset, 0.0), LIGHTGRAY);
+                .draw(ctx, Vec2::new(-self.opener.offset, 0.0), Self::LIGHTGRAY);
         }
         self.opener.draw_below_panel(ctx, player, opponent);
         if self.offset.y > 0.0 {
             let y = 114.0 - self.offset.y;
-            self.grass
-                .draw(ctx, position(self.offset.x - Self::GRASS_WIDTH, y));
-            self.grass.draw(ctx, position(self.offset.x, y));
-            self.grass
-                .draw(ctx, position(self.offset.x + Self::GRASS_WIDTH, y));
+            self.grass.draw(
+                ctx,
+                self.offset.x - Self::GRASS_WIDTH,
+                y,
+                Default::default(),
+            );
+            self.grass.draw(ctx, self.offset.x, y, Default::default());
+            self.grass.draw(
+                ctx,
+                self.offset.x + Self::GRASS_WIDTH,
+                y,
+                Default::default(),
+            );
         }
     }
 
-    fn draw(&self, ctx: &mut EngineContext) {
+    fn draw(&self, ctx: &mut Context) {
         self.opener.draw(ctx);
     }
 }

@@ -1,13 +1,12 @@
+use std::ops::Deref;
+
 use pokedex::{
-    context::PokedexClientContext,
+    context::PokedexClientData,
     engine::{
-        graphics::position,
-        tetra::{
-            graphics::{Color, Rectangle, Texture},
-            math::Vec2,
-            Context,
-        },
+        graphics::{Color, DrawParams, Texture},
+        math::{Rectangle, Vec2},
         util::Reset,
+        Context,
     },
     pokemon::PokemonId,
     texture::PokemonTexture,
@@ -23,6 +22,8 @@ use self::{
     flicker::Flicker,
     spawner::{Spawner, SpawnerState},
 };
+
+use pokedex::{item::Item, moves::Move, pokemon::Pokemon, Dex};
 
 // mod moves;
 mod status;
@@ -41,7 +42,7 @@ pub struct PokemonRenderer {
     pub pokemon: Option<Texture>,
     side: PokemonTexture,
 
-    pub pos: Vec2<f32>,
+    pub pos: Vec2,
 
     pub spawner: Spawner,
     pub faint: Faint,
@@ -65,21 +66,21 @@ impl PokemonRenderer {
         }
     }
 
-    pub fn with(
+    pub fn with<'d>(
         ctx: &BattleGuiContext,
-        dex: &PokedexClientContext,
+        data: &PokedexClientData,
         index: BattleGuiPositionIndex,
         pokemon: Option<PokemonId>,
         side: PokemonTexture,
     ) -> Self {
         Self {
-            pokemon: pokemon.map(|pokemon| dex.pokemon_textures.get(&pokemon, side).clone()),
+            pokemon: pokemon.map(|pokemon| data.pokemon_textures.get(&pokemon, side).clone()),
             spawner: Spawner::new(ctx, pokemon),
             ..Self::new(ctx, index, side)
         }
     }
 
-    fn position(index: BattleGuiPositionIndex) -> Vec2<f32> {
+    fn position(index: BattleGuiPositionIndex) -> Vec2 {
         let offset = (index.size - 1) as f32 * 32.0 - index.index as f32 * 64.0;
         match index.position {
             BattleGuiPosition::Top => Vec2::new(144.0 - offset, 74.0),
@@ -87,9 +88,9 @@ impl PokemonRenderer {
         }
     }
 
-    pub fn new_pokemon(&mut self, dex: &PokedexClientContext, pokemon: Option<PokemonId>) {
+    pub fn new_pokemon<'d>(&mut self, data: &PokedexClientData, pokemon: Option<PokemonId>) {
         self.spawner.id = pokemon;
-        self.pokemon = pokemon.map(|pokemon| dex.pokemon_textures.get(&pokemon, self.side).clone());
+        self.pokemon = pokemon.map(|pokemon| data.pokemon_textures.get(&pokemon, self.side).clone());
         self.reset();
     }
 
@@ -110,7 +111,7 @@ impl PokemonRenderer {
         self.flicker.accumulator = 0.0;
     }
 
-    pub fn draw(&self, ctx: &mut Context, offset: Vec2<f32>, color: Color) {
+    pub fn draw(&self, ctx: &mut Context, offset: Vec2, color: Color) {
         if let Some(texture) = &self.pokemon {
             let pos = self.pos + offset;
             if self.spawner.spawning() {
@@ -118,20 +119,28 @@ impl PokemonRenderer {
             } else if self.flicker.accumulator < Flicker::HALF {
                 if self.faint.fainting {
                     if self.faint.remaining > 0.0 {
-                        texture.draw_region(
+                        texture.draw(
                             ctx,
-                            Rectangle::new(0.0, 0.0, texture.width() as f32, self.faint.remaining),
-                            position(pos.x, pos.y - self.faint.remaining).color(color),
+                            pos.x,
+                            pos.y - self.faint.remaining,
+                            DrawParams {
+                                source: Some(Rectangle::new(
+                                    0.0,
+                                    0.0,
+                                    texture.width() as f32,
+                                    self.faint.remaining,
+                                )),
+                                color,
+                                ..Default::default()
+                            },
                         );
                     }
                 } else {
                     texture.draw(
                         ctx,
-                        position(
-                            pos.x, //+ self.moves.pokemon_x(),
-                            pos.y - texture.height() as f32,
-                        )
-                        .color(color),
+                        pos.x, //+ self.moves.pokemon_x(),
+                        pos.y - texture.height() as f32,
+                        DrawParams::color(color),
                     );
                 }
             }

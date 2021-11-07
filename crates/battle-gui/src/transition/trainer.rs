@@ -1,11 +1,8 @@
 use pokedex::engine::{
-    tetra::{
-        graphics::{Color, Rectangle, Texture},
-        math::Vec2,
-        Context,
-    },
-    graphics::{byte_texture, position},
+    graphics::{Color, DrawParams, Texture},
+    math::{vec2, Rectangle, Vec2},
     util::{Reset, WIDTH},
+    Context,
 };
 
 use super::TransitionState;
@@ -30,14 +27,8 @@ impl BattleTrainerPartyIntro {
     pub fn new(ctx: &mut Context) -> Self {
         Self {
             state: None,
-            bar: byte_texture(
-                ctx,
-                include_bytes!("../../assets/gui/bar.png"),
-            ),
-            ball: byte_texture(
-                ctx,
-                include_bytes!("../../assets/gui/owned.png"),
-            ),
+            bar: Texture::new(ctx, include_bytes!("../../assets/gui/bar.png")).unwrap(),
+            ball: Texture::new(ctx, include_bytes!("../../assets/gui/owned.png")).unwrap(),
             player: 0,
             opponent: 0,
             counter: 0,
@@ -126,64 +117,82 @@ impl BattleTrainerPartyIntro {
     pub fn draw_gui(
         &self,
         ctx: &mut Context,
-        pos: Vec2<f32>,
+        pos: Vec2,
         invert: bool,
         len: u8,
         opacity: Color,
         distance: u16,
     ) {
-        let invert = if invert { -1.0 } else { 1.0 };
+        self.bar.draw(
+            ctx,
+            pos.x + (self.bar_position - Self::BAR_HIDDEN) * if invert { -1.0 } else { 1.0 },
+            pos.y,
+            DrawParams {
+                color: opacity,
+                flip_x: invert,
+                ..Default::default()
+            },
+        );
 
         self.bar.draw(
             ctx,
-            position(
-                pos.x + (self.bar_position - Self::BAR_HIDDEN) * invert,
-                pos.y,
-            )
-            .color(opacity)
-            .scale(Vec2::new(invert, 1.0)),
-        );
-
-        self.bar.draw_region(
-            ctx,
-            Rectangle::new(0.0, 0.0, 1.0, 4.0),
-            position(
-                pos.x + (self.bar_position - Self::BAR_HIDDEN - Self::OPACITY_LEN) * invert,
-                pos.y,
-            )
-            .color(opacity)
-            .scale(Vec2::new(invert * Self::OPACITY_LEN, 1.0)),
+            pos.x
+                + (self.bar_position - Self::BAR_HIDDEN - Self::OPACITY_LEN)
+                    * if invert { -1.0 } else { 1.0 },
+            pos.y,
+            DrawParams {
+                color: opacity,
+                source: Some(Rectangle::new(0.0, 0.0, 1.0, 4.0)),
+                dest_size: Some(vec2(
+                    self.bar.width() * Self::OPACITY_LEN,
+                    self.bar.height(),
+                )),
+                flip_x: invert,
+                ..Default::default()
+            },
         );
 
         for i in 0..self.counter {
-            self.ball.draw_region(
+            self.ball.draw(
                 ctx,
-                Rectangle::new(0.0, if len > i { 0.0 } else { 7.0 }, 7.0, 7.0),
-                position(
-                    pos.x
-                        + (self.bar_position.max(0.0) + Self::RIGHT_BALL_POSITION
-                            - (i as u16 * distance) as f32)
-                            * invert,
-                    pos.y - 9.0,
-                )
-                .color(opacity)
-                .scale(Vec2::new(invert, 1.0)),
+                pos.x
+                    + (self.bar_position.max(0.0) + Self::RIGHT_BALL_POSITION
+                        - (i as u16 * distance) as f32)
+                        * if invert { -1.0 } else { 1.0 },
+                pos.y - 9.0,
+                DrawParams {
+                    source: Some(Rectangle::new(
+                        0.0,
+                        if len > i { 0.0 } else { 7.0 },
+                        7.0,
+                        7.0,
+                    )),
+                    color: opacity,
+                    flip_x: invert,
+                    ..Default::default()
+                },
             );
         }
 
         if self.ball_position != 0.0 && self.counter < 6 {
-            self.ball.draw_region(
+            self.ball.draw(
                 ctx,
-                Rectangle::new(0.0, if len > self.counter { 0.0 } else { 7.0 }, 7.0, 7.0),
-                position(
-                    pos.x
-                        + invert
-                            * (Self::RIGHT_BALL_POSITION + self.ball_position
-                                - (self.counter * 10) as f32),
-                    pos.y - 9.0,
-                )
-                .color(opacity)
-                .scale(Vec2::new(invert, 1.0)),
+                pos.x
+                    + if invert { -1.0 } else { 1.0 }
+                        * (Self::RIGHT_BALL_POSITION + self.ball_position
+                            - (self.counter * 10) as f32),
+                pos.y - 9.0,
+                DrawParams {
+                    source: Some(Rectangle::new(
+                        0.0,
+                        if len > self.counter { 0.0 } else { 7.0 },
+                        7.0,
+                        7.0,
+                    )),
+                    color: opacity,
+                    flip_x: invert,
+                    ..Default::default()
+                },
             );
         }
     }

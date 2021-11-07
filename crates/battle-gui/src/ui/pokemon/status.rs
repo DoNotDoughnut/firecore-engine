@@ -1,23 +1,29 @@
-use crate::view::InitUnknownPokemon;
+use core::ops::Deref;
+
 use pokedex::{
-    context::PokedexClientContext,
+    context::PokedexClientData,
     engine::{
-        graphics::{draw_text_left, draw_text_right, position},
-        tetra::{graphics::Texture, math::Vec2},
+        graphics::{draw_text_left, draw_text_right, DrawParams, Texture},
+        math::{vec2, Vec2},
         text::TextColor,
         util::Entity,
-        EngineContext,
+        Context,
     },
     gui::health::HealthBar,
-    pokemon::{Health, Level, owned::OwnedPokemon, Pokemon},
+    pokemon::{
+        owned::{OwnablePokemon, OwnedPokemon},
+        Health, Level, Pokemon,
+    },
 };
+
+use battle::pokemon::remote::UnknownPokemon;
 
 use log::warn;
 
 use crate::{
     context::BattleGuiContext,
     ui::{exp_bar::ExperienceBar, BattleGuiPosition, BattleGuiPositionIndex},
-    view::GuiPokemonView,
+    view::{BasePokemonView, GuiPokemonView},
 };
 
 #[derive(Default, Clone)]
@@ -26,12 +32,12 @@ pub struct PokemonStatusGui {
 
     position: BattleGuiPosition,
 
-    origin: Vec2<f32>,
+    origin: Vec2,
 
     background: Option<(Option<Texture>, Texture)>,
     small: bool,
     data_pos: PokemonStatusPos,
-    health: (HealthBar, Vec2<f32>),
+    health: (HealthBar, Vec2),
     data: PokemonStatusData,
     exp: ExperienceBar,
 }
@@ -50,14 +56,16 @@ struct PokemonStatusPos {
     level: f32,
 }
 
+use pokedex::{item::Item, moves::Move};
+
 impl PokemonStatusGui {
     pub const BATTLE_OFFSET: f32 = 24.0 * 5.0;
 
     const HEALTH_Y: f32 = 15.0;
 
-    pub fn new(
+    pub fn new<'d>(
         ctx: &BattleGuiContext,
-        dex: &PokedexClientContext,
+        dex: &PokedexClientData,
         index: BattleGuiPositionIndex,
     ) -> Self {
         let (((background, origin, small), data_pos, hb), position) = Self::attributes(ctx, index);
@@ -78,11 +86,11 @@ impl PokemonStatusGui {
         }
     }
 
-    pub fn with_known<'d>(
+    pub fn with_known<P: Deref<Target = Pokemon>, M, I, G>(
         ctx: &BattleGuiContext,
-        dex: &PokedexClientContext,
+        dex: &PokedexClientData,
         index: BattleGuiPositionIndex,
-        pokemon: Option<&OwnedPokemon<'d>>,
+        pokemon: Option<&OwnablePokemon<P, M, I, G, Health>>,
     ) -> Self {
         let (((background, origin, small), data_pos, hb), position) = Self::attributes(ctx, index);
         Self {
@@ -113,11 +121,11 @@ impl PokemonStatusGui {
         }
     }
 
-    pub fn with_unknown<'d>(
+    pub fn with_unknown<P: Deref<Target = Pokemon>>(
         ctx: &BattleGuiContext,
-        dex: &PokedexClientContext,
+        dex: &PokedexClientData,
         index: BattleGuiPositionIndex,
-        pokemon: Option<&InitUnknownPokemon<'d>>,
+        pokemon: Option<&UnknownPokemon<P>>,
     ) -> Self {
         let (((background, origin, small), data_pos, hb), position) = Self::attributes(ctx, index);
         Self {
@@ -146,29 +154,29 @@ impl PokemonStatusGui {
         }
     }
 
-    const TOP_SINGLE: Vec2<f32> = Vec2::new(14.0, 18.0);
+    const TOP_SINGLE: Vec2 = vec2(14.0, 18.0);
 
-    const BOTTOM_SINGLE: Vec2<f32> = Vec2::new(127.0, 75.0);
-    const BOTTOM_MANY_WITH_BOTTOM_RIGHT: Vec2<f32> = Vec2::new(240.0, 113.0);
+    const BOTTOM_SINGLE: Vec2 = vec2(127.0, 75.0);
+    const BOTTOM_MANY_WITH_BOTTOM_RIGHT: Vec2 = vec2(240.0, 113.0);
 
     // const OPPONENT_HEIGHT: f32 = 29.0;
-    const OPPONENT_HEALTH_OFFSET: Vec2<f32> = Vec2::new(24.0, Self::HEALTH_Y);
+    const OPPONENT_HEALTH_OFFSET: Vec2 = vec2(24.0, Self::HEALTH_Y);
 
     const OPPONENT_POSES: PokemonStatusPos = PokemonStatusPos {
         name: 8.0,
         level: 86.0,
     };
 
-    const EXP_OFFSET: Vec2<f32> = Vec2::new(32.0, 33.0);
+    const EXP_OFFSET: Vec2 = vec2(32.0, 33.0);
 
     fn attributes(
         ctx: &BattleGuiContext,
         index: BattleGuiPositionIndex,
     ) -> (
         (
-            ((Option<Texture>, Texture), Vec2<f32>, bool),
+            ((Option<Texture>, Texture), Vec2, bool),
             PokemonStatusPos,
-            Vec2<f32>,
+            Vec2,
         ),
         BattleGuiPosition,
     ) {
@@ -213,7 +221,7 @@ impl PokemonStatusGui {
                                 name: 17.0,
                                 level: 95.0,
                             },
-                            Vec2::new(33.0, Self::HEALTH_Y),
+                            vec2(33.0, Self::HEALTH_Y),
                         )
                     } else {
                         let texture = ctx.smallui.clone();
@@ -244,7 +252,11 @@ impl PokemonStatusGui {
         self.health.0.update(delta);
     }
 
-    pub fn update_exp<'d>(&mut self, delta: f32, pokemon: &OwnedPokemon<'d>) {
+    pub fn update_exp<P: Deref<Target = Pokemon>, M, I, G>(
+        &mut self,
+        delta: f32,
+        pokemon: &OwnablePokemon<P, M, I, G, Health>,
+    ) {
         if self.data.active {
             if self.small {
                 self.exp.update_exp(pokemon.level, pokemon, true)
@@ -274,15 +286,19 @@ impl PokemonStatusGui {
         (self.exp.moving() && !self.small) || self.health.0.is_moving()
     }
 
-    pub fn update_gui<'d>(
+    pub fn update_gui<
+        P: Deref<Target = Pokemon>,
+        M: Deref<Target = Move>,
+        I: Deref<Target = Item>,
+    >(
         &mut self,
-        pokemon: Option<&OwnedPokemon<'d>>,
+        pokemon: Option<&OwnedPokemon<P, M, I>>,
         previous: Option<Level>,
         reset: bool,
     ) {
         self.data.active = if let Some(pokemon) = pokemon {
             self.data.update(
-                previous.unwrap_or(pokemon.level()),
+                previous.unwrap_or(pokemon.level),
                 pokemon,
                 reset,
                 &mut self.health.0,
@@ -295,16 +311,20 @@ impl PokemonStatusGui {
         };
     }
 
-    pub fn update_gui_view(
+    pub fn update_gui_view<
+        P: Deref<Target = Pokemon>,
+        M: Deref<Target = Move>,
+        I: Deref<Target = Item>,
+    >(
         &mut self,
-        pokemon: Option<&dyn GuiPokemonView>,
+        pokemon: Option<&dyn GuiPokemonView<P, M, I>>,
         previous: Option<Level>,
         reset: bool,
     ) {
         self.data.active = if let Some(pokemon) = pokemon {
             self.data.update_view(
                 previous.unwrap_or(pokemon.level()),
-                pokemon,
+                pokemon.base(),
                 reset,
                 &mut self.health.0,
             );
@@ -314,23 +334,21 @@ impl PokemonStatusGui {
         };
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext, offset: f32, bounce: f32) {
+    pub fn draw(&self, ctx: &mut Context, offset: f32, bounce: f32) {
         if self.alive {
             if self.data.active {
                 let should_bounce =
                     !self.data.health.is_empty() || matches!(self.position, BattleGuiPosition::Top);
-                let pos = Vec2::new(
+                let pos = vec2(
                     self.origin.x + offset + if should_bounce { 0.0 } else { bounce },
                     self.origin.y + if should_bounce { bounce } else { 0.0 },
                 );
 
                 if let Some(background) = self.background.as_ref() {
-
                     if let Some(padding) = &background.0 {
-                        padding.draw(ctx, position(pos.x + 8.0, pos.y + 21.0));
+                        padding.draw(ctx, pos.x + 8.0, pos.y + 21.0, Default::default());
                     }
-                    background.1.draw(ctx, position(pos.x, pos.y));
-
+                    background.1.draw(ctx, pos.x, pos.y, Default::default());
                 }
 
                 let x2 = pos.x + self.data_pos.level;
@@ -340,16 +358,30 @@ impl PokemonStatusGui {
                     ctx,
                     &0,
                     &self.data.name,
-                    TextColor::Black,
                     pos.x + self.data_pos.name,
                     y,
+                    DrawParams::color(TextColor::Black.into()),
                 );
 
-                draw_text_right(ctx, &0, &self.data.level.0, TextColor::Black, x2, y);
+                draw_text_right(
+                    ctx,
+                    &0,
+                    &self.data.level.0,
+                    x2,
+                    y,
+                    DrawParams::color(TextColor::Black.into()),
+                );
 
                 if !self.small {
                     self.exp.draw(ctx, pos + Self::EXP_OFFSET);
-                    draw_text_right(ctx, &0, &self.data.health, TextColor::Black, x2, y + 18.0);
+                    draw_text_right(
+                        ctx,
+                        &0,
+                        &self.data.health,
+                        x2,
+                        y + 18.0,
+                        DrawParams::color(TextColor::Black.into()),
+                    );
                 }
 
                 self.health.0.draw(ctx, pos + self.health.1);
@@ -359,10 +391,10 @@ impl PokemonStatusGui {
 }
 
 impl PokemonStatusData {
-    pub fn update_view(
+    pub fn update_view<P: Deref<Target = Pokemon>>(
         &mut self,
         previous: Level,
-        pokemon: &dyn GuiPokemonView,
+        pokemon: &dyn BasePokemonView<P>,
         reset: bool,
         health: &mut HealthBar,
     ) {
@@ -377,10 +409,10 @@ impl PokemonStatusData {
         }
     }
 
-    pub fn update<'d>(
+    pub fn update<P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>(
         &mut self,
         previous: Level,
-        pokemon: &OwnedPokemon<'d>,
+        pokemon: &OwnedPokemon<P, M, I>,
         reset: bool,
         health: &mut HealthBar,
         exp: &mut ExperienceBar,

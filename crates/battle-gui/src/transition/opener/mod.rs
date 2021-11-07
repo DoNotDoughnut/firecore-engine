@@ -1,10 +1,13 @@
+use core::ops::Deref;
+use pokedex::pokemon::Pokemon;
+
 use pokedex::{
-    context::PokedexClientContext,
+    context::PokedexClientData,
     engine::{
-        graphics::{draw_rectangle, position},
-        tetra::graphics::{Color, Rectangle, Texture},
+        graphics::{draw_rectangle, Color, DrawParams, Texture},
+        math::Rectangle,
         util::{Completable, Reset, WIDTH},
-        EngineContext,
+        Context,
     },
 };
 
@@ -33,19 +36,19 @@ impl Default for Openers {
     }
 }
 
-pub(crate) trait BattleOpener<ID>: Completable {
-    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID>);
+pub(crate) trait BattleOpener<ID, P: Deref<Target = Pokemon>>: Completable {
+    fn spawn(&mut self, ctx: &PokedexClientData, opponent: &GuiRemotePlayer<ID, P>);
 
     fn update(&mut self, delta: f32);
 
     fn draw_below_panel(
         &self,
-        ctx: &mut EngineContext,
+        ctx: &mut Context,
         player: &[ActivePokemonRenderer],
         opponent: &[ActivePokemonRenderer],
     );
 
-    fn draw(&self, ctx: &mut EngineContext);
+    fn draw(&self, ctx: &mut Context);
 
     fn offset(&self) -> f32;
 }
@@ -80,12 +83,7 @@ impl DefaultBattleOpener {
 }
 
 impl DefaultBattleOpener {
-    pub fn spawn<ID: Default>(
-        &mut self,
-        _: &PokedexClientContext,
-        _: &GuiRemotePlayer<ID>,
-    ) {
-    }
+    pub fn spawn<ID: Default, P: Deref<Target = Pokemon>>(&mut self, _: &PokedexClientData, _: &GuiRemotePlayer<ID, P>) {}
 
     pub fn update(&mut self, delta: f32) {
         match self.wait < 0.0 {
@@ -116,18 +114,19 @@ impl DefaultBattleOpener {
 
     pub fn draw_below_panel(
         &self,
-        ctx: &mut EngineContext,
+        ctx: &mut Context,
         _player: &[ActivePokemonRenderer],
         _opponent: &[ActivePokemonRenderer],
     ) {
-        self.player.draw_region(
+        self.player.draw(
             ctx,
-            Rectangle::new(0.0, 0.0, 64.0, 64.0),
-            position(41.0 + self.offset, 49.0),
+            41.0 + self.offset,
+            49.0,
+            DrawParams::source(Rectangle::new(0.0, 0.0, 64.0, 64.0)),
         )
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext) {
+    pub fn draw(&self, ctx: &mut Context) {
         draw_rectangle(ctx, 0.0, 0.0, WIDTH, self.rect_size, Color::BLACK);
         draw_rectangle(
             ctx,

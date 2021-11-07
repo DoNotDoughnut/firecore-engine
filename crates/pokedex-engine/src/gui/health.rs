@@ -1,16 +1,14 @@
 use engine::{
     graphics::draw_rectangle,
+    graphics::{Color, DrawParams, Texture},
     gui::ProgressBar,
-    tetra::{
-        graphics::{Color, DrawParams, Texture},
-        math::Vec2,
-    },
-    EngineContext,
+    math::Vec2,
+    Context,
 };
 
-use pokedex::pokemon::Health;
+use crate::context::PokedexClientData;
 
-use crate::context::PokedexClientContext;
+use pokedex::pokemon::Health;
 
 #[derive(Default, Clone)]
 pub struct HealthBar {
@@ -41,21 +39,21 @@ impl HealthBar {
         lower: Color::rgb(248.0 / 255.0, 88.0 / 255.0, 56.0 / 255.0),
     };
 
-    pub fn new(ctx: &PokedexClientContext) -> Self {
+    pub fn new(ctx: &PokedexClientData) -> Self {
         Self {
             background: Some(Self::texture(ctx).clone()),
             bar: ProgressBar::new(Self::WIDTH),
         }
     }
 
-    pub fn with_size(ctx: &PokedexClientContext, width: f32) -> Self {
+    pub fn with_size(ctx: &PokedexClientData, width: f32) -> Self {
         Self {
             background: Some(Self::texture(ctx).clone()),
             bar: ProgressBar::new(width),
         }
     }
 
-    pub fn texture<'d, 'c>(ctx: &'c PokedexClientContext<'d>) -> &'c Texture {
+    pub fn texture(ctx: &PokedexClientData) -> &Texture {
         &ctx.health_bar
     }
 
@@ -79,13 +77,13 @@ impl HealthBar {
         self.bar.update(delta)
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext, origin: Vec2<f32>) {
+    pub fn draw(&self, ctx: &mut Context, origin: Vec2) {
         self.draw_width(ctx, origin, self.bar.width().ceil());
     }
 
-    pub fn draw_width(&self, ctx: &mut EngineContext, origin: Vec2<f32>, width: f32) {
+    pub fn draw_width(&self, ctx: &mut Context, origin: Vec2, width: f32) {
         if let Some(background) = self.background.as_ref() {
-            background.draw(ctx, DrawParams::position(DrawParams::default(), origin));
+            background.draw(ctx, origin.x, origin.y, DrawParams::default());
         }
         let x = origin.x + 15.0;
         let color = if width < Self::WIDTH / 8.0 {

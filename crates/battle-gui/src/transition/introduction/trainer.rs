@@ -1,18 +1,23 @@
+use core::ops::Deref;
+use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
+
 use pokedex::{
-    context::PokedexClientContext,
+    context::PokedexClientData,
     engine::{
-        graphics::draw_o_bottom,
+        graphics::Texture,
         gui::MessageBox,
-        tetra::graphics::Texture,
         text::MessagePage,
         util::{Completable, Reset},
-        EngineContext,
+        Context,
     },
 };
 
 use battle::data::BattleType;
 
-use crate::{context::BattleGuiContext, ui::view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer}};
+use crate::{
+    context::BattleGuiContext,
+    ui::view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer},
+};
 
 use super::{basic::BasicBattleIntroduction, BattleIntroduction};
 
@@ -37,13 +42,15 @@ impl TrainerBattleIntroduction {
     }
 }
 
-impl<ID: Default> BattleIntroduction<ID> for TrainerBattleIntroduction {
+impl<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
+    BattleIntroduction<ID, P, M, I> for TrainerBattleIntroduction
+{
     fn spawn(
         &mut self,
-        ctx: &PokedexClientContext,
+        ctx: &PokedexClientData,
         _battle_type: BattleType,
-        player: &GuiLocalPlayer<ID>,
-        opponent: &GuiRemotePlayer<ID>,
+        player: &GuiLocalPlayer<ID, P, M, I>,
+        opponent: &GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
         text.clear();
@@ -61,7 +68,10 @@ impl<ID: Default> BattleIntroduction<ID> for TrainerBattleIntroduction {
             text.push(MessagePage {
                 lines: vec![
                     format!("{} sent", name),
-                    format!("out {}", BasicBattleIntroduction::concatenate(&opponent.player)),
+                    format!(
+                        "out {}",
+                        BasicBattleIntroduction::concatenate(&opponent.player)
+                    ),
                 ],
                 wait: Some(0.5),
             });
@@ -77,10 +87,10 @@ impl<ID: Default> BattleIntroduction<ID> for TrainerBattleIntroduction {
 
     fn update(
         &mut self,
-        ctx: &EngineContext,
+        ctx: &Context,
         delta: f32,
-        player: &mut GuiLocalPlayer<ID>,
-        opponent: &mut GuiRemotePlayer<ID>,
+        player: &mut GuiLocalPlayer<ID, P, M, I>,
+        opponent: &mut GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
         self.introduction.update(ctx, delta, player, opponent, text);
@@ -92,9 +102,21 @@ impl<ID: Default> BattleIntroduction<ID> for TrainerBattleIntroduction {
         }
     }
 
-    fn draw(&self, ctx: &mut EngineContext, player: &[ActivePokemonRenderer], opponent: &[ActivePokemonRenderer]) {
+    fn draw(
+        &self,
+        ctx: &mut Context,
+        player: &[ActivePokemonRenderer],
+        opponent: &[ActivePokemonRenderer],
+    ) {
         if self.offset < Self::FINAL_TRAINER_OFFSET {
-            draw_o_bottom(ctx, self.texture.as_ref(), 144.0 + self.offset, 74.0);
+            if let Some(texture) = &self.texture {
+                texture.draw(
+                    ctx,
+                    144.0 + self.offset,
+                    74.0 - texture.height(),
+                    Default::default(),
+                );
+            }
         } else {
             self.introduction.draw_opponent(ctx, opponent);
         }

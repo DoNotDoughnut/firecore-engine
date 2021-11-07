@@ -1,106 +1,95 @@
-use crate::font::{Font, FontId, Fonts, SerializedFonts};
+use std::ops::Deref;
 
-use hashbrown::HashMap;
-use tetra::{
-    graphics::{DrawParams, ImageData, Texture, Color},
-    math::Vec2,
-    Result, Context,
+use crate::{
+    text::{Font, FontId, FontSheet, Fonts},
+    graphics::{Image, Texture},
 };
 
-pub struct TextRenderer {
+use image::ImageError;
+
+use super::DrawParams;
+
+pub(crate) struct TextRenderer {
     pub fonts: Fonts,
-    pub button: Texture,
-    pub cursor: Texture,
+    button: Texture,
+    cursor: Texture,
 }
 
 impl TextRenderer {
-    pub fn new(ctx: &mut Context, serialized_fonts: SerializedFonts) -> Result<Self> {
-        let mut fonts = HashMap::with_capacity(serialized_fonts.fonts.len());
-        for font_sheet in serialized_fonts.fonts {
-            fonts.insert(
-                font_sheet.data.id,
-                Font {
-                    width: font_sheet.data.width,
-                    height: font_sheet.data.height,
-                    chars: crate::font::iterate_fontsheet(
-                        ctx,
-                        font_sheet.data.chars,
-                        font_sheet.data.width,
-                        font_sheet.data.height,
-                        font_sheet.data.custom,
-                        ImageData::from_file_data(&font_sheet.sheet)?,
-                    )?,
-                },
-            );
-        }
-
+    pub fn new() -> Result<Self, ImageError> {
         Ok(Self {
-            fonts,
-            button: Texture::from_file_data(ctx, include_bytes!("../../assets/button.png"))?,
-            cursor: Texture::from_file_data(ctx, include_bytes!("../../assets/cursor.png"))?,
+            fonts: Default::default(),
+            button: Texture::crate_new(include_bytes!("../../assets/button.png"))?,
+            cursor: Texture::crate_new(include_bytes!("../../assets/cursor.png"))?,
         })
     }
 
-    pub fn draw_text_left(
-        &self,
-        ctx: &mut Context,
-        font: &FontId,
-        text: &str,
-        color: Color,
-        x: f32,
-        y: f32,
-    ) {
+    pub fn add_font_sheet(
+        &mut self,
+        font_sheet: &FontSheet<impl Deref<Target = [u8]>>,
+    ) -> Result<(), ImageError> {
+        self.fonts.insert(
+            font_sheet.data.id,
+            Font {
+                width: font_sheet.data.width,
+                height: font_sheet.data.height,
+                chars: crate::text::iterate_fontsheet(
+                    &font_sheet.data.chars,
+                    font_sheet.data.width,
+                    font_sheet.data.height,
+                    &font_sheet.data.custom,
+                    Image::new(&font_sheet.sheet)?,
+                )?,
+            },
+        );
+        Ok(())
+    }
+
+    pub fn draw_text_left(&self, font: &FontId, text: &str, x: f32, y: f32, params: DrawParams) {
         if let Some(font) = self.fonts.get(font) {
-            font.draw_text_left(ctx, text, color, x, y);
+            font.draw_text_left(text, x, y, params);
         }
     }
 
-    pub fn draw_text_right(
-        &self,
-        ctx: &mut Context,
-        font: &FontId,
-        text: &str,
-        color: Color,
-        x: f32,
-        y: f32,
-    ) {
+    pub fn draw_text_right(&self, font: &FontId, text: &str, x: f32, y: f32, params: DrawParams) {
         if let Some(font) = self.fonts.get(font) {
-            font.draw_text_right(ctx, text, color, x, y);
+            font.draw_text_right(text, x, y, params);
         }
     }
 
     pub fn draw_text_center(
         &self,
-        ctx: &mut Context,
         font: &FontId,
         text: &str,
-        color: Color,
+        center_vertical: bool,
         x: f32,
         y: f32,
-        center_vertical: bool,
+        params: DrawParams,
     ) {
         if let Some(font) = self.fonts.get(font) {
-            font.draw_text_center(ctx, text, color, x, y, center_vertical);
+            font.draw_text_center(text, center_vertical, x, y, params);
         }
     }
 
-    pub fn draw_button(&self, ctx: &mut Context, font: &FontId, text: &str, x: f32, y: f32) {
+    pub fn draw_button_for_text(
+        &self,
+        font: &FontId,
+        text: &str,
+        x: f32,
+        y: f32,
+        params: DrawParams,
+    ) {
         if let Some(font) = self.fonts.get(font) {
-            self.button.draw(
-                ctx,
-                DrawParams::position(
-                    DrawParams::default(),
-                    Vec2::new(x + font.text_pixel_length(text) as f32, y + 2.0),
-                ),
-            );
+            self.draw_button(x + font.text_pixel_length(text) as f32, y + 2.0, params)
         }
     }
 
-    pub fn draw_cursor(&self, ctx: &mut Context, x: f32, y: f32) {
-        self.cursor.draw(
-            ctx,
-            DrawParams::position(DrawParams::default(), Vec2::new(x, y)),
-        );
+    pub fn draw_button(&self, x: f32, y: f32, params: DrawParams) {
+        self.button.crate_draw(x, y, params);
+    }
+
+    pub fn draw_cursor(&self, x: f32, y: f32, params: DrawParams) {
+        self.cursor.crate_draw(x, y, params);
     }
 
     pub fn text_len(&self, font: &FontId, text: &str) -> f32 {

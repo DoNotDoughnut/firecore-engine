@@ -1,4 +1,4 @@
-use pokedex::engine::{graphics::byte_texture, tetra::{Context, graphics::Texture}};
+use pokedex::engine::{error::ImageError, graphics::Texture, Context};
 
 pub struct BattleGuiContext {
     pub panel: Texture,
@@ -10,14 +10,14 @@ pub struct BattleGuiContext {
 }
 
 impl BattleGuiContext {
-    pub fn new(ctx: &mut Context) -> Self {
-        Self {
-            panel: byte_texture(ctx, include_bytes!("../assets/gui/panel.png")),
-            pokeball: byte_texture(ctx, include_bytes!("../assets/thrown_pokeball.png")),
-            smallui: byte_texture(ctx, include_bytes!("../assets/gui/small.png")),
-            padding: byte_texture(ctx, include_bytes!("../assets/gui/padding.png")),
-            largeui: byte_texture(ctx, include_bytes!("../assets/gui/large.png")),
-            player: byte_texture(ctx, include_bytes!("../assets/player.png")),
-        }
+    pub fn new(ctx: &mut Context) -> Result<Self, ImageError> {
+        Ok(Self {
+            panel: Texture::new(ctx, include_bytes!("../assets/gui/panel.png"))?,
+            pokeball: Texture::new(ctx, include_bytes!("../assets/thrown_pokeball.png"))?,
+            smallui: Texture::new(ctx, include_bytes!("../assets/gui/small.png"))?,
+            padding: Texture::new(ctx, include_bytes!("../assets/gui/padding.png"))?,
+            largeui: Texture::new(ctx, include_bytes!("../assets/gui/large.png"))?,
+            player: Texture::new(ctx, include_bytes!("../assets/player.png"))?,
+        })
     }
 }

@@ -1,21 +1,26 @@
-use core::cell::Cell;
+use core::{cell::Cell, ops::Deref};
 use tinystr::TinyStr4;
 
-use crate::{context::PokedexClientContext, gui::{IntegerStr4, LEVEL_PREFIX, cellref, party::PartyCell, pokemon::PokemonTypeDisplay, to_ascii4}, texture::PokemonTexture::Front};
-
-use engine::{
-    graphics::{
-        draw_circle, draw_line, draw_rectangle, draw_text_center, draw_text_left, position,
+use crate::{
+    context::PokedexClientData,
+    gui::{
+        cellref, party::PartyCell, pokemon::PokemonTypeDisplay, to_ascii4, IntegerStr4,
+        LEVEL_PREFIX,
     },
-    gui::Panel,
-    input::{pressed, Control},
-    tetra::graphics::{Color, DrawParams, Texture},
-    text::TextColor,
-    util::WIDTH,
-    EngineContext,
+    texture::PokemonTexture::Front,
 };
 
-use pokedex::pokemon::owned::OwnedPokemon;
+use engine::{
+    graphics::{draw_circle, draw_rectangle, draw_straight_line, draw_text_center, draw_text_left},
+    graphics::{Color, DrawParams, Texture},
+    gui::Panel,
+    input::controls::{pressed, Control},
+    text::TextColor,
+    util::WIDTH,
+    Context,
+};
+
+use pokedex::pokemon::{owned::OwnablePokemon, Health, Pokemon};
 
 pub struct SummaryGui {
     pub alive: Cell<bool>,
@@ -45,7 +50,7 @@ impl SummaryGui {
     const HEADER_RIGHT: Color = Color::rgb(0.0, 120.0 / 255.0, 192.0 / 255.0);
     const HEADER_RIGHT_DARK: Color = Color::rgb(0.0, 72.0 / 255.0, 144.0 / 255.0);
 
-    pub fn new(ctx: &PokedexClientContext) -> Self {
+    pub fn new(ctx: &PokedexClientData) -> Self {
         Self {
             alive: Default::default(),
             headers: ["POKEMON INFO", "POKEMON SKILLS", "KNOWN MOVES"],
@@ -57,7 +62,7 @@ impl SummaryGui {
         }
     }
 
-    pub fn input(&self, ctx: &EngineContext) {
+    pub fn input(&self, ctx: &Context) {
         let page = self.page.get();
         if pressed(ctx, Control::Left) && page > 0 {
             self.page.set(page - 1);
@@ -70,20 +75,24 @@ impl SummaryGui {
         }
     }
 
-    pub fn draw<'d>(&self, ctx: &mut EngineContext, pokemon: &OwnedPokemon<'d>){
+    pub fn draw<P: Deref<Target = Pokemon>, M, I, G>(
+        &self,
+        ctx: &mut Context,
+        pokemon: &OwnablePokemon<P, M, I, G, Health>,
+    ) {
         let current_page = self.page.get();
         let w = 114.0 + (current_page << 4) as f32;
         let rw = WIDTH - w;
         draw_rectangle(ctx, 0.0, 1.0, w, 15.0, Self::HEADER_LEFT);
         draw_rectangle(ctx, w, 1.0, rw, 16.0, Self::HEADER_RIGHT);
-        draw_line(ctx, 0.0, 16.5, w, true, 1.0, Self::HEADER_LEFT_DARK);
+        draw_straight_line(ctx, 0.0, 16.5, w, true, 1.0, Self::HEADER_LEFT_DARK);
         draw_text_left(
             ctx,
             &1,
             self.headers[current_page],
-            TextColor::White,
             5.0,
             1.0,
+            DrawParams::color(TextColor::White.into()),
         );
         for page in 0..Self::PAGES {
             let color = if current_page < page {
@@ -96,33 +105,57 @@ impl SummaryGui {
             draw_circle(ctx, 106.0 + (page << 4) as f32, 9.0, 6.0, color);
         }
         if let Some(summary) = cellref(&self.pokemon) {
-            self.pokemon_background.draw(ctx, position(0.0, 17.0));
+            self.pokemon_background
+                .draw(ctx, 0.0, 17.0, DrawParams::default());
             summary.front.draw(
                 ctx,
-                position(28.0, summary.pos + self.offset.float.get()),
+                28.0,
+                summary.pos + self.offset.float.get(),
+                DrawParams::default(),
             );
-            draw_text_left(ctx, &1, LEVEL_PREFIX, TextColor::White, 5.0, 19.0);
-            draw_text_left(ctx, &1, &summary.level.get(), TextColor::White, 15.0, 19.0);
             draw_text_left(
                 ctx,
                 &1,
-                &pokemon.name(),
-                TextColor::White,
+                LEVEL_PREFIX,
+                5.0,
+                19.0,
+                DrawParams::color(TextColor::White.into()),
+            );
+            draw_text_left(
+                ctx,
+                &1,
+                summary.level.get(),
+                15.0,
+                19.0,
+                DrawParams::color(TextColor::White.into()),
+            );
+            draw_text_left(
+                ctx,
+                &1,
+                pokemon.name(),
                 41.0,
                 19.0,
+                DrawParams::color(TextColor::White.into()),
             );
-            const TOP: DrawParams = position(0.0, 17.0);
+            const TOP: f32 = 17.0;
             match self.page.get() {
                 0 => {
-                    self.pages[0].draw(ctx, TOP);
-                    draw_text_left(ctx, &1, &summary.id, TextColor::Black, 168.0, 21.0);
+                    self.pages[0].draw(ctx, 0.0, TOP, Default::default());
                     draw_text_left(
                         ctx,
                         &1,
-                        &pokemon.name(),
-                        TextColor::Black,
+                        &summary.id,
+                        168.0,
+                        21.0,
+                        DrawParams::color(TextColor::Black.into()),
+                    );
+                    draw_text_left(
+                        ctx,
+                        &1,
+                        pokemon.name(),
                         168.0,
                         36.0,
+                        DrawParams::color(TextColor::Black.into()),
                     );
 
                     for (index, display) in summary.types.iter().flatten().enumerate() {
@@ -133,20 +166,20 @@ impl SummaryGui {
                             ctx,
                             &0,
                             &display.name,
-                            TextColor::White,
+                            false,
                             x + 16.0,
                             52.0,
-                            false,
+                            DrawParams::color(TextColor::White.into()),
                         )
                     }
 
                     // draw_text_left(1, &pokemon.item, &TextColor::Black, 168.0, 96.0);
                 }
                 1 => {
-                    self.pages[1].draw(ctx, TOP);
+                    self.pages[1].draw(ctx, 0.0, TOP, Default::default());
                 }
                 2 => {
-                    self.pages[2].draw(ctx, position(119.0, 17.0));
+                    self.pages[2].draw(ctx, 119.0, TOP, Default::default());
                 }
                 _ => unreachable!(),
             }
@@ -175,7 +208,12 @@ impl SummaryGui {
         }
     }
 
-    pub fn spawn<'d>(&self, ctx: &PokedexClientContext, pokemon: &OwnedPokemon<'d>, cell: &PartyCell) {
+    pub fn spawn<P: Deref<Target = Pokemon>, M, I, G>(
+        &self,
+        ctx: &PokedexClientData,
+        pokemon: &OwnablePokemon<P, M, I, G, Health>,
+        cell: &PartyCell,
+    ) {
         match SummaryPokemon::new(ctx, pokemon, cell) {
             Ok(pokemon) => {
                 self.alive.set(true);
@@ -208,9 +246,9 @@ struct SummaryPokemon {
 }
 
 impl SummaryPokemon {
-    pub fn new<'d>(
-        ctx: &PokedexClientContext,
-        pokemon: &OwnedPokemon<'d>,
+    pub fn new<P: Deref<Target = Pokemon>, M, I, G>(
+        ctx: &PokedexClientData,
+        pokemon: &OwnablePokemon<P, M, I, G, Health>,
         cell: &PartyCell,
     ) -> Result<Self, tinystr::Error> {
         let texture = ctx.pokemon_textures.get(&pokemon.pokemon.id, Front);

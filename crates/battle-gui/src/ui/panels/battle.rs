@@ -1,12 +1,14 @@
+use core::ops::Deref;
+
 use pokedex::{
     engine::{
-        graphics::{draw_cursor, draw_text_left},
+        graphics::{draw_cursor, draw_text_left, DrawParams},
         gui::Panel,
-        input::{pressed, Control},
+        input::controls::{pressed, Control},
         text::TextColor,
-        EngineContext,
+        Context,
     },
-    pokemon::owned::OwnedPokemon,
+    pokemon::{owned::OwnablePokemon, Pokemon},
 };
 
 pub struct BattleOptions {
@@ -24,11 +26,11 @@ impl BattleOptions {
         }
     }
 
-    pub fn setup<'d>(&mut self, instance: &OwnedPokemon<'d>) {
+    pub fn setup<P: Deref<Target = Pokemon>, M, I, G, H>(&mut self, instance: &OwnablePokemon<P, M, I, G, H>) {
         self.pokemon_do = format!("{} do?", instance.name());
     }
 
-    pub fn input(&mut self, ctx: &EngineContext) {
+    pub fn input(&mut self, ctx: &Context) {
         if pressed(ctx, Control::Up) && self.cursor >= 2 {
             self.cursor -= 2;
         } else if pressed(ctx, Control::Down) && self.cursor <= 2 {
@@ -40,20 +42,20 @@ impl BattleOptions {
         }
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext) {
+    pub fn draw(&self, ctx: &mut Context) {
         Panel::draw(ctx, 120.0, 113.0, 120.0, 47.0);
 
-        draw_text_left(ctx, &1, "What will", TextColor::White, 11.0, 123.0);
-        draw_text_left(ctx, &1, &self.pokemon_do, TextColor::White, 11.0, 139.0);
+        draw_text_left(ctx, &1, "What will", 11.0, 123.0, DrawParams::color(TextColor::White.into()));
+        draw_text_left(ctx, &1, &self.pokemon_do, 11.0, 139.0, DrawParams::color(TextColor::White.into()));
 
         for (index, string) in self.buttons.iter().enumerate() {
             draw_text_left(
                 ctx,
                 &0,
                 string,
-                TextColor::Black,
                 138.0 + if index % 2 == 0 { 0.0 } else { 56.0 },
                 123.0 + if index >> 1 == 0 { 0.0 } else { 16.0 },
+                DrawParams::color(TextColor::Black.into())
             )
         }
 
@@ -61,6 +63,7 @@ impl BattleOptions {
             ctx,
             131.0 + if self.cursor % 2 == 0 { 0.0 } else { 56.0 },
             126.0 + if (self.cursor >> 1) == 0 { 0.0 } else { 16.0 },
+            Default::default(),
         );
     }
 }

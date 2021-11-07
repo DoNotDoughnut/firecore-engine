@@ -1,11 +1,8 @@
+use core::ops::Deref;
+
 use pokedex::{
-    engine::{
-        graphics::draw_rectangle,
-        gui::ProgressBar,
-        tetra::{graphics::Color, math::Vec2},
-        EngineContext,
-    },
-    pokemon::{owned::OwnedPokemon, Experience, Level},
+    engine::{graphics::draw_rectangle, graphics::Color, gui::ProgressBar, math::Vec2, Context},
+    pokemon::{owned::OwnablePokemon, Experience, Level, Pokemon},
 };
 
 #[derive(Clone, Copy)]
@@ -37,7 +34,12 @@ impl ExperienceBar {
         (current as f32 * Self::WIDTH / max as f32).clamp(0.0, Self::WIDTH)
     }
 
-    pub fn update_exp<'d>(&mut self, previous: Level, pokemon: &OwnedPokemon<'d>, reset: bool) {
+    pub fn update_exp<P: Deref<Target = Pokemon>, M, I, G, H>(
+        &mut self,
+        previous: Level,
+        pokemon: &OwnablePokemon<P, M, I, G, H>,
+        reset: bool,
+    ) {
         let width = Self::width(
             pokemon.experience,
             pokemon.pokemon.training.growth_rate.max_exp(pokemon.level),
@@ -68,7 +70,7 @@ impl ExperienceBar {
         }
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext, origin: Vec2<f32>) {
+    pub fn draw(&self, ctx: &mut Context, origin: Vec2) {
         draw_rectangle(
             ctx,
             origin.x,

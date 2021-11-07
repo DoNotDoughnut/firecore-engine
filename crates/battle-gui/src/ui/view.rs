@@ -1,12 +1,15 @@
+use core::ops::Deref;
+use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
+
 use pokedex::{
-    context::PokedexClientContext,
-    engine::{graphics::ZERO, tetra::graphics::Color, EngineContext},
+    context::PokedexClientData,
+    engine::{graphics::Color, math::vec2, Context},
     pokemon::owned::OwnedPokemon,
     texture::PokemonTexture,
     Identifiable, TrainerId,
 };
 
-use battle::party::PlayerParty;
+use battle::{party::PlayerParty, pokemon::remote::UnknownPokemon};
 
 use crate::{
     context::BattleGuiContext,
@@ -14,14 +17,13 @@ use crate::{
         pokemon::{flicker::Flicker, PokemonRenderer, PokemonStatusGui},
         BattleGuiPosition, BattleGuiPositionIndex,
     },
-    view::InitUnknownPokemon,
 };
 
-pub type InitLocalPlayer<'d, ID> = PlayerParty<ID, usize, OwnedPokemon<'d>>;
-pub type InitRemotePlayer<'d, ID> = PlayerParty<ID, usize, Option<InitUnknownPokemon<'d>>>;
+pub type InitLocalPlayer<ID, P, M, I> = PlayerParty<ID, usize, OwnedPokemon<P, M, I>>;
+pub type InitRemotePlayer<ID, P> = PlayerParty<ID, usize, Option<UnknownPokemon<P>>>;
 
-pub type GuiLocalPlayer<'d, ID> = ActivePlayer<ID, OwnedPokemon<'d>>;
-pub type GuiRemotePlayer<'d, ID> = ActivePlayer<ID, Option<InitUnknownPokemon<'d>>>;
+pub type GuiLocalPlayer<ID, P, M, I> = ActivePlayer<ID, OwnedPokemon<P, M, I>>;
+pub type GuiRemotePlayer<ID, P> = ActivePlayer<ID, Option<UnknownPokemon<P>>>;
 
 pub struct ActivePlayer<ID, P> {
     pub player: PlayerParty<ID, usize, P>,
@@ -47,8 +49,8 @@ pub struct ActivePokemonRenderer {
 }
 
 impl ActivePokemonRenderer {
-    pub fn draw(&self, ctx: &mut EngineContext) {
-        self.pokemon.draw(ctx, ZERO, Color::WHITE);
+    pub fn draw(&self, ctx: &mut Context) {
+        self.pokemon.draw(ctx, vec2(0.0, 0.0), Color::WHITE);
         self.status.draw(
             ctx,
             0.0,
@@ -64,8 +66,10 @@ impl ActivePokemonRenderer {
     }
 }
 
-impl<'d, ID> ActivePlayer<ID, OwnedPokemon<'d>> {
-    pub fn init(&mut self, ctx: &BattleGuiContext, dex: &PokedexClientContext) {
+impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
+    ActivePlayer<ID, OwnedPokemon<P, M, I>>
+{
+    pub fn init(&mut self, ctx: &BattleGuiContext, data: &PokedexClientData) {
         let size = self.player.active.len() as u8;
 
         for (i, index) in self.player.active.iter().enumerate() {
@@ -74,20 +78,20 @@ impl<'d, ID> ActivePlayer<ID, OwnedPokemon<'d>> {
             let r = ActivePokemonRenderer {
                 pokemon: PokemonRenderer::with(
                     ctx,
-                    dex,
+                    data,
                     position,
                     pokemon.map(|pokemon| *pokemon.pokemon.id()),
                     PokemonTexture::Back,
                 ),
-                status: PokemonStatusGui::with_known(ctx, dex, position, pokemon),
+                status: PokemonStatusGui::with_known(ctx, data, position, pokemon),
             };
             self.renderer.push(r);
         }
     }
 }
 
-impl<'d, ID> ActivePlayer<ID, Option<InitUnknownPokemon<'d>>> {
-    pub fn init(&mut self, ctx: &BattleGuiContext, dex: &PokedexClientContext) {
+impl<ID, P: Deref<Target = Pokemon>> ActivePlayer<ID, Option<UnknownPokemon<P>>> {
+    pub fn init(&mut self, ctx: &BattleGuiContext, data: &PokedexClientData) {
         let size = self.player.active.len() as u8;
 
         for (i, index) in self.player.active.iter().enumerate() {
@@ -98,12 +102,12 @@ impl<'d, ID> ActivePlayer<ID, Option<InitUnknownPokemon<'d>>> {
             let r = ActivePokemonRenderer {
                 pokemon: PokemonRenderer::with(
                     ctx,
-                    dex,
+                    data,
                     position,
                     pokemon.map(|pokemon| *pokemon.pokemon.id()),
                     PokemonTexture::Front,
                 ),
-                status: PokemonStatusGui::with_unknown(ctx, dex, position, pokemon),
+                status: PokemonStatusGui::with_unknown(ctx, data, position, pokemon),
             };
             self.renderer.push(r);
         }

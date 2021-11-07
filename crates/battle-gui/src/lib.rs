@@ -1,20 +1,18 @@
 pub extern crate firecore_pokedex_engine as pokedex;
 pub extern crate firecore_battle as battle;
 
-use std::{collections::VecDeque, fmt::Debug, hash::Hash, rc::Rc};
+use std::{collections::VecDeque, fmt::Debug, hash::Hash, ops::Deref, rc::Rc};
 
 use context::BattleGuiContext;
 
 use log::{warn, debug};
 use hashbrown::HashMap;
 
-use pokedex::{Dex, Initializable, context::PokedexClientContext, gui::{bag::BagGui, party::PartyGui}, item::{Item, bag::OwnedBag, usage::ItemUsageKind}, moves::{Move, MoveTarget}, pokemon::{Pokemon, owned::OwnedPokemon, party::Party}, types::Effective};
+use pokedex::{Dex, Initializable, context::PokedexClientData, gui::{bag::BagGui, party::PartyGui}, item::{Item, bag::OwnedBag, usage::ItemUsageKind}, moves::{Move, MoveTarget}, pokemon::{Pokemon, owned::OwnedPokemon, party::Party}, types::Effective};
 
 use pokedex::engine::{
-    graphics::ZERO, 
-    tetra::{Context, math::Vec2, graphics::Color}, 
+    Context, math::{Vec2, vec2}, graphics::Color, 
     util::{Entity, Completable, Reset},
-    EngineContext,
 };
 
 use battle::{data::{BattleData, BattleType}, message::{ClientMessage, ServerMessage}, moves::{BattleMove, ClientMove, ClientMoveAction, damage::ClientDamage}, party::PlayerParty, pokemon::{Indexed, PokemonIdentifier}, prelude::{FailedAction, StartableAction}, endpoint::{MpscClient, MpscEndpoint}};
@@ -43,55 +41,51 @@ use action::*;
 
 use self::transition::TransitionState;
 
-pub struct BattlePlayerGui<'d, ID: Default + Eq + Hash> {
+pub struct BattlePlayerGui<ID: Default + Eq + Hash, P: Deref<Target = Pokemon> + Clone, M: Deref<Target = Move> + Clone, I: Deref<Target = Item> + Clone> {
 
     context: BattleGuiContext,
 
     party: Rc<PartyGui>,
     bag: Rc<BagGui>,
-	pub gui: BattleGui<'d>,
+	pub gui: BattleGui<M>,
 
-    state: BattlePlayerState<'d, ID>,
+    state: BattlePlayerState<ID, M>,
     should_select: bool,
 
     pub data: BattleData,
 
-    pub local: GuiLocalPlayer<'d, ID>,
-    pub remotes: HashMap<ID, GuiRemotePlayer<'d, ID>>,
+    pub local: GuiLocalPlayer<ID, P, M, I>,
+    pub remotes: HashMap<ID, GuiRemotePlayer<ID, P>>,
 
     client: MpscClient<ID>,
     endpoint: MpscEndpoint<ID>,
 
-    pokedex: &'d dyn Dex<'d, Pokemon, &'d Pokemon>,
-    movedex: &'d dyn Dex<'d, Move, &'d Move>,
-    itemdex: &'d dyn Dex<'d, Item, &'d Item>,
-
 }
 
 #[derive(Debug)]
-struct MoveQueue<'d, ID> {
-    actions: VecDeque<Indexed<ID, BattleClientGuiAction<'d, ID>>>,
+struct MoveQueue<ID, M: Deref<Target = Move>> {
+    actions: VecDeque<Indexed<ID, BattleClientGuiAction<ID, M>>>,
     current: Option<Indexed<ID, BattleClientGuiCurrent<ID>>>,
 }
 
 
 #[derive(Debug)]
-enum BattlePlayerState<'d, ID> {
+enum BattlePlayerState<ID, M: Deref<Target = Move>> {
     WaitToStart,
     Opening(TransitionState),
     Introduction(TransitionState),
     WaitToSelect,
     /// Current, Max
     Select(usize, usize),
-    Moving(MoveQueue<'d, ID>),
+    Moving(MoveQueue<ID, M>),
     PlayerEnd,
     GameEnd(Option<ID>),
 }
 
-impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
+impl<ID: Default + Clone + Debug + Hash + Eq, P: Deref<Target = Pokemon> + Clone, M: Deref<Target = Move> + Clone, I: Deref<Target = Item> + Clone> BattlePlayerGui<ID, P, M, I> {
 
-    pub fn new(ctx: &mut Context, dex: &PokedexClientContext<'d>, party: Rc<PartyGui>, bag: Rc<BagGui>) -> Self where ID: Default {
-        let context = BattleGuiContext::new(ctx);
+    pub fn new(ctx: &mut Context, party: Rc<PartyGui>, bag: Rc<BagGui>) -> Self where ID: Default {
+        let context = BattleGuiContext::new(ctx).unwrap();
 
         let (client, endpoint) = battle::endpoint::create();
 
@@ -107,9 +101,6 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
             client,
             endpoint,
             context,
-            pokedex: dex.pokedex,
-            movedex: dex.movedex,
-            itemdex: dex.itemdex,
         }
     }
 
@@ -136,28 +127,32 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
         };
     }
 
-    pub fn process(&mut self, random: &mut impl rand::Rng, dex: &PokedexClientContext, party: &mut Party<OwnedPokemon<'d>>) {
+    pub fn forfeit(&mut self) {
+        self.client.send(ClientMessage::Forfeit);
+    }
+
+    pub fn process<'d>(&mut self, random: &mut impl rand::Rng, data: &PokedexClientData, pokedex: &'d dyn Dex<'d, Pokemon, P>, movedex: &'d dyn Dex<'d, Move, M>, itemdex: &'d dyn Dex<'d, Item, I>, party: &mut Party<OwnedPokemon<P, M, I>>) {
         while let Ok(message) = self.client.receiver.try_recv() {
             match message {
-                ServerMessage::Begin(data) => {
+                ServerMessage::Begin(client) => {
                     self.local.player = battle::party::PlayerParty {
-                            name: data.name,
-                            id: data.id,
-                            active: data.active,
+                            name: client.name,
+                            id: client.id,
+                            active: client.active,
                             pokemon: party.clone(),
                         };
-                    self.remotes = data.remotes.into_iter().map(|player| {
+                    self.remotes = client.remotes.into_iter().map(|player| {
                         (player.id.clone(), ActivePlayer::new(PlayerParty {
                             id: player.id,
                             name: player.name,
                             active: player.active,
-                            pokemon: player.pokemon.into_iter().map(|u| u.map(|u| u.init(self.pokedex).unwrap())).collect(),
+                            pokemon: player.pokemon.into_iter().map(|u| u.map(|u| u.init(pokedex).unwrap())).collect(),
                         }))
                     }).collect();
-                    self.data = data.data;
-                    self.local.init(&self.context, dex);
+                    self.data = client.data;
+                    self.local.init(&self.context, data);
                     for remote in self.remotes.values_mut() {
-                        remote.init(&self.context, dex);
+                        remote.init(&self.context, data);
                     }
                 },
                 ServerMessage::Start(action) => match action {
@@ -196,8 +191,8 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                     if let Some(remote) = self.remotes.get_mut(pokemon.team()) {
                                         remote.player.replace(pokemon.index(), Some(new));
                                         let renderer = &mut remote.renderer[pokemon.index()];
-                                        let pokemon = remote.player.active(pokemon.index()).map(|u| u as _);
-                                        let id = pokemon.map(|v| view::GuiPokemonView::pokemon(v).id);
+                                        let pokemon = remote.player.active(pokemon.index()).map(|u| u as &dyn GuiPokemonView<P, M, I>);
+                                        let id = pokemon.map(|v| v.pokemon().id);
                                         renderer.status.update_gui_view(pokemon, None, true);
                                         Some((renderer, id))
                                     } else {
@@ -205,13 +200,13 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                     }
                                 }
                             } {
-                                renderer.pokemon.new_pokemon(dex, pokemon);
+                                renderer.pokemon.new_pokemon(data, pokemon);
                             }
                         }
                     }
                 },
                 ServerMessage::AddRemote(Indexed(target, unknown)) => if let Some(party) = self.remotes.get_mut(target.team()) {
-                    party.player.add(target.index(), unknown.init(self.pokedex));
+                    party.player.add(target.index(), unknown.init(pokedex));
                 },
                 // ServerMessage::Winner(player) => {
                 //     self.state = BattlePlayerState::Winner(player);
@@ -234,7 +229,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                         debug!("cannot replace pokemon at active index {}", index);
                     },
                 },
-                ServerMessage::Catch(instance) => match instance.init(random, self.pokedex, self.movedex, self.itemdex) {
+                ServerMessage::Catch(instance) => match instance.init(random, pokedex, movedex, itemdex) {
                     Some(instance) => if let Ok(_) = party.try_push(instance) {},
                     None => warn!("Could not initialize caught pokemon.")
                 }
@@ -256,7 +251,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
         }
     }
 
-    pub fn update(&mut self, ctx: &EngineContext, dex: &PokedexClientContext, delta: f32, bag: &mut OwnedBag<&'d Item>) {
+    pub fn update<'d>(&mut self, ctx: &Context, dex: &PokedexClientData, pokedex: &'d dyn Dex<'d, Pokemon, P>, movedex: &'d dyn Dex<'d, Move, M>, itemdex: &'d dyn Dex<'d, Item, I>, delta: f32, bag: &mut OwnedBag<I>) {
         match &mut self.state {
             BattlePlayerState::WaitToStart => (),
             BattlePlayerState::Opening(state) => match state {
@@ -265,18 +260,18 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                     if !matches!(self.data.type_, BattleType::Wild) {
                         self.gui.trainer.spawn(self.local.player.pokemon.len(), self.remotes.values().next().unwrap().player.pokemon.len());
                     }
-                    self.update(ctx, dex, delta, bag);
+                    self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
                 }
-                TransitionState::Run => self.gui.opener.update::<ID>(state, delta),
+                TransitionState::Run => self.gui.opener.update::<ID, P>(state, delta),
                 TransitionState::End => {
                     self.state = BattlePlayerState::Introduction(TransitionState::default());
-                    self.update(ctx, dex, delta, bag);
+                    self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
                 }
             }
             BattlePlayerState::Introduction(state) => match state {
                 TransitionState::Begin => {
                     self.gui.introduction.begin(dex, state, self.data.type_, &self.local, &self.remotes.values().next().unwrap(), &mut self.gui.text);
-                    self.update(ctx, dex, delta, bag);
+                    self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
                 }
                 TransitionState::Run => {
                     self.gui.introduction.update(state, ctx, delta, &mut self.local, &mut self.remotes.values_mut().next().unwrap(), &mut self.gui.text);
@@ -289,7 +284,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                     self.gui.introduction.end(&mut self.gui.text);
                     self.gui.trainer.despawn();
                     self.state = BattlePlayerState::WaitToSelect;
-                    self.update(ctx, dex, delta, bag);
+                    self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
                 }
             }
             BattlePlayerState::WaitToSelect => if self.should_select {
@@ -353,7 +348,8 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                                         Some(move_ref) => {
                                                             match move_ref.target {
                                                                 MoveTarget::Opponent | MoveTarget::Any => {
-                                                                    self.gui.panel.target(&self.remotes.values().next().unwrap().player);
+                                                                    let p = &self.remotes.values().next().unwrap().player;
+                                                                    self.gui.panel.target(p as &dyn PlayerView<ID, P, M, I>);
                                                                     self.gui.panel.active = BattlePanels::Target(move_ref.target, None);
                                                                 },
                                                                 MoveTarget::Ally | MoveTarget::UserOrAlly => {
@@ -438,7 +434,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                 self.gui.text.reset();
 
                                 let user = match user_id.team() == self.local.player.id() {
-                                    true => Some((&mut self.local.player as &mut dyn PlayerView<'d, ID>, &mut self.local.renderer)),
+                                    true => Some((&mut self.local.player as &mut dyn PlayerView<ID, P, M, I>, &mut self.local.renderer)),
                                     false => self.remotes.get_mut(user_id.team()).map(|p| (&mut p.player as _, &mut p.renderer))
                                 };
 
@@ -452,12 +448,14 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
 
                                                         // log::trace!("set current: client move");
         
-                                                        match self.movedex.try_get(&pokemon_move) {
+                                                        match movedex.try_get(&pokemon_move) {
                                                             Some(pokemon_move) => {
         
                                                                 {
         
                                                                     let user_active = user.active_mut(user_id.index()).unwrap();
+
+                                                                    user_active.decrement_pp(&pokemon_move, pp);
                     
                                                                     ui::text::on_move(&mut self.gui.text, &pokemon_move, user_active.name());
         
@@ -475,7 +473,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                                                     let userui = &mut self.local.renderer[target_id.index()];
         
                                                                     let target = match target_id.team() == self.local.player.id() {
-                                                                        true => self.local.player.active_mut(target_id.index()).map(|p| (p as &mut dyn GuiPokemonView<'d>, userui)),
+                                                                        true => self.local.player.active_mut(target_id.index()).map(|p| (p as &mut dyn GuiPokemonView<P, M, I>, userui)),
                                                                         false => self.remotes.get_mut(target_id.team()).map(|remote| {
                                                                             let ui = &mut remote.renderer[target_id.index()];
                                                                             remote.player.active_mut(target_id.index()).map(|p| (p as _, ui))
@@ -506,7 +504,6 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                                                                     target.set_level(level);
                                                                                     target.set_exp(experience);
                                                                                     if let Some(user_pokemon) = target.instance() {
-                                                                                        let movedex = self.movedex;
                                                                                         let moves = user_pokemon.on_level_up(movedex, previous).flat_map(|id| movedex.try_get(&id)).collect();
                                                                                         queue.actions.push_front(Indexed(target_id.clone(), BattleClientGuiAction::SetExp(previous, experience, moves)));
                                                                                     }
@@ -521,7 +518,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                 
                                                                         match target.instance() {
                                                                             Some(i) => target_ui.status.update_gui(Some(i), None, false),
-                                                                            None => target_ui.status.update_gui_view(Some(target), None, false),
+                                                                            None => target_ui.status.update_gui_view(Some(target as _), None, false),
                                                                         }
         
                                                                     } else {
@@ -541,7 +538,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                                         }
                                                     }
                                                     ClientMove::UseItem(Indexed(target, item)) => {
-                                                        if let Some(item) = self.itemdex.try_get(&item) {
+                                                        if let Some(item) = itemdex.try_get(&item) {
                                                             if let Some(pokemon) = match &item.usage.kind {
                                                                 ItemUsageKind::Script | ItemUsageKind::Actions(..) => user.active(target.index()),
                                                                 ItemUsageKind::Pokeball => self.remotes.get(target.team()).map(|p| p.player.active(target.index())).flatten().map(|p| p as _),
@@ -576,12 +573,12 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                                     match self.remotes.get_mut(user_id.team()) {
                                                         Some(remote) => {
                                                             if let Some(pokemon) = remote.player.active(user_id.index()) {
-                                                                ui::text::on_catch(&mut self.gui.text, pokemon.name());
+                                                                ui::text::on_catch(&mut self.gui.text, view::BasePokemonView::name(pokemon));
                                                             }
                                                             // if let Some(pokemon) = pokemon {
                                                             remote.player.replace(user_id.index(), None);
                                                             let renderer = &mut remote.renderer[user_id.index()];
-                                                            renderer.status.update_gui_view(None, None, false);
+                                                            renderer.status.update_gui_view::<P, M, I>(None, None, false);
                                                             renderer.pokemon.new_pokemon(dex, None);
                                                             // }
                                                             Some(BattleClientGuiCurrent::Catch)
@@ -593,7 +590,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                                 BattleClientGuiAction::Replace(new) => {
                                                     ui::text::on_replace(&mut self.gui.text, user.name(), new.map(|index| user.pokemon(index).map(|v| v.name())).flatten());
                                                     user.replace(user_id.index(), new);
-                                                    Some(BattleClientGuiCurrent::Replace(false))
+                                                    Some(BattleClientGuiCurrent::Replace(user_id.index(), false))
                                                 }
                                                 // To - do: experience spreading
                                                 BattleClientGuiAction::SetExp(previous, experience, moves) => match user.active_mut(user_id.index()) {
@@ -632,7 +629,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                             } {
                                                 queue.current = Some(Indexed(user_id, action));
                                             } else {
-                                                self.update(ctx, dex, delta, bag);
+                                                self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
                                             }
                                         }
                                     },
@@ -646,7 +643,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                         // log::trace!("update current");
 
                         let user = if user_id.team() == self.local.player.id() {
-                            Some((&mut self.local.player as &mut dyn PlayerView<'d, ID>, &mut self.local.renderer))
+                            Some((&mut self.local.player as &mut dyn PlayerView<ID, P, M, I>, &mut self.local.renderer))
                         } else {
                             self.remotes.get_mut(user_id.team()).map(|p| (&mut p.player as _, &mut p.renderer))
                         };
@@ -709,7 +706,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                                         i.pokemon.id
                                                     },
                                                     None => {
-                                                        renderer.status.update_gui_view(Some(user), None, true);
+                                                        renderer.status.update_gui_view(Some(user as _), None, true);
                                                         user.pokemon().id
                                                     }
                                                 }),
@@ -769,31 +766,32 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                                 let remote = self.remotes.get_mut(user_id.team()).unwrap();
                                                 remote.player.replace(user_id.index(), None);
                                                 let ui = &mut remote.renderer[user_id.index()];
-                                                ui.status.update_gui(None, None, true);
+                                                ui.status.update_gui::<P, M, I>(None, None, true);
                                                 ui.pokemon.new_pokemon(dex, None);
                                                 queue.current = None;
                                             }
                                         }
                                     }
                                 }
-                                BattleClientGuiCurrent::Replace(replaced) => {
+                                BattleClientGuiCurrent::Replace(index, replaced) => {
                                     if self.gui.text.waiting() || self.gui.text.finished() && !*replaced {
-                                        let ui = &mut user_ui[user_id.index()];
-                                        let id = match user.active_mut(user_id.index()) {
-                                            Some(v) => Some(match v.instance() {
-                                                Some(i) => {
-                                                    ui.status.update_gui(Some(i), None, true);
-                                                    i.pokemon.id
-                                                },
-                                                None => {
-                                                    ui.status.update_gui_view(Some(v), None, true);
-                                                    v.pokemon().id
-                                                },
-                                            }),
-                                            None => None,
-                                        };
-                                        ui.pokemon.new_pokemon(dex, id);
-                                        *replaced = true;
+                                        if let Some(ui) = user_ui.get_mut(*index) {
+                                            let id = match user.active_mut(user_id.index()) {
+                                                Some(v) => Some(match v.instance() {
+                                                    Some(i) => {
+                                                        ui.status.update_gui(Some(i), None, true);
+                                                        i.pokemon.id
+                                                    },
+                                                    None => {
+                                                        ui.status.update_gui_view(Some(v as _), None, true);
+                                                        v.pokemon().id
+                                                    },
+                                                }),
+                                                None => None,
+                                            };
+                                            ui.pokemon.new_pokemon(dex, id);
+                                            *replaced = true;
+                                        }
                                     }
                                     match self.gui.text.finished() {
                                         false => self.gui.text.update(ctx, delta),
@@ -842,22 +840,22 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
         }
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext, dex: &PokedexClientContext, party: &Party<OwnedPokemon<'d>>, bag: &OwnedBag<&'d Item>) {
+    pub fn draw(&self, ctx: &mut Context, dex: &PokedexClientData, party: &Party<OwnedPokemon<P, M, I>>, bag: &OwnedBag<I>) {
         if !matches!(self.state, BattlePlayerState::WaitToStart) {
             self.gui.background.draw(ctx, 0.0);
             self.remotes.values().for_each(|remote| remote.renderer.iter().for_each(|active| active.draw(ctx)));
             match &self.state {
                 BattlePlayerState::WaitToStart => unreachable!(),
                 BattlePlayerState::Opening(..) => {
-                    self.gui.background.draw(ctx, self.gui.opener.offset::<ID>());
-                    self.gui.opener.draw_below_panel::<ID>(ctx, &self.local.renderer, &self.remotes.values().next().unwrap().renderer);
+                    self.gui.background.draw(ctx, self.gui.opener.offset::<ID, P>());
+                    self.gui.opener.draw_below_panel::<ID, P>(ctx, &self.local.renderer, &self.remotes.values().next().unwrap().renderer);
                     self.gui.trainer.draw(ctx);
                     self.gui.draw_panel(ctx);
-                    self.gui.opener.draw::<ID>(ctx);
+                    self.gui.opener.draw::<ID, P>(ctx);
                 }
                 BattlePlayerState::Introduction(..) => {
                     self.gui.background.draw(ctx, 0.0);
-                    self.gui.introduction.draw::<ID>(ctx, &self.local.renderer, &self.remotes.values().next().unwrap().renderer);
+                    self.gui.introduction.draw::<ID, P, M, I>(ctx, &self.local.renderer, &self.remotes.values().next().unwrap().renderer);
                     self.gui.trainer.draw(ctx);
                     self.gui.draw_panel(ctx);
                     self.gui.text.draw(ctx);
@@ -873,7 +871,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq> BattlePlayerGui<'d, ID> {
                                 active.pokemon.draw(ctx, Vec2::new(0.0, self.gui.bounce.offset), Color::WHITE);
                                 active.status.draw(ctx, 0.0, -self.gui.bounce.offset);
                             } else {
-                                active.pokemon.draw(ctx, ZERO, Color::WHITE);
+                                active.pokemon.draw(ctx, vec2(0.0, 0.0), Color::WHITE);
                                 active.status.draw(ctx, 0.0, 0.0);
                             }
                         }

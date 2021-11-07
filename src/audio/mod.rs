@@ -1,36 +1,43 @@
-extern crate firecore_audio as audio;
-
 pub mod music;
 pub mod sound;
 
-pub mod error;
 #[cfg(feature = "audio")]
 mod backend;
+pub mod error;
 
-#[cfg(feature = "audio")]
-pub use backend::{add_music, add_sound};
+pub use firecore_audio::{MusicData, MusicId, SoundData, SoundId};
 
-pub use audio::serialized;
+use crate::Context;
 
-use crate::EngineContext;
-
-pub fn play_music(ctx: &mut EngineContext, id: music::MusicId) {
+pub fn play_music(ctx: &mut Context, id: &MusicId) {
     if let Err(err) = music::play_music(ctx, id) {
-        log::warn!("Could not play music id {:x} with error {}", id, err);
+        log::warn!("Could not play music id {} with error {}", id, err);
     }
 }
 
-pub fn play_music_named(ctx: &mut EngineContext, music: &str) {
-    if let Err(err) = music::play_music_named(ctx, music) {
+pub fn play_sound(ctx: &Context, sound: &SoundId, variant: Option<u16>) {
+    if let Err(err) = sound::play_sound(ctx, sound, variant) {
         log::warn!(
-            "Could not play music named \"{}\" with error {}",
-            music, err
+            "Could not play sound {}, variant {:?} with error {}",
+            sound,
+            variant,
+            err
         );
     }
 }
 
-pub fn play_sound(ctx: &EngineContext, sound: &sound::Sound) {
-    if let Err(err) = sound::play_sound(ctx, &sound) {
-        log::warn!("Could not play sound {} with error {}", sound, err);
+#[cfg_attr(not(feature = "audio"), allow(unused_variables))]
+pub async fn add_music(ctx: &mut Context, id: MusicId, data: Vec<u8>) {
+    #[cfg(feature = "audio")]
+    if let Err(err) = backend::add_music(&mut ctx.audio.music, id, data).await {
+        log::error!("Cannot add audio with error {}", err)
+    }
+}
+
+#[cfg_attr(not(feature = "audio"), allow(unused_variables))]
+pub async fn add_sound(ctx: &mut Context, id: SoundId, variant: Option<u16>, data: Vec<u8>) {
+    #[cfg(feature = "audio")]
+    if let Err(err) = backend::add_sound(&mut ctx.audio.sounds, id, variant, data).await {
+        log::error!("Cannot add sound with error {}", err);
     }
 }

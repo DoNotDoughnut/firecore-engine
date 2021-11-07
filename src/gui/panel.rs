@@ -1,72 +1,114 @@
 use crate::{
-    graphics::{draw_cursor, draw_text_left, flip_x, flip_y, position},
-    tetra::{
-        graphics::{Color, Rectangle},
-        math::Vec2,
-    },
-    EngineContext,
+    graphics::{draw_cursor, draw_text_left, Color, DrawParams},
+    math::{Rectangle, vec2},
+    Context,
 };
 
-use text::TextColor;
+use crate::text::TextColor;
 
 pub struct Panel;
 
 impl Panel {
     pub const BACKGROUND: Color = Color::rgb(248.0 / 255.0, 248.0 / 255.0, 248.0 / 255.0);
 
-    pub fn draw(ctx: &mut EngineContext, x: f32, y: f32, w: f32, h: f32) {
+    pub fn draw(ctx: &mut Context, x: f32, y: f32, w: f32, h: f32) {
         Self::draw_color(ctx, x, y, w, h, Color::WHITE)
     }
 
-    pub fn draw_color(ctx_: &mut EngineContext, x: f32, y: f32, w: f32, h: f32, color: Color) {
-        let panel = &ctx_.panel;
-        let ctx = &mut ctx_.tetra;
+    pub fn draw_color(ctx: &mut Context, x: f32, y: f32, w: f32, h: f32, color: Color) {
 
-        panel.draw(ctx, position(x, y).color(color));
-        let x1 = x + w;
-        panel.draw(ctx, flip_x(position(x1, y).color(color)));
+        const TEXTURE_SIZE: f32 = 7.0;
 
-        let y1 = y + h;
-        panel.draw(ctx, flip_y(position(x, y1).color(color)));
+        let panel = &ctx.panel;
 
-        panel.draw(
-            ctx,
-            position(x1, y1).scale(Vec2::new(-1.0, -1.0)).color(color),
+        panel.crate_draw(x, y, DrawParams::color(color));
+        let x1 = x + w - TEXTURE_SIZE;
+        panel.crate_draw(
+            x1,
+            y,
+            DrawParams {
+                color,
+                flip_x: true,
+                ..Default::default()
+            },
+        );
+
+        let y1 = y + h - TEXTURE_SIZE;
+        panel.crate_draw(
+            x,
+            y1,
+            DrawParams {
+                color,
+                flip_y: true,
+                ..Default::default()
+            },
+        );
+
+        panel.crate_draw(
+            x1,
+            y1,
+            DrawParams {
+                color,
+                flip_x: true,
+                flip_y: true,
+                ..Default::default()
+            },
         );
 
         let w = w - 14.0;
         let h = h - 14.0;
 
-        crate::graphics::draw_rectangle(ctx_, x + 7.0, y + 7.0, w, h, color);
+        crate::graphics::draw_rectangle(ctx, x + TEXTURE_SIZE, y + TEXTURE_SIZE, w, h, color);
 
-        let panel = &ctx_.panel;
-        let ctx = &mut ctx_.tetra;
+        let panel = &ctx.panel;
 
-        panel.draw_region(
-            ctx,
-            Rectangle::new(6.0, 0.0, 1.0, 7.0),
-            position(x + 7.0, y).scale(Vec2::new(w, 1.0)).color(color),
+        panel.crate_draw(
+            x + TEXTURE_SIZE,
+            y,
+            DrawParams {
+                source: Some(Rectangle::new(6.0, 0.0, 1.0, TEXTURE_SIZE)),
+                dest_size: Some(vec2(w, panel.height())),
+                color,
+                ..DrawParams::default()
+            },
         );
-        panel.draw_region(
-            ctx,
-            Rectangle::new(6.0, 0.0, 1.0, 7.0),
-            position(x + 7.0, y1).scale(Vec2::new(w, -1.0)).color(color),
+        panel.crate_draw(
+            x + TEXTURE_SIZE,
+            y1,
+            DrawParams {
+                source: Some(Rectangle::new(6.0, 0.0, 1.0, TEXTURE_SIZE)),
+                dest_size: Some(vec2(w, panel.height())),
+                flip_y: true,
+                color,
+                ..Default::default()
+            },
         );
 
-        panel.draw_region(
-            ctx,
-            Rectangle::new(0.0, 6.0, 7.0, 1.0),
-            position(x, y + 7.0).scale(Vec2::new(1.0, h)).color(color),
+        panel.crate_draw(
+            x,
+            y + TEXTURE_SIZE,
+            DrawParams {
+                source: Some(Rectangle::new(0.0, 6.0, TEXTURE_SIZE, 1.0)),
+                dest_size: Some(vec2(panel.width(), h)),
+                color,
+                ..Default::default()
+            },
         );
-        panel.draw_region(
-            ctx,
-            Rectangle::new(0.0, 6.0, 7.0, 1.0),
-            position(x1, y + 7.0).scale(Vec2::new(-1.0, h)).color(color),
+
+        panel.crate_draw(
+            x1, y + TEXTURE_SIZE,
+            DrawParams {
+                source: Some(Rectangle::new(0.0, 6.0, TEXTURE_SIZE, 1.0)),
+                dest_size: Some(vec2(panel.width(), h)),
+                flip_x: true,
+                color,
+                ..Default::default()
+            },
         );
     }
 
     pub fn draw_text(
-        ctx: &mut EngineContext,
+        ctx: &mut Context,
         x: f32,
         y: f32,
         w: f32,
@@ -85,9 +127,9 @@ impl Panel {
                 ctx,
                 &1,
                 text,
-                TextColor::Black,
                 tx,
                 ty + (index << 4) as f32,
+                DrawParams::color(TextColor::Black.into()),
             );
         }
         if add_cancel {
@@ -95,12 +137,17 @@ impl Panel {
                 ctx,
                 &1,
                 "Cancel",
-                TextColor::Black,
                 tx,
                 ty + (text.len() << 4) as f32,
+                DrawParams::color(TextColor::Black.into()),
             );
         }
-        draw_cursor(ctx, x + 8.0, y + 13.0 + (cursor << 4) as f32);
+        draw_cursor(
+            ctx,
+            x + 8.0,
+            y + 13.0 + (cursor << 4) as f32,
+            Default::default(),
+        );
     }
 
     // pub fn draw_text_with_columns(&self, x: f32, y: f32, w: f32, h: f32) {

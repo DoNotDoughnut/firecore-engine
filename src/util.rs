@@ -1,4 +1,7 @@
-pub use crate::{HEIGHT, WIDTH};
+/// deprecated
+pub const WIDTH: f32 = 240.0;
+/// deprecated
+pub const HEIGHT: f32 = 160.0;
 
 pub trait Entity {
     fn spawn(&mut self);

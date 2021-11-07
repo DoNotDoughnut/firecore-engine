@@ -1,7 +1,7 @@
 [package]
 name = "firecore-engine"
 description = "Base engine for my games"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Rhys H <donotdoughnut99@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -10,21 +10,18 @@ readme = "README.md"
 
 [features]
 default = []
-audio = ["firecore-tetra/audio", "firecore-tetra/audio_vorbis", "dashmap"]
+audio = ["macroquad/audio"]
 
 [dependencies]
-firecore-tetra = { version = "0.0.1", default-features = false, features = [
-    "serde_support",
-    "texture_png",
-    "sdl2_static_link",
-    "sdl2_bundled",
-] }
+macroquad = { version = "0.3", default-features = false, features = ["log-rs", "backtrace"] }
 firecore-text = { path = "crates/text" } # "0.0.1"
 firecore-audio = { path = "crates/audio" } #"0.0.1"
 enum-map = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
-hashbrown = "0.11"
-dashmap = { version = "4", optional = true }
+hashbrown = { version = "0.11", features = ["serde"] }
+image = { version = "0.23.14", default-features = false, features = ["png", "tga"] }
+
+async-trait = "0.1"
 
 log = "0.4" # remove, handle audio errors in trait
 

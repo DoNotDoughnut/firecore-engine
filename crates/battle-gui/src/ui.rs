@@ -1,12 +1,19 @@
+use core::ops::Deref;
+
+use pokedex::moves::Move;
+
 use pokedex::engine::{
-    graphics::position,
     gui::MessageBox,
-    tetra::{Context, graphics::DrawParams},
+    Context,
 };
 
 use crate::context::BattleGuiContext;
 
-use self::{background::BattleBackground, panels::{BattlePanel, level::LevelUpMovePanel}, pokemon::bounce::PlayerBounce};
+use self::{
+    background::BattleBackground,
+    panels::{level::LevelUpMovePanel, BattlePanel},
+    pokemon::bounce::PlayerBounce,
+};
 
 use super::transition::{
     introduction::BattleIntroductionManager, opener::BattleOpenerManager,
@@ -22,7 +29,7 @@ pub mod text;
 
 pub mod view;
 
-pub(crate) const PANEL_ORIGIN: DrawParams = position(0.0f32, 113.0);
+pub(crate) const PANEL_Y: f32 = 113.0;
 
 #[derive(Debug, Clone, Copy)]
 pub enum BattleGuiPosition {
@@ -53,10 +60,10 @@ impl BattleGuiPositionIndex {
     }
 }
 
-pub struct BattleGui<'d> {
+pub struct BattleGui<M: Deref<Target = Move> + Clone> {
     pub background: BattleBackground,
 
-    pub panel: BattlePanel<'d>,
+    pub panel: BattlePanel<M>,
 
     pub text: MessageBox,
 
@@ -65,10 +72,10 @@ pub struct BattleGui<'d> {
     pub opener: BattleOpenerManager,
     pub introduction: BattleIntroductionManager,
     pub trainer: BattleTrainerPartyIntro,
-    pub level_up: LevelUpMovePanel<'d>,
+    pub level_up: LevelUpMovePanel<M>,
 }
 
-impl<'d> BattleGui<'d> {
+impl<M: Deref<Target = Move> + Clone> BattleGui<M> {
     pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
         Self {
             background: BattleBackground::new(ctx, gui),
@@ -81,14 +88,15 @@ impl<'d> BattleGui<'d> {
 
             opener: BattleOpenerManager::new(ctx, gui),
             introduction: BattleIntroductionManager::new(gui),
-			trainer: BattleTrainerPartyIntro::new(ctx),
+            trainer: BattleTrainerPartyIntro::new(ctx),
             level_up: LevelUpMovePanel::new(),
         }
     }
 
-    #[inline]
     pub fn draw_panel(&self, ctx: &mut Context) {
-        self.background.panel.draw(ctx, PANEL_ORIGIN)
+        self.background
+            .panel
+            .draw(ctx, 0.0, PANEL_Y, Default::default());
     }
 
     pub fn reset(&mut self) {
