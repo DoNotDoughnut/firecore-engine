@@ -5,7 +5,9 @@ pub mod sound;
 mod backend;
 pub mod error;
 
-pub use firecore_audio::{MusicData, MusicId, SoundData, SoundId};
+pub type MusicId = tinystr::TinyStr16;
+pub type SoundId = tinystr::TinyStr8;
+pub type SoundVariant = Option<u16>;
 
 use crate::Context;
 

@@ -1,12 +1,11 @@
-use firecore_audio::{MusicId, SoundId, SoundVariant};
 use hashbrown::HashMap;
 use macroquad::audio::Sound as Audio;
 
-pub type SerializedAudio = (HashMap<MusicId, Vec<u8>>, HashMap<(SoundId, SoundVariant), Vec<u8>>);
-
+use crate::audio::{MusicId, SoundId, SoundVariant};
 use crate::Context;
 
 pub type GameAudioMap<K, V = Audio> = HashMap<K, V>;
+pub type SerializedAudio = (HashMap<MusicId, Vec<u8>>, HashMap<(SoundId, SoundVariant), Vec<u8>>);
 
 #[derive(Default)]
 pub struct GameAudio {

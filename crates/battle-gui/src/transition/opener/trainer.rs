@@ -33,8 +33,8 @@ impl TrainerBattleOpener {
 
 impl<ID: Default, P: Deref<Target = Pokemon>> BattleOpener<ID, P> for TrainerBattleOpener {
     fn spawn(&mut self, ctx: &PokedexClientData, opponent: &GuiRemotePlayer<ID, P>) {
-        if let Some(id) = &opponent.trainer {
-            self.trainer = Some(ctx.trainer_textures.get(id).clone());
+        if let Some(id) = &opponent.npc_group {
+            self.trainer = Some(ctx.npc_group_textures.get(id).clone());
         }
     }
 

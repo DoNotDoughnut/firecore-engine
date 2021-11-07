@@ -1,7 +1,7 @@
 use macroquad::audio::PlaySoundParams;
 
 use crate::{
-    audio::{error::PlayAudioError, music::MusicId},
+    audio::{error::PlayAudioError, MusicId},
     Context,
 };
 

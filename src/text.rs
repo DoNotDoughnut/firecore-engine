@@ -3,32 +3,9 @@ pub use firecore_text::*;
 use std::ops::Deref;
 
 use image::ImageError;
-use serde::{Deserialize, Serialize};
 
-pub type FontId = u8;
-pub(crate) type SizeInt = u8;
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct FontSheetData {
-    pub id: FontId,
-    pub width: SizeInt,
-    pub height: SizeInt,
-    pub chars: String,
-    pub custom: Vec<CustomChar>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct CustomChar {
-    pub id: char,
-    pub width: SizeInt,
-    pub height: Option<SizeInt>,
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct FontSheet<S> {
-    pub sheet: S,
-    pub data: FontSheetData,
-}
+pub use firecore_font_builder::*;
+pub type FontDimensions = u8;
 
 use hashbrown::HashMap;
 
@@ -38,8 +15,8 @@ pub type Fonts = HashMap<FontId, Font>;
 type CharTextures = HashMap<char, Texture>;
 
 pub struct Font {
-    pub width: SizeInt,
-    pub height: SizeInt,
+    pub width: FontDimensions,
+    pub height: FontDimensions,
     pub chars: CharTextures,
 }
 
@@ -82,10 +59,10 @@ impl Font {
         let x_offset = (text
             .chars()
             .map(|ref character| match self.chars.get(character) {
-                Some(texture) => texture.width() as SizeInt,
+                Some(texture) => texture.width() as FontDimensions,
                 None => self.width,
             })
-            .sum::<SizeInt>()
+            .sum::<FontDimensions>()
             >> 1) as f32;
 
         let y_offset = if center_vertical {
@@ -122,12 +99,12 @@ pub fn insert_font(ctx: &mut Context, font_sheet: &FontSheet<impl Deref<Target =
 
 pub(crate) fn iterate_fontsheet(
     chars: &str,
-    font_width: SizeInt,
-    font_height: SizeInt,
+    font_width: FontDimensions,
+    font_height: FontDimensions,
     custom: &[CustomChar],
     sheet: Image,
 ) -> Result<CharTextures, ImageError> {
-    let mut customchars: HashMap<char, (SizeInt, Option<SizeInt>)> = custom
+    let mut customchars: HashMap<char, (FontDimensions, Option<FontDimensions>)> = custom
         .into_iter()
         .map(|cchar| (cchar.id, (cchar.width, cchar.height)))
         .collect();

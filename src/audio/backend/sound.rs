@@ -1,10 +1,12 @@
-use firecore_audio::SoundId;
-
 use crate::Context;
 
-use crate::audio::error::PlayAudioError;
+use crate::audio::{error::PlayAudioError, SoundId};
 
-pub fn play_sound(ctx: &Context, sound: &SoundId, variant: Option<u16>) -> Result<(), PlayAudioError> {
+pub fn play_sound(
+    ctx: &Context,
+    sound: &SoundId,
+    variant: Option<u16>,
+) -> Result<(), PlayAudioError> {
     match ctx.audio.sounds.get(&(*sound, variant)) {
         Some(handle) => {
             macroquad::audio::play_sound_once(*handle);
@@ -19,9 +21,6 @@ pub fn play_sound(ctx: &Context, sound: &SoundId, variant: Option<u16>) -> Resul
             //     }
             // }
         }
-        None => {
-            Err(PlayAudioError::Missing)
-        }
+        None => Err(PlayAudioError::Missing),
     }
-    
 }

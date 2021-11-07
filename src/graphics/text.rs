@@ -10,6 +10,7 @@ use image::ImageError;
 use super::DrawParams;
 
 pub(crate) struct TextRenderer {
+    #[deprecated]
     pub fonts: Fonts,
     button: Texture,
     cursor: Texture,

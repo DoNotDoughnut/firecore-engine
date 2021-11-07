@@ -1,5 +1,4 @@
 use core::cell::Cell;
-use std::ops::Deref;
 
 use engine::{
     graphics::{draw_cursor, draw_text_left, Texture, DrawParams},
@@ -9,8 +8,6 @@ use engine::{
 };
 
 use crate::context::PokedexClientData;
-
-use pokedex::{BasicDex, moves::Move, item::Item, pokemon::Pokemon};
 
 pub struct PartySelectMenu {
     pub alive: Cell<bool>,

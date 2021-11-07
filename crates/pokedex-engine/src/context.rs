@@ -1,8 +1,9 @@
 use engine::{error::ImageError, graphics::Texture, Context};
 
+use firecore_pokedex_engine_builder::SerializedPokedexEngine;
+
 use crate::{
-    serialize::SerializedPokedexEngine,
-    texture::{ItemTextures, PokemonTextures, TrainerTextures},
+    texture::{ItemTextures, PokemonTextures, NpcGroupTextures},
 };
 
 pub struct PokedexClientData {
@@ -11,7 +12,7 @@ pub struct PokedexClientData {
     pub party: PokedexPartyData,
     pub pokemon_textures: PokemonTextures,
     pub item_textures: ItemTextures,
-    pub trainer_textures: TrainerTextures,
+    pub npc_group_textures: NpcGroupTextures,
 }
 
 pub struct PokedexPartyData {
@@ -33,14 +34,14 @@ impl PokedexClientData {
     ) -> Result<Self, ImageError> {
         let mut pokemon_textures = PokemonTextures::with_capacity(engine.pokemon.len());
 
-        for (id, pokemon) in engine.pokemon {
-            if let Err(err) = pokemon_textures.insert(ctx, id, &pokemon) {
-                log::warn!("Cannot add pokemon texture for {} with error {}", id, err)
+        for (id, (textures, cry)) in engine.pokemon {
+            if let Err(err) = pokemon_textures.insert(ctx, id, textures) {
+                log::warn!("Cannot add pokemon texture for {} with error {}", id, err);
             }
 
             #[cfg(feature = "audio")]
-            if !pokemon.cry.is_empty() {
-                engine::audio::add_sound(ctx, crate::CRY_ID, Some(id), pokemon.cry).await;
+            if !cry.is_empty() {
+                engine::audio::add_sound(ctx, crate::CRY_ID, Some(id), cry).await;
             }
         }
 
@@ -50,10 +51,10 @@ impl PokedexClientData {
             item_textures.insert(id, Texture::new(ctx, &texture)?);
         }
 
-        let mut trainer_textures = TrainerTextures::with_capacity(engine.trainers.len());
+        let mut npc_group_textures = NpcGroupTextures::with_capacity(engine.npc_groups.len());
 
-        for (id, texture) in engine.trainers {
-            trainer_textures.insert(id, Texture::new(ctx, &texture)?);
+        for (id, texture) in engine.npc_groups{
+            npc_group_textures.insert(id, Texture::new(ctx, &texture)?);
         }
 
         Ok(Self {
@@ -77,7 +78,7 @@ impl PokedexClientData {
             },
             pokemon_textures,
             item_textures,
-            trainer_textures,
+            npc_group_textures,
         })
     }
 }

@@ -15,9 +15,10 @@ audio = ["macroquad/audio"]
 [dependencies]
 macroquad = { version = "0.3", default-features = false, features = ["log-rs", "backtrace"] }
 firecore-text = { path = "crates/text" } # "0.0.1"
-firecore-audio = { path = "crates/audio" } #"0.0.1"
+firecore-font-builder = { git = "https://github.com/DoNotDoughnut/firecore-font-builder", rev = "057373a", default-features = false }
 enum-map = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
+tinystr = { version = "0.4", features = ["serde"], default-features = false } 
 hashbrown = { version = "0.11", features = ["serde"] }
 image = { version = "0.23.14", default-features = false, features = ["png", "tga"] }
 

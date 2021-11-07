@@ -8,7 +8,7 @@ fn main() {
             2 * engine::util::WIDTH as i32,
             (2.0 * engine::util::HEIGHT) as _,
         ),
-        move |context| DefaultContext(context),
+        move |context| async { DefaultContext(context) },
         |_| Game::new(),
     )
 }

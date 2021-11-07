@@ -38,7 +38,8 @@ pub fn quit(ctx: &mut Context) {
 pub fn run<
     C: DerefMut<Target = Context>,
     RUNSTATE: State<C> + 'static,
-    CF: FnOnce(Context) -> C + 'static,
+    F: std::future::Future<Output = C> + 'static,
+    CF: FnOnce(Context) -> F + 'static,
     SF: FnOnce(&mut C) -> RUNSTATE + 'static,
 >(
     args: ContextBuilder<impl Into<String>>,
@@ -52,7 +53,7 @@ pub fn run<
 
         let context = Context::new().unwrap_or_else(|err| panic!("Could not initialize Context with error {}", err));
 
-        let mut ctx = (ctx)(context);
+        let mut ctx = (ctx)(context).await;
 
         let mut state = (state)(&mut ctx);
 

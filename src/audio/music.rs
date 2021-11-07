@@ -1,8 +1,6 @@
 use crate::Context;
 
-pub use firecore_audio::*;
-
-use super::error::PlayAudioError;
+use super::{error::PlayAudioError, MusicId};
 
 #[cfg_attr(not(feature = "audio"), allow(unused_variables))]
 pub fn play_music(ctx: &mut Context, music: &MusicId) -> Result<(), PlayAudioError> {

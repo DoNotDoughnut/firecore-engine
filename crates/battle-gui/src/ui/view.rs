@@ -6,7 +6,7 @@ use pokedex::{
     engine::{graphics::Color, math::vec2, Context},
     pokemon::owned::OwnedPokemon,
     texture::PokemonTexture,
-    Identifiable, TrainerId,
+    Identifiable, NpcGroupId,
 };
 
 use battle::{party::PlayerParty, pokemon::remote::UnknownPokemon};
@@ -28,7 +28,7 @@ pub type GuiRemotePlayer<ID, P> = ActivePlayer<ID, Option<UnknownPokemon<P>>>;
 pub struct ActivePlayer<ID, P> {
     pub player: PlayerParty<ID, usize, P>,
     pub renderer: Vec<ActivePokemonRenderer>,
-    pub trainer: Option<TrainerId>,
+    pub npc_group: Option<NpcGroupId>,
 }
 
 impl<ID, P> ActivePlayer<ID, P> {
@@ -36,7 +36,7 @@ impl<ID, P> ActivePlayer<ID, P> {
         Self {
             player,
             renderer: Vec::new(),
-            trainer: None,
+            npc_group: None,
         }
     }
 }
@@ -111,6 +111,5 @@ impl<ID, P: Deref<Target = Pokemon>> ActivePlayer<ID, Option<UnknownPokemon<P>>>
             };
             self.renderer.push(r);
         }
-        self.trainer = Some("rival".parse().unwrap());
     }
 }

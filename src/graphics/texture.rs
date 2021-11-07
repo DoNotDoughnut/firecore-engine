@@ -28,15 +28,18 @@ impl Texture {
         Self(Rc::new(tex))
     }
 
-    pub fn new(_: &mut Context, data: &[u8]) -> Result<Self, image::ImageError> {
+    #[allow(unused_variables)]
+    pub fn new(ctx: &mut Context, data: &[u8]) -> Result<Self, image::ImageError> {
         Self::crate_new(data)
     }
 
-    pub fn from_image(_: &mut Context, image: &Image) -> Self {
+    #[allow(unused_variables)]
+    pub fn from_image(ctx: &mut Context, image: &Image) -> Self {
         Self::crate_from_image(&image.0)
     }
 
-    pub fn draw(&self, _: &mut Context, x: f32, y: f32, params: DrawParams) {
+    #[allow(unused_variables)]
+    pub fn draw(&self, ctx: &mut Context, x: f32, y: f32, params: DrawParams) {
         self.crate_draw(x, y, params)
     }
 

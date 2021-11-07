@@ -1,59 +1,44 @@
-use engine::{
-    graphics::{Texture, TextureManager}, Context, error::ImageError,
-};
+use enum_map::{enum_map, EnumMap};
 use hashbrown::HashMap;
 
 use pokedex::{item::ItemId, pokemon::PokemonId};
 
-use crate::{TrainerId, serialize::SerializedPokemon};
+use engine::{
+    error::ImageError,
+    graphics::{Texture, TextureManager},
+    Context,
+};
 
-pub type TrainerTextures = TextureManager<TrainerId>;
+pub type NpcGroupTextures = TextureManager<crate::NpcGroupId>;
 pub type ItemTextures = TextureManager<ItemId>;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum PokemonTexture {
-    Front,
-    Back,
-    Icon,
-}
+pub use firecore_pokedex_engine_builder::pokemon::PokemonTexture;
 
-pub struct PokemonTextures {
-    pub front: HashMap<PokemonId, Texture>,
-    pub back: HashMap<PokemonId, Texture>,
-    pub icon: HashMap<PokemonId, Texture>,
-}
+pub struct PokemonTextures(HashMap<PokemonId, EnumMap<PokemonTexture, Texture>>);
 
 impl PokemonTextures {
     pub fn with_capacity(capacity: usize) -> Self {
-        Self {
-            front: HashMap::with_capacity(capacity),
-            back: HashMap::with_capacity(capacity),
-            icon: HashMap::with_capacity(capacity),
-        }
+        Self(HashMap::with_capacity(capacity))
     }
 
-    pub fn insert(&mut self, ctx: &mut Context, id: PokemonId, pokemon: &SerializedPokemon) -> Result<(), ImageError> {
-        self.front.insert(
-            id,
-            Texture::new(ctx, &pokemon.front)?,
-        );
-        self.back.insert(
-            id,
-            Texture::new(ctx, &pokemon.back)?,
-        );
-        self.icon.insert(
-            id,
-            Texture::new(ctx, &pokemon.icon)?,
-        );
+    pub fn insert(
+        &mut self,
+        ctx: &mut Context,
+        id: PokemonId,
+        textures: EnumMap<PokemonTexture, Vec<u8>>,
+    ) -> Result<(), ImageError> {
+        self.0.insert(id, enum_map! {
+            PokemonTexture::Front => Texture::new(ctx, &textures[PokemonTexture::Front])?,
+            PokemonTexture::Back => Texture::new(ctx, &textures[PokemonTexture::Back])?,
+            PokemonTexture::Icon => Texture::new(ctx, &textures[PokemonTexture::Icon])?,
+        });
         Ok(())
     }
 
     pub fn get(&self, id: &PokemonId, side: PokemonTexture) -> &Texture {
-        match side {
-            PokemonTexture::Front => self.front.get(id),
-            PokemonTexture::Back => self.back.get(id),
-            PokemonTexture::Icon => self.icon.get(id),
-        }
-        .unwrap_or_else(|| panic!("Could not get texture for pokemon with ID {}", id))
+        self.0
+            .get(id)
+            .map(|m| &m[side])
+            .unwrap_or_else(|| panic!("Could not get texture for pokemon with ID {}", id))
     }
 }

@@ -3,7 +3,7 @@ pub mod sound;
 
 use crate::context::audio::GameAudioMap;
 
-use firecore_audio::{MusicId, SoundId, SoundVariant};
+use crate::audio::{MusicId, SoundId, SoundVariant};
 
 pub async fn add_music(
     music: &mut GameAudioMap<MusicId>,

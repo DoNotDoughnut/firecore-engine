@@ -10,8 +10,7 @@ pub mod context;
 pub mod gui;
 pub mod texture;
 
-pub mod serialize;
-
+/// Holds the string "cry"
 pub const CRY_ID: tinystr::TinyStr8 = unsafe { tinystr::TinyStr8::new_unchecked(7959107) };
 
-pub type TrainerId = tinystr::TinyStr16;
+pub use firecore_pokedex_engine_builder::npc_group::NpcGroupId;
