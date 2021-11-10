@@ -76,9 +76,9 @@ pub struct BattleGui<M: Deref<Target = Move> + Clone> {
 }
 
 impl<M: Deref<Target = Move> + Clone> BattleGui<M> {
-    pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
+    pub fn new(ctx: &mut Context, btl: &BattleGuiContext) -> Self {
         Self {
-            background: BattleBackground::new(ctx, gui),
+            background: BattleBackground::new(ctx, btl),
 
             panel: BattlePanel::new(),
 
@@ -86,9 +86,9 @@ impl<M: Deref<Target = Move> + Clone> BattleGui<M> {
 
             bounce: PlayerBounce::new(),
 
-            opener: BattleOpenerManager::new(ctx, gui),
-            introduction: BattleIntroductionManager::new(gui),
-            trainer: BattleTrainerPartyIntro::new(ctx),
+            opener: BattleOpenerManager::new(ctx, btl),
+            introduction: BattleIntroductionManager::new(btl),
+            trainer: BattleTrainerPartyIntro::new(btl),
             level_up: LevelUpMovePanel::new(),
         }
     }

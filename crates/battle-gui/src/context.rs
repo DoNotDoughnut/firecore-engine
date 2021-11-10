@@ -7,6 +7,8 @@ pub struct BattleGuiContext {
     pub padding: Texture,
     pub largeui: Texture,
     pub player: Texture,
+    pub bar: Texture,
+    pub ball: Texture,
 }
 
 impl BattleGuiContext {
@@ -18,6 +20,8 @@ impl BattleGuiContext {
             padding: Texture::new(ctx, include_bytes!("../assets/gui/padding.png"))?,
             largeui: Texture::new(ctx, include_bytes!("../assets/gui/large.png"))?,
             player: Texture::new(ctx, include_bytes!("../assets/player.png"))?,
+            bar: Texture::new(ctx, include_bytes!("../assets/gui/bar.png"))?,
+            ball: Texture::new(ctx, include_bytes!("../assets/gui/owned.png"))?,
         })
     }
 }

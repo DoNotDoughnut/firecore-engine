@@ -5,6 +5,8 @@ use pokedex::engine::{
     Context,
 };
 
+use crate::context::BattleGuiContext;
+
 use super::TransitionState;
 
 pub struct BattleTrainerPartyIntro {
@@ -24,11 +26,11 @@ impl BattleTrainerPartyIntro {
     const RIGHT_BALL_POSITION: f32 = 76.0;
     const OPACITY_LEN: f32 = 128.0;
 
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(btl: &BattleGuiContext) -> Self {
         Self {
             state: None,
-            bar: Texture::new(ctx, include_bytes!("../../assets/gui/bar.png")).unwrap(),
-            ball: Texture::new(ctx, include_bytes!("../../assets/gui/owned.png")).unwrap(),
+            bar: btl.bar.clone(),
+            ball: btl.ball.clone(),
             player: 0,
             opponent: 0,
             counter: 0,
@@ -126,9 +128,11 @@ impl BattleTrainerPartyIntro {
 
         let invert_f = if invert { -1.0f32 } else { 1.0 };
 
+        let invert_sub = if invert { self.bar.width() } else { 0.0 };
+
         self.bar.draw(
             ctx,
-            pos.x + (self.bar_position - Self::BAR_HIDDEN) * if invert { -1.0 } else { 1.0 },
+            pos.x + (self.bar_position - Self::BAR_HIDDEN) * invert_f - invert_sub,
             pos.y,
             DrawParams {
                 color: opacity,
@@ -141,7 +145,7 @@ impl BattleTrainerPartyIntro {
             ctx,
             pos.x
                 + (self.bar_position - Self::BAR_HIDDEN - Self::OPACITY_LEN)
-                    * invert_f,
+                    * invert_f - invert_sub,
             pos.y,
             DrawParams {
                 color: opacity,

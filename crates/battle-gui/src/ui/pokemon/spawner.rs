@@ -11,10 +11,10 @@ use pokedex::{
 
 use crate::context::BattleGuiContext;
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct Spawner {
     pub spawning: SpawnerState,
-    pub texture: Option<Texture>,
+    pub texture: Texture,
     pub id: Option<PokemonId>,
     pub x: f32,
 }
@@ -25,12 +25,6 @@ pub enum SpawnerState {
     Start,
     Throwing,
     Spawning,
-}
-
-impl Default for SpawnerState {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl Spawner {
@@ -44,7 +38,7 @@ impl Spawner {
             spawning: SpawnerState::None,
             x: 0.0,
             id: id,
-            texture: Some(ctx.pokeball.clone()),
+            texture: ctx.pokeball.clone(),
         }
     }
 
@@ -82,18 +76,15 @@ impl Spawner {
     pub fn draw(&self, ctx: &mut Context, origin: Vec2, texture: &Texture) {
         match self.spawning {
             SpawnerState::Throwing => {
-                if let Some(texture) = self.texture.as_ref() {
-                    texture.draw(
-                        ctx,
-                        origin.x + self.x + Self::OFFSET,
-                        origin.y + Self::f(self.x),
-                        DrawParams {
-                            rotation: self.x,
-                            // origin: Some(Vec2::new(6.0, 6.0)),
-                            ..Default::default()
-                        },
-                    )
-                }
+                self.texture.draw(
+                    ctx,
+                    origin.x + self.x + Self::OFFSET,
+                    origin.y + Self::f(self.x),
+                    DrawParams {
+                        rotation: self.x,
+                        ..Default::default()
+                    },
+                );
             }
             SpawnerState::Spawning => {
                 let h = texture.height() as f32;

@@ -1,8 +1,6 @@
 use core::ops::Deref;
 use pokedex::{item::Item, pokemon::Pokemon};
 
-
-use ::battle::party::PlayerParty;
 use pokedex::{
     engine::{
         input::controls::{pressed, Control},
@@ -14,7 +12,7 @@ use pokedex::{
     pokemon::owned::OwnablePokemon,
 };
 
-use crate::view::{GuiPokemonView, PlayerView};
+use crate::view::PlayerView;
 
 use self::{battle::BattleOptions, fight::FightPanel, target::TargetPanel};
 
@@ -72,11 +70,18 @@ impl<M: Deref<Target = Move> + Clone> BattlePanel<M> {
         self.spawn();
     }
 
-    pub fn target<ID, P: Deref<Target = Pokemon>, I: Deref<Target = Item>>(&mut self, targets: &dyn PlayerView<ID, P, M, I>) {
+    pub fn target<ID, P: Deref<Target = Pokemon>, I: Deref<Target = Item>>(
+        &mut self,
+        targets: &dyn PlayerView<ID, P, M, I>,
+    ) {
         self.targets.update_names(targets);
     }
 
-    pub fn input<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, H>(&mut self, ctx: &Context, pokemon: &OwnablePokemon<P, MSET, I, G, H>) -> Option<BattlePanels> {
+    pub fn input<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, H>(
+        &mut self,
+        ctx: &Context,
+        pokemon: &OwnablePokemon<P, MSET, I, G, H>,
+    ) -> Option<BattlePanels> {
         if self.alive {
             match self.active {
                 BattlePanels::Main => {

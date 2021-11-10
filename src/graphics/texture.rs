@@ -10,11 +10,11 @@ use crate::{
 use super::{Color, Image};
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Texture(Rc<Texture2D>);
+pub struct Texture(Rc<TextureInner>);
 
 impl Texture {
     pub(crate) fn crate_new(data: &[u8]) -> Result<Self, image::ImageError> {
-        let image = image::load_from_memory(data)?.to_rgba8();
+        let image = image::load_from_memory_with_format(data, image::ImageFormat::Png)?.to_rgba8();
         Ok(Self::crate_from_image(&image))
     }
 
@@ -25,7 +25,7 @@ impl Texture {
             image.as_raw(),
         );
         tex.set_filter(FilterMode::Nearest);
-        Self(Rc::new(tex))
+        Self(Rc::new(TextureInner(tex)))
     }
 
     #[allow(unused_variables)]
@@ -45,7 +45,7 @@ impl Texture {
 
     pub(crate) fn crate_draw(&self, x: f32, y: f32, params: DrawParams) {
         let (color, params) = params.init();
-        macroquad::prelude::draw_texture_ex(*self.0, x, y, color, params);
+        macroquad::prelude::draw_texture_ex(**self.0, x, y, color, params);
     }
 
     pub fn width(&self) -> f32 {
@@ -63,7 +63,24 @@ impl Texture {
     // pub fn try_draw(self: Option<&Self>, ctx: &mut Context, x: f32, y: f32, params: DrawParams) {}
 }
 
-impl Drop for Texture {
+#[derive(Debug, Clone, PartialEq)]
+struct TextureInner(Texture2D);
+
+impl core::ops::Deref for TextureInner {
+    type Target = Texture2D;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl core::ops::DerefMut for TextureInner {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl Drop for TextureInner {
     fn drop(&mut self) {
         self.0.delete()
     }

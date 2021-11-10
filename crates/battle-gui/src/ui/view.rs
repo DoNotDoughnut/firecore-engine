@@ -41,7 +41,7 @@ impl<ID, P> ActivePlayer<ID, P> {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct ActivePokemonRenderer {
     pub pokemon: PokemonRenderer,
     /// to - do: make non-optional

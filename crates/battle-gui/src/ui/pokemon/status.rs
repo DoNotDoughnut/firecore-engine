@@ -195,7 +195,7 @@ impl PokemonStatusGui {
                         )
                     } else {
                         let texture = ctx.smallui.clone();
-                        let mut pos = Vec2::zero();
+                        let mut pos = Vec2::ZERO;
                         pos.y += index.index as f32 * texture.height() as f32;
                         (
                             (

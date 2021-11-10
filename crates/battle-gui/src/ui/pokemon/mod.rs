@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use pokedex::{
     context::PokedexClientData,
     engine::{
@@ -22,8 +20,6 @@ use self::{
     flicker::Flicker,
     spawner::{Spawner, SpawnerState},
 };
-
-use pokedex::{item::Item, moves::Move, pokemon::Pokemon, Dex};
 
 // mod moves;
 mod status;
@@ -144,19 +140,6 @@ impl PokemonRenderer {
                     );
                 }
             }
-        }
-    }
-}
-
-impl Default for PokemonRenderer {
-    fn default() -> Self {
-        Self {
-            pokemon: Default::default(),
-            side: PokemonTexture::Front,
-            pos: Default::default(),
-            spawner: Spawner::default(),
-            faint: Default::default(),
-            flicker: Default::default(),
         }
     }
 }
