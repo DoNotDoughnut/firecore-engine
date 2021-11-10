@@ -89,7 +89,7 @@ impl Spawner {
                         origin.y + Self::f(self.x),
                         DrawParams {
                             rotation: self.x,
-                            origin: Some(Vec2::new(6.0, 6.0)),
+                            // origin: Some(Vec2::new(6.0, 6.0)),
                             ..Default::default()
                         },
                     )

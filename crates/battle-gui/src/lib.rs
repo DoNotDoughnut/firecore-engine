@@ -43,8 +43,6 @@ use self::transition::TransitionState;
 
 pub struct BattlePlayerGui<ID: Default + Eq + Hash, P: Deref<Target = Pokemon> + Clone, M: Deref<Target = Move> + Clone, I: Deref<Target = Item> + Clone> {
 
-    context: BattleGuiContext,
-
     party: Rc<PartyGui>,
     bag: Rc<BagGui>,
 	pub gui: BattleGui<M>,
@@ -84,15 +82,14 @@ enum BattlePlayerState<ID, M: Deref<Target = Move>> {
 
 impl<ID: Default + Clone + Debug + Hash + Eq, P: Deref<Target = Pokemon> + Clone, M: Deref<Target = Move> + Clone, I: Deref<Target = Item> + Clone> BattlePlayerGui<ID, P, M, I> {
 
-    pub fn new(ctx: &mut Context, party: Rc<PartyGui>, bag: Rc<BagGui>) -> Self where ID: Default {
-        let context = BattleGuiContext::new(ctx).unwrap();
+    pub fn new(ctx: &mut Context, btl: &BattleGuiContext, party: Rc<PartyGui>, bag: Rc<BagGui>) -> Self where ID: Default {
 
         let (client, endpoint) = battle::endpoint::create();
 
         Self {
             party,
             bag,
-			gui: BattleGui::new(ctx, &context),
+			gui: BattleGui::new(ctx, btl),
             state: BattlePlayerState::WaitToStart,
             should_select: false,
             data: Default::default(),
@@ -100,7 +97,6 @@ impl<ID: Default + Clone + Debug + Hash + Eq, P: Deref<Target = Pokemon> + Clone
             remotes: Default::default(),
             client,
             endpoint,
-            context,
         }
     }
 
@@ -131,7 +127,7 @@ impl<ID: Default + Clone + Debug + Hash + Eq, P: Deref<Target = Pokemon> + Clone
         self.client.send(ClientMessage::Forfeit);
     }
 
-    pub fn process<'d>(&mut self, random: &mut impl rand::Rng, data: &PokedexClientData, pokedex: &'d dyn Dex<'d, Pokemon, P>, movedex: &'d dyn Dex<'d, Move, M>, itemdex: &'d dyn Dex<'d, Item, I>, party: &mut Party<OwnedPokemon<P, M, I>>) {
+    pub fn process<'d>(&mut self, random: &mut impl rand::Rng, data: &PokedexClientData, btl: &BattleGuiContext, pokedex: &'d dyn Dex<'d, Pokemon, P>, movedex: &'d dyn Dex<'d, Move, M>, itemdex: &'d dyn Dex<'d, Item, I>, party: &mut Party<OwnedPokemon<P, M, I>>) {
         while let Ok(message) = self.client.receiver.try_recv() {
             match message {
                 ServerMessage::Begin(client) => {
@@ -150,9 +146,9 @@ impl<ID: Default + Clone + Debug + Hash + Eq, P: Deref<Target = Pokemon> + Clone
                         }))
                     }).collect();
                     self.data = client.data;
-                    self.local.init(&self.context, data);
+                    self.local.init(btl, data);
                     for remote in self.remotes.values_mut() {
-                        remote.init(&self.context, data);
+                        remote.init(btl, data);
                     }
                 },
                 ServerMessage::Start(action) => match action {

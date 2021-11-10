@@ -123,6 +123,9 @@ impl BattleTrainerPartyIntro {
         opacity: Color,
         distance: u16,
     ) {
+
+        let invert_f = if invert { -1.0f32 } else { 1.0 };
+
         self.bar.draw(
             ctx,
             pos.x + (self.bar_position - Self::BAR_HIDDEN) * if invert { -1.0 } else { 1.0 },
@@ -138,13 +141,13 @@ impl BattleTrainerPartyIntro {
             ctx,
             pos.x
                 + (self.bar_position - Self::BAR_HIDDEN - Self::OPACITY_LEN)
-                    * if invert { -1.0 } else { 1.0 },
+                    * invert_f,
             pos.y,
             DrawParams {
                 color: opacity,
                 source: Some(Rectangle::new(0.0, 0.0, 1.0, 4.0)),
                 dest_size: Some(vec2(
-                    self.bar.width() * Self::OPACITY_LEN,
+                    Self::OPACITY_LEN,
                     self.bar.height(),
                 )),
                 flip_x: invert,
@@ -158,7 +161,7 @@ impl BattleTrainerPartyIntro {
                 pos.x
                     + (self.bar_position.max(0.0) + Self::RIGHT_BALL_POSITION
                         - (i as u16 * distance) as f32)
-                        * if invert { -1.0 } else { 1.0 },
+                        * invert_f,
                 pos.y - 9.0,
                 DrawParams {
                     source: Some(Rectangle::new(
@@ -178,7 +181,7 @@ impl BattleTrainerPartyIntro {
             self.ball.draw(
                 ctx,
                 pos.x
-                    + if invert { -1.0 } else { 1.0 }
+                    + invert_f
                         * (Self::RIGHT_BALL_POSITION + self.ball_position
                             - (self.counter * 10) as f32),
                 pos.y - 9.0,
