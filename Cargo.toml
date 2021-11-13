@@ -10,21 +10,21 @@ readme = "README.md"
 
 [features]
 default = []
-audio = ["macroquad/audio"]
+audio = ["macroquad/audio", "log"]
 
 [dependencies]
 macroquad = { version = "0.3", default-features = false, features = ["log-rs", "backtrace"] }
-firecore-text = { path = "crates/text" } # "0.0.1"
-firecore-font-builder = { git = "https://github.com/DoNotDoughnut/firecore-font-builder", rev = "057373a", default-features = false }
 enum-map = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
-tinystr = { version = "0.4", features = ["serde"], default-features = false } 
-hashbrown = { version = "0.11", features = ["serde"] }
+tinystr = { version = "0.4", features = ["serde"], default-features = false }
 image = { version = "0.23.14", default-features = false, features = ["png", "tga"] }
+
+firecore-text = { path = "crates/text" } # "0.0.1"
+firecore-font-builder = { git = "https://github.com/DoNotDoughnut/firecore-font-builder", rev = "057373a", default-features = false }
 
 async-trait = "0.1"
 
-log = "0.4" # remove, handle audio errors in trait
+log = { version =  "0.4", optional = true } # remove, handle audio errors in trait
 
 [dev-dependencies]
 bincode = "1.3"

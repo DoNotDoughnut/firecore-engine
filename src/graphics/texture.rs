@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use macroquad::prelude::{DrawTextureParams, FilterMode, Texture2D};
 use std::{fmt::Display, hash::Hash, rc::Rc};
 

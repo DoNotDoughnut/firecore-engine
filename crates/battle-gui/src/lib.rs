@@ -6,7 +6,7 @@ use std::{collections::VecDeque, fmt::Debug, hash::Hash, ops::Deref, rc::Rc};
 use context::BattleGuiContext;
 
 use log::{warn, debug};
-use hashbrown::HashMap;
+use std::collections::HashMap;
 
 use pokedex::{Dex, Initializable, context::PokedexClientData, gui::{bag::BagGui, party::PartyGui}, item::{Item, bag::OwnedBag, usage::ItemUsageKind}, moves::{Move, MoveTarget}, pokemon::{Pokemon, owned::OwnedPokemon, party::Party}, types::Effective};
 

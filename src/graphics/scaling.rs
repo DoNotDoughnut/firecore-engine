@@ -44,7 +44,6 @@ impl ScreenScaler {
             },
             ScalingMode::ShowAllPixelPerfect => {
 
-                log::trace!("to - do: {:?}", self.mode);
                 self.mode = ScalingMode::Stretch;
                 self.update();
 

@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use macroquad::audio::Sound as Audio;
 
 use crate::audio::{MusicId, SoundId, SoundVariant};

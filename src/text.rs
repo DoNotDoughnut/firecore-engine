@@ -7,7 +7,7 @@ use image::ImageError;
 pub use firecore_font_builder::*;
 pub type FontDimensions = u8;
 
-use hashbrown::HashMap;
+use std::collections::HashMap;
 
 use crate::{Context, graphics::{DrawParams, Image, Texture}};
 

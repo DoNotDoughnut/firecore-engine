@@ -1,5 +1,5 @@
 use enum_map::{enum_map, EnumMap};
-use hashbrown::HashMap;
+use std::collections::HashMap;
 
 use pokedex::{item::ItemId, pokemon::PokemonId};
 
@@ -27,11 +27,14 @@ impl PokemonTextures {
         id: PokemonId,
         textures: EnumMap<PokemonTexture, Vec<u8>>,
     ) -> Result<(), ImageError> {
-        self.0.insert(id, enum_map! {
-            PokemonTexture::Front => Texture::new(ctx, &textures[PokemonTexture::Front])?,
-            PokemonTexture::Back => Texture::new(ctx, &textures[PokemonTexture::Back])?,
-            PokemonTexture::Icon => Texture::new(ctx, &textures[PokemonTexture::Icon])?,
-        });
+        self.0.insert(
+            id,
+            enum_map! {
+                PokemonTexture::Front => Texture::new(ctx, &textures[PokemonTexture::Front])?,
+                PokemonTexture::Back => Texture::new(ctx, &textures[PokemonTexture::Back])?,
+                PokemonTexture::Icon => Texture::new(ctx, &textures[PokemonTexture::Icon])?,
+            },
+        );
         Ok(())
     }
 

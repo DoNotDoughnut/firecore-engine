@@ -14,6 +14,8 @@ pub mod text;
 
 use std::ops::DerefMut;
 
+pub extern crate async_trait;
+
 pub use self::{
     context::{Context, ContextBuilder, DefaultContext},
     error::EngineError,
@@ -49,7 +51,7 @@ pub fn run<
     macroquad::Window::from_config(args.into(), async move {
         macroquad::prelude::prevent_quit();
 
-        log::trace!("to - do: gamepad support");
+        // log::trace!("to - do: gamepad support");
 
         let context = Context::new().unwrap_or_else(|err| panic!("Could not initialize Context with error {}", err));
 

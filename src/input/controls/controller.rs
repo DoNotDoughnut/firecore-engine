@@ -1,5 +1,5 @@
 use enum_map::EnumMap;
-use hashbrown::HashSet;
+use std::collections::HashSet;
 
 use crate::{
     input::controller::{self as input, GamepadButton},
