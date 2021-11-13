@@ -32,10 +32,8 @@ impl Game {
     }
 }
 
-#[engine::async_trait::async_trait(?Send)]
 impl State<DefaultContext> for Game {
-    async fn start(&mut self, ctx: &mut DefaultContext) {
-
+    fn start(&mut self, ctx: &mut DefaultContext) {
         let scaler = ScreenScaler::with_size(
             ctx,
             engine::util::WIDTH as _,

@@ -32,6 +32,10 @@ pub fn default_key_map() -> KeyMap {
     }
 }
 
+pub fn set_key_map(ctx: &mut Context, keys: KeyMap) {
+    ctx.controls.keyboard = keys;
+}
+
 // fn keyset(codes: &[Key]) -> KeySet {
 //     let mut set = HashSet::with_capacity(codes.len());
 //     for code in codes {

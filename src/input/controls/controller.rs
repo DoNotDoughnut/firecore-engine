@@ -31,3 +31,7 @@ pub fn default_button_map() -> ButtonMap {
         Control::Select => GamepadButton::Back,
     }
 }
+
+pub fn set_button_map(ctx: &mut Context, buttons: ButtonMap) {
+    ctx.controls.controller = buttons;
+}

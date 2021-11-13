@@ -12,9 +12,7 @@ pub mod text;
 
 // pub use macroquad::main;
 
-use std::ops::DerefMut;
-
-pub extern crate async_trait;
+use std::{future::Future, ops::DerefMut};
 
 pub use self::{
     context::{Context, ContextBuilder, DefaultContext},
@@ -45,15 +43,15 @@ pub fn quit(ctx: &mut Context) {
 }
 
 pub fn run<
-    C: DerefMut<Target = Context>,
-    RUNSTATE: State<C> + 'static,
-    F: std::future::Future<Output = C> + 'static,
-    CF: FnOnce(Context) -> F + 'static,
-    SF: FnOnce(&mut C) -> RUNSTATE + 'static,
+    C: DerefMut<Target = Context> + 'static,
+    CFUNCOUT: Future<Output = C> + 'static,
+    CFUNC: FnOnce(Context) -> CFUNCOUT + 'static,
+    SFUNCOUT: State<C> + 'static,
+    SFUNC: FnOnce(&mut C) -> SFUNCOUT + 'static,
 >(
     args: ContextBuilder<impl Into<String>>,
-    ctx: CF,
-    state: SF,
+    ctx: CFUNC,
+    state: SFUNC,
 ) {
     macroquad::Window::from_config(args.into(), async move {
         macroquad::prelude::prevent_quit();
@@ -62,11 +60,13 @@ pub fn run<
 
         let context = Context::new().unwrap_or_else(|err| panic!("Could not initialize Context with error {}", err));
 
+        macroquad::prelude::clear_background(macroquad::prelude::BLACK);
+        macroquad::prelude::draw_text("Loading...", 5.0, 5.0, 20.0, macroquad::prelude::WHITE);
         let mut ctx = (ctx)(context).await;
 
         let mut state = (state)(&mut ctx);
 
-        state.start(&mut ctx).await;
+        state.start(&mut ctx);
 
         loop {
 
