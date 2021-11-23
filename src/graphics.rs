@@ -37,11 +37,11 @@ pub use self::texture::*;
 // }
 
 pub fn clear(_: &mut Context, color: Color) {
-    macroquad::prelude::clear_background(color.0);
+    macroquad::prelude::clear_background(*color);
 }
 
 pub fn draw_rectangle(_: &mut Context, x: f32, y: f32, w: f32, h: f32, color: Color) {
-    macroquad::prelude::draw_rectangle(x, y, w, h, color.0)
+    macroquad::prelude::draw_rectangle(x, y, w, h, *color)
 }
 
 pub fn draw_rectangle_lines(
@@ -53,7 +53,7 @@ pub fn draw_rectangle_lines(
     thickness: f32,
     color: Color,
 ) {
-    macroquad::prelude::draw_rectangle_lines(x, y, w, h, thickness, color.0)
+    macroquad::prelude::draw_rectangle_lines(x, y, w, h, thickness, *color)
 }
 
 /// Deprecated
@@ -81,13 +81,13 @@ pub fn draw_line(
     thickness: f32,
     color: Color,
 ) {
-    macroquad::prelude::draw_line(x1, y1, x2, y2, thickness, color.0)
+    macroquad::prelude::draw_line(x1, y1, x2, y2, thickness, *color)
 }
 
 #[allow(unused_variables)]
 pub fn draw_circle(_: &mut Context, x: f32, y: f32, r: f32, color: Color) {
     // todo!("draw circle")
-    macroquad::prelude::draw_circle(x, y, r, color.0);
+    macroquad::prelude::draw_circle(x, y, r, *color);
 }
 
 use crate::text::TextColor;

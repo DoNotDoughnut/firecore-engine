@@ -40,6 +40,10 @@ impl ScreenScaler {
                 let inner_ratio = self.width as f32 / self.height as f32;
                 let screen_ratio = screen_width() as f32 / screen_height() as f32;
 
+                
+                self.mode = ScalingMode::Stretch;
+                self.update();
+
                 // let s
             },
             ScalingMode::ShowAllPixelPerfect => {

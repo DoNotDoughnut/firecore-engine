@@ -36,7 +36,7 @@ impl PokedexClientData {
 
         for (id, (textures, cry)) in engine.pokemon {
             if let Err(err) = pokemon_textures.insert(ctx, id, textures) {
-                log::warn!("Cannot add pokemon texture for {} with error {}", id, err);
+                engine::log::warn!("Cannot add pokemon texture for {} with error {}", id, err);
             }
 
             #[cfg(feature = "audio")]

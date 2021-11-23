@@ -19,13 +19,8 @@ pub trait Completable: Reset {
     fn finished(&self) -> bool;
 }
 
-pub fn date() -> u64 {
-    use std::time::SystemTime;
-    SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .map(|dur| dur.as_secs())
-        .unwrap_or_default()
-        % 1000
+pub fn seed() -> u64 {
+    (macroquad::miniquad::date::now() * 10000000.0) as u64
 }
 
 pub fn type_name<T: ?Sized>() -> &'static str {

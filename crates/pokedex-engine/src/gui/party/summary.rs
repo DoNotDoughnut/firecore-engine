@@ -222,7 +222,7 @@ impl SummaryGui {
                 self.offset.float.set(Default::default());
                 self.pokemon.set(Some(pokemon))
             }
-            Err(err) => log::error!("Cannot create summary gui pokemon with error: {}", err),
+            Err(err) => engine::log::error!("Cannot create summary gui pokemon with error: {}", err),
         }
     }
 

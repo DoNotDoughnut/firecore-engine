@@ -128,7 +128,7 @@ impl DrawParams {
 
     pub(crate) fn init(self) -> (macroquad::prelude::Color, DrawTextureParams) {
         (
-            self.color.0,
+            *self.color,
             DrawTextureParams {
                 dest_size: self.dest_size,
                 source: self.source,
