@@ -1,8 +1,8 @@
 use std::ops::Deref;
 
 use crate::{
-    text::{Font, FontId, FontSheet, Fonts},
     graphics::{Image, Texture},
+    text::{Font, FontId, FontSheet, Fonts},
 };
 
 use image::ImageError;

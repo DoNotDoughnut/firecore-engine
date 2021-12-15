@@ -86,7 +86,8 @@ impl PokemonRenderer {
 
     pub fn new_pokemon<'d>(&mut self, data: &PokedexClientData, pokemon: Option<PokemonId>) {
         self.spawner.id = pokemon;
-        self.pokemon = pokemon.map(|pokemon| data.pokemon_textures.get(&pokemon, self.side).clone());
+        self.pokemon =
+            pokemon.map(|pokemon| data.pokemon_textures.get(&pokemon, self.side).clone());
         self.reset();
     }
 

@@ -19,13 +19,13 @@ impl Image {
     pub fn region(&self, x: u32, y: u32, w: u32, h: u32) -> SubImage {
         SubImage(self.0.view(x, y, w, h))
     }
-
 }
 
-pub struct SubImage<'i>(image::SubImage<&'i <image::RgbaImage as image::GenericImageView>::InnerImageView>);
+pub struct SubImage<'i>(
+    image::SubImage<&'i <image::RgbaImage as image::GenericImageView>::InnerImageView>,
+);
 
 impl SubImage<'_> {
-
     pub fn width(&self) -> u32 {
         self.0.width()
     }
@@ -33,7 +33,6 @@ impl SubImage<'_> {
     pub fn height(&self) -> u32 {
         self.0.height()
     }
-
 }
 
 impl From<SubImage<'_>> for Image {

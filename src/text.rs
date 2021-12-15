@@ -1,5 +1,3 @@
-pub use firecore_text::*;
-
 use std::ops::Deref;
 
 use image::ImageError;
@@ -9,7 +7,10 @@ pub type FontDimensions = u8;
 
 use std::collections::HashMap;
 
-use crate::{Context, graphics::{DrawParams, Image, Texture}};
+use crate::{
+    graphics::{DrawParams, Image, Texture},
+    Context,
+};
 
 pub type Fonts = HashMap<FontId, Font>;
 type CharTextures = HashMap<char, Texture>;
@@ -92,10 +93,12 @@ impl Font {
     }
 }
 
-pub fn insert_font(ctx: &mut Context, font_sheet: &FontSheet<impl Deref<Target = [u8]>>) -> Result<(), ImageError> {
+pub fn insert_font(
+    ctx: &mut Context,
+    font_sheet: &FontSheet<impl Deref<Target = [u8]>>,
+) -> Result<(), ImageError> {
     ctx.text.add_font_sheet(font_sheet)
 }
-
 
 pub(crate) fn iterate_fontsheet(
     chars: &str,

@@ -2,9 +2,7 @@ use engine::{error::ImageError, graphics::Texture, Context};
 
 use firecore_pokedex_engine_builder::SerializedPokedexEngine;
 
-use crate::{
-    texture::{ItemTextures, PokemonTextures, NpcGroupTextures},
-};
+use crate::texture::{ItemTextures, NpcGroupTextures, PokemonTextures};
 
 pub struct PokedexClientData {
     pub health_bar: Texture,
@@ -41,7 +39,7 @@ impl PokedexClientData {
 
             #[cfg(feature = "audio")]
             if !cry.is_empty() {
-                engine::audio::add_sound(ctx, crate::CRY_ID, Some(id), cry).await;
+                engine::audio::add_sound(ctx, crate::CRY_ID, Some(id), cry);
             }
         }
 
@@ -53,7 +51,7 @@ impl PokedexClientData {
 
         let mut npc_group_textures = NpcGroupTextures::with_capacity(engine.npc_groups.len());
 
-        for (id, texture) in engine.npc_groups{
+        for (id, texture) in engine.npc_groups {
             npc_group_textures.insert(id, Texture::new(ctx, &texture)?);
         }
 

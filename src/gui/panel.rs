@@ -1,10 +1,8 @@
 use crate::{
     graphics::{draw_cursor, draw_text_left, Color, DrawParams},
-    math::{Rectangle, vec2},
+    math::{vec2, Rectangle},
     Context,
 };
-
-use crate::text::TextColor;
 
 pub struct Panel;
 
@@ -16,7 +14,6 @@ impl Panel {
     }
 
     pub fn draw_color(ctx: &mut Context, x: f32, y: f32, w: f32, h: f32, color: Color) {
-
         const TEXTURE_SIZE: f32 = 7.0;
 
         let panel = &ctx.panel;
@@ -96,7 +93,8 @@ impl Panel {
         );
 
         panel.crate_draw(
-            x1, y + TEXTURE_SIZE,
+            x1,
+            y + TEXTURE_SIZE,
             DrawParams {
                 source: Some(Rectangle::new(0.0, 6.0, TEXTURE_SIZE, 1.0)),
                 dest_size: Some(vec2(panel.width(), h)),
@@ -129,7 +127,7 @@ impl Panel {
                 text,
                 tx,
                 ty + (index << 4) as f32,
-                DrawParams::color(TextColor::Black.into()),
+                DrawParams::color(Color::BLACK),
             );
         }
         if add_cancel {
@@ -139,7 +137,7 @@ impl Panel {
                 "Cancel",
                 tx,
                 ty + (text.len() << 4) as f32,
-                DrawParams::color(TextColor::Black.into()),
+                DrawParams::color(Color::BLACK),
             );
         }
         draw_cursor(

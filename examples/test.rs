@@ -1,10 +1,8 @@
 use engine::{
     graphics::{self, scaling::ScreenScaler, Color},
-    gui::{MessageBox, Panel},
-    state::State,
-    text::{Message, MessagePage, TextColor},
+    gui::{Message, MessageBox, MessagePage, Panel},
     util::{Completable, Entity},
-    ContextBuilder, DefaultContext,
+    Context, ContextBuilder, State,
 };
 use firecore_engine as engine;
 
@@ -15,31 +13,26 @@ fn main() {
             2 * engine::util::WIDTH as i32,
             (2.0 * engine::util::HEIGHT) as _,
         ),
-        move |context| async { 
-            let mut context = DefaultContext(context);
-            let ctx = &mut context;
-
+        |ctx| {
             let fonts: Vec<engine::text::FontSheet<Vec<u8>>> =
                 bincode::deserialize(include_bytes!("fonts.bin")).unwrap();
 
-            let mut audio: engine::context::audio::SerializedAudio =
-                bincode::deserialize(include_bytes!("audio.bin")).unwrap();
+            // let mut audio: engine::context::audio::SerializedAudio =
+            //     bincode::deserialize(include_bytes!("audio.bin")).unwrap();
 
             let id = "battle_wild".parse().unwrap();
 
-            engine::audio::add_music(ctx, id, audio.0.remove(&id).unwrap()).await;
+            engine::audio::add_music(ctx, id, vec![]);
 
             // engine::context::audio::GameAudio::init(ctx, audio).await;
 
-            engine::audio::play_music(ctx, &id);
+            // engine::audio::play_music(ctx, &id);
 
             for font_sheet in fonts {
                 engine::text::insert_font(ctx, &font_sheet).unwrap();
             }
-
-            context
         },
-        |_| Game::new(),
+        |_, _| Game::new(),
     )
 }
 
@@ -55,8 +48,8 @@ impl Game {
     }
 }
 
-impl State<DefaultContext> for Game {
-    fn start(&mut self, ctx: &mut DefaultContext) {
+impl State for Game {
+    fn start(&mut self, ctx: &mut Context) {
         let scaler = ScreenScaler::with_size(
             ctx,
             engine::util::WIDTH as _,
@@ -80,13 +73,13 @@ impl State<DefaultContext> for Game {
         };
         self.messagebox.message = Message {
             pages: vec![page, page2],
-            color: TextColor::Black,
+            color: Color::BLACK,
         };
         self.messagebox.spawn();
         // Ok(())
     }
 
-    fn update(&mut self, ctx: &mut DefaultContext, delta: f32) {
+    fn update(&mut self, ctx: &mut Context, delta: f32) {
         //-> Result {
         if !self.messagebox.alive() {
             engine::quit(ctx)
@@ -99,7 +92,7 @@ impl State<DefaultContext> for Game {
         // Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut DefaultContext) {
+    fn draw(&mut self, ctx: &mut Context) {
         //-> Result<(), ()> {
         graphics::clear(ctx, Color::rgb(0.1, 0.2, 0.56));
         Panel::draw(

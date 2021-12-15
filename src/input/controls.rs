@@ -1,6 +1,6 @@
+use crate::Context;
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
-use crate::Context;
 
 pub mod controller;
 pub mod keyboard;

@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use macroquad::prelude::{DrawTextureParams, FilterMode, Texture2D};
+use std::collections::HashMap;
 use std::{fmt::Display, hash::Hash, rc::Rc};
 
 use crate::{
@@ -19,11 +19,7 @@ impl Texture {
     }
 
     pub(crate) fn crate_from_image(image: &image::RgbaImage) -> Self {
-        let tex = Texture2D::from_rgba8(
-            image.width() as _,
-            image.height() as _,
-            image.as_raw(),
-        );
+        let tex = Texture2D::from_rgba8(image.width() as _, image.height() as _, image.as_raw());
         tex.set_filter(FilterMode::Nearest);
         Self(Rc::new(TextureInner(tex)))
     }
@@ -107,11 +103,9 @@ pub struct DrawParams {
     pub flip_y: bool,
 
     pub origin: Option<Vec2>,
-
 }
 
 impl DrawParams {
-
     pub fn color(color: Color) -> Self {
         Self {
             color,
@@ -128,7 +122,7 @@ impl DrawParams {
 
     pub(crate) fn init(self) -> (macroquad::prelude::Color, DrawTextureParams) {
         (
-            *self.color,
+            self.color,
             DrawTextureParams {
                 dest_size: self.dest_size,
                 source: self.source,

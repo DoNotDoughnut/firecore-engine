@@ -41,7 +41,6 @@ pub trait PlayerView<
 
     /// for target panel
     fn names(&self) -> Vec<Option<String>>;
-
 }
 
 impl<
@@ -86,13 +85,16 @@ impl<
     }
 
     fn names(&self) -> Vec<Option<String>> {
-        self.active.iter().map(|i| {
-            i.as_ref().map(|a| self.pokemon.get(a.index()))
-                .flatten()
-                .map(|p| p.name().to_owned())
-        }).collect()
+        self.active
+            .iter()
+            .map(|i| {
+                i.as_ref()
+                    .map(|a| self.pokemon.get(a.index()))
+                    .flatten()
+                    .map(|p| p.name().to_owned())
+            })
+            .collect()
     }
-
 }
 
 pub trait GuiPokemonView<
@@ -101,7 +103,6 @@ pub trait GuiPokemonView<
     I: Deref<Target = Item>,
 >: BasePokemonView<P>
 {
-
     fn base(&self) -> &dyn BasePokemonView<P>;
 
     fn instance(&mut self) -> Option<&mut OwnedPokemon<P, M, I>>;
@@ -181,7 +182,6 @@ impl<P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item
 impl<P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
     GuiPokemonView<P, M, I> for OwnedPokemon<P, M, I>
 {
-
     fn base(&self) -> &dyn BasePokemonView<P> {
         self
     }
@@ -248,7 +248,6 @@ impl<P: Deref<Target = Pokemon>> BasePokemonView<P> for Option<UnknownPokemon<P>
 impl<P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
     GuiPokemonView<P, M, I> for Option<UnknownPokemon<P>>
 {
-
     fn base(&self) -> &dyn BasePokemonView<P> {
         self
     }

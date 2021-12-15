@@ -1,75 +1,61 @@
 pub mod audio;
-pub mod context;
 pub mod error;
 pub mod graphics;
 pub mod gui;
 pub mod input;
 pub mod math;
-pub mod state;
 pub mod util;
 
 pub mod text;
 
+mod context;
+
 // pub use macroquad::main;
 
-use std::{future::Future, ops::DerefMut};
-
-pub use self::{
-    context::{Context, ContextBuilder, DefaultContext},
-    error::EngineError,
-    state::State,
-};
+pub use self::{context::*, error::EngineError};
 
 pub mod log {
-    pub use macroquad::miniquad::{info, log::Level, trace, warn, debug, error};
+    pub use macroquad::miniquad::{debug, error, info, log::Level, trace, warn};
 }
 
-#[deprecated(note = "use external api")]
 pub extern crate macroquad as inner;
-
-// pub fn build(
-//     builder: &mut tetra::ContextBuilder,
-//     fonts: font::SerializedFonts,
-// ) -> tetra::Result<Context> {
-//     Context::new(builder
-//         .timestep(tetra::time::Timestep::Variable)
-//         .build()?,
-//         fonts
-//     )
-// }
 
 pub fn quit(ctx: &mut Context) {
     ctx.running = false;
 }
 
+pub fn debug(ctx: &mut Context, debug: bool) {
+    ctx.debug = debug;
+}
+
 pub fn run<
-    C: DerefMut<Target = Context> + 'static,
-    CFUNCOUT: Future<Output = C> + 'static,
-    CFUNC: FnOnce(Context) -> CFUNCOUT + 'static,
-    SFUNCOUT: State<C> + 'static,
-    SFUNC: FnOnce(&mut C) -> SFUNCOUT + 'static,
+    LOAD,
+    LOADFUNC: FnOnce(&mut Context) -> LOAD + 'static,
+    S: State,
+    SFUNC: FnOnce(&mut Context, LOAD) -> S + 'static,
 >(
     args: ContextBuilder<impl Into<String>>,
-    ctx: CFUNC,
+    load: LOADFUNC,
     state: SFUNC,
 ) {
     macroquad::Window::from_config(args.into(), async move {
         macroquad::prelude::prevent_quit();
 
-        macroquad::prelude::debug!("to - do: gamepad support");
+        // todo!("game pad support");
 
-        let context = Context::new().unwrap_or_else(|err| panic!("Could not initialize Context with error {}", err));
+        let mut ctx = Context::new()
+            .unwrap_or_else(|err| panic!("Could not initialize Context with error {}", err));
 
-        macroquad::prelude::clear_background(macroquad::prelude::BLACK);
-        macroquad::prelude::draw_text("Loading...", 5.0, 5.0, 20.0, macroquad::prelude::WHITE);
-        let mut ctx = (ctx)(context).await;
+        macroquad::prelude::clear_background(graphics::Color::BLACK);
+        macroquad::prelude::draw_text("Loading...", 5.0, 5.0, 20.0, graphics::Color::WHITE);
 
-        let mut state = (state)(&mut ctx);
+        let data = (load)(&mut ctx);
+
+        let mut state = (state)(&mut ctx, data);
 
         state.start(&mut ctx);
 
         loop {
-
             if let Some(scaler) = ctx.scaler.as_mut() {
                 scaler.update();
             }

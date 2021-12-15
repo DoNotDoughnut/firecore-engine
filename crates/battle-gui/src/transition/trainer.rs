@@ -125,7 +125,6 @@ impl BattleTrainerPartyIntro {
         opacity: Color,
         distance: u16,
     ) {
-
         let invert_f = if invert { -1.0f32 } else { 1.0 };
 
         let invert_sub = if invert { self.bar.width() } else { 0.0 };
@@ -143,17 +142,13 @@ impl BattleTrainerPartyIntro {
 
         self.bar.draw(
             ctx,
-            pos.x
-                + (self.bar_position - Self::BAR_HIDDEN - Self::OPACITY_LEN)
-                    * invert_f - invert_sub,
+            pos.x + (self.bar_position - Self::BAR_HIDDEN - Self::OPACITY_LEN) * invert_f
+                - invert_sub,
             pos.y,
             DrawParams {
                 color: opacity,
                 source: Some(Rectangle::new(0.0, 0.0, 1.0, 4.0)),
-                dest_size: Some(vec2(
-                    Self::OPACITY_LEN,
-                    self.bar.height(),
-                )),
+                dest_size: Some(vec2(Self::OPACITY_LEN, self.bar.height())),
                 flip_x: invert,
                 ..Default::default()
             },

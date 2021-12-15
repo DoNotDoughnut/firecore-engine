@@ -1,25 +1,42 @@
-use std::ops::{Deref, DerefMut};
+use crate::{
+    graphics::{scaling::ScreenScaler, text::TextRenderer, Texture},
+    input::controls::GameControls,
+};
 
-#[cfg(feature = "audio")]
-pub mod audio;
-
-use crate::{graphics::{Texture, scaling::ScreenScaler, text::TextRenderer}, input::controls::GameControls};
-
-
-/// To - do: make Context::new not require fonts and have that be initialized later.
 pub struct Context {
+    pub(crate) running: bool,
+    pub(crate) debug: bool,
+
     pub(crate) text: TextRenderer,
     pub(crate) controls: GameControls,
     #[cfg(feature = "audio")]
-    pub(crate) audio: audio::GameAudio,
+    pub(crate) audio: crate::audio::backend::AudioContext,
+
+    #[deprecated(note = "Scaler implementation will be replaced")]
+    pub(crate) scaler: Option<ScreenScaler>,
 
     pub(crate) panel: Texture,
-    pub(crate) running: bool,
-    pub(crate) scaler: Option<ScreenScaler>
 }
 
 impl Context {
-    pub fn new() -> Result<Self, image::ImageError> {
+    pub fn debug(&self) -> bool {
+        self.debug
+    }
+}
+
+#[allow(unused_variables)]
+pub trait State {
+    fn start(&mut self, ctx: &mut Context) {}
+
+    fn update(&mut self, ctx: &mut Context, delta: f32) {}
+
+    fn draw(&mut self, ctx: &mut Context) {}
+
+    fn end(&mut self, ctx: &mut Context) {}
+}
+
+impl Context {
+    pub(crate) fn new() -> Result<Self, image::ImageError> {
         Ok(Self {
             text: TextRenderer::new()?,
             controls: Default::default(),
@@ -27,10 +44,10 @@ impl Context {
             #[cfg(feature = "audio")]
             audio: Default::default(),
             running: true,
+            debug: cfg!(debug_assertions),
             scaler: None,
         })
     }
-
 }
 
 pub struct ContextBuilder<T: Into<String>> {
@@ -40,7 +57,6 @@ pub struct ContextBuilder<T: Into<String>> {
 }
 
 impl<T: Into<String>> ContextBuilder<T> {
-
     pub fn new(title: T, width: i32, height: i32) -> Self {
         Self {
             title,
@@ -48,7 +64,6 @@ impl<T: Into<String>> ContextBuilder<T> {
             height,
         }
     }
-
 }
 
 impl<T: Into<String>> From<ContextBuilder<T>> for macroquad::prelude::Conf {
@@ -62,18 +77,18 @@ impl<T: Into<String>> From<ContextBuilder<T>> for macroquad::prelude::Conf {
     }
 }
 
-pub struct DefaultContext(pub Context);
+// pub struct DefaultContext(pub Context);
 
-impl Deref for DefaultContext {
-    type Target = Context;
+// impl Deref for DefaultContext {
+//     type Target = Context;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+//     fn deref(&self) -> &Self::Target {
+//         &self.0
+//     }
+// }
 
-impl DerefMut for DefaultContext {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
+// impl DerefMut for DefaultContext {
+//     fn deref_mut(&mut self) -> &mut Self::Target {
+//         &mut self.0
+//     }
+// }

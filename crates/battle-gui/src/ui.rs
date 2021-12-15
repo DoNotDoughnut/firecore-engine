@@ -2,10 +2,7 @@ use core::ops::Deref;
 
 use pokedex::moves::Move;
 
-use pokedex::engine::{
-    gui::MessageBox,
-    Context,
-};
+use pokedex::engine::{gui::MessageBox, Context};
 
 use crate::context::BattleGuiContext;
 

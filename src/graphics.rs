@@ -1,15 +1,14 @@
 use crate::{text::FontId, Context};
 
-mod color;
 mod image;
 pub mod text;
 mod texture;
 
 pub mod scaling;
 
-pub use self::color::*;
 pub use self::image::*;
 pub use self::texture::*;
+pub use macroquad::prelude::Color;
 
 // pub const GRAY: Color = Color::rgb(0.51, 0.51, 0.51);
 // pub const RED: Color = Color::rgb(0.90, 0.16, 0.22);
@@ -37,11 +36,11 @@ pub use self::texture::*;
 // }
 
 pub fn clear(_: &mut Context, color: Color) {
-    macroquad::prelude::clear_background(*color);
+    macroquad::prelude::clear_background(color);
 }
 
 pub fn draw_rectangle(_: &mut Context, x: f32, y: f32, w: f32, h: f32, color: Color) {
-    macroquad::prelude::draw_rectangle(x, y, w, h, *color)
+    macroquad::prelude::draw_rectangle(x, y, w, h, color)
 }
 
 pub fn draw_rectangle_lines(
@@ -53,7 +52,7 @@ pub fn draw_rectangle_lines(
     thickness: f32,
     color: Color,
 ) {
-    macroquad::prelude::draw_rectangle_lines(x, y, w, h, thickness, *color)
+    macroquad::prelude::draw_rectangle_lines(x, y, w, h, thickness, color)
 }
 
 /// Deprecated
@@ -81,34 +80,13 @@ pub fn draw_line(
     thickness: f32,
     color: Color,
 ) {
-    macroquad::prelude::draw_line(x1, y1, x2, y2, thickness, *color)
+    macroquad::prelude::draw_line(x1, y1, x2, y2, thickness, color)
 }
 
 #[allow(unused_variables)]
 pub fn draw_circle(_: &mut Context, x: f32, y: f32, r: f32, color: Color) {
     // todo!("draw circle")
-    macroquad::prelude::draw_circle(x, y, r, *color);
-}
-
-use crate::text::TextColor;
-
-const TEXT_GRAY: Color = Color::rgb(0.51, 0.51, 0.51);
-const TEXT_RED: Color = Color::rgb(0.90, 0.16, 0.22);
-const TEXT_WHITE: Color = Color::rgb(240.0 / 255.0, 240.0 / 255.0, 240.0 / 255.0);
-const TEXT_BLACK: Color = Color::rgb(20.0 / 255.0, 20.0 / 255.0, 20.0 / 255.0);
-const TEXT_BLUE: Color = Color::rgb(48.0 / 255.0, 80.0 / 255.0, 200.0 / 255.0);
-
-impl From<TextColor> for Color {
-    fn from(color: TextColor) -> Self {
-        match color {
-            TextColor::White => TEXT_WHITE,
-            TextColor::Gray => TEXT_GRAY,
-            TextColor::Black => TEXT_BLACK,
-            TextColor::Red => TEXT_RED,
-            TextColor::Blue => TEXT_BLUE,
-        }
-    }
-    
+    macroquad::prelude::draw_circle(x, y, r, color);
 }
 
 pub fn draw_text_left(
@@ -142,19 +120,19 @@ pub fn draw_text_center(
     y: f32,
     params: DrawParams,
 ) {
-    ctx.text.draw_text_center(
-        font,
-        text,
-        center_vertical,
-        x,
-        y,
-        params,
-    )
+    ctx.text
+        .draw_text_center(font, text, center_vertical, x, y, params)
 }
 
-pub fn draw_button_for_text(ctx: &mut Context, font: &FontId, text: &str, x: f32, y: f32, params: DrawParams) {
-    ctx.text
-        .draw_button_for_text(font, text, x, y, params)
+pub fn draw_button_for_text(
+    ctx: &mut Context,
+    font: &FontId,
+    text: &str,
+    x: f32,
+    y: f32,
+    params: DrawParams,
+) {
+    ctx.text.draw_button_for_text(font, text, x, y, params)
 }
 
 pub fn draw_cursor(ctx: &mut Context, x: f32, y: f32, params: DrawParams) {

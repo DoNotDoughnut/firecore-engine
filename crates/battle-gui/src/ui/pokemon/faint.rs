@@ -5,7 +5,6 @@ pub struct Faint {
 }
 
 impl Faint {
-
     pub fn update(&mut self, delta: f32) {
         if self.fainting {
             self.remaining -= delta * 128.0;
@@ -18,5 +17,4 @@ impl Faint {
     pub fn fainting(&self) -> bool {
         self.fainting && self.remaining != 0.0
     }
-
 }

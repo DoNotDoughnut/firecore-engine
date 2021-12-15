@@ -1,11 +1,9 @@
 use firecore_battle_gui::pokedex::engine::{
     self,
     graphics::{self, scaling::ScreenScaler, Color},
-    gui::{MessageBox, Panel},
-    state::State,
-    text::{Message, MessagePage, TextColor},
+    gui::{Message, MessageBox, MessagePage, Panel, TextColor},
     util::{Completable, Entity},
-    ContextBuilder, DefaultContext,
+    Context, ContextBuilder, State,
 };
 
 fn main() {
@@ -15,8 +13,8 @@ fn main() {
             2 * engine::util::WIDTH as i32,
             (2.0 * engine::util::HEIGHT) as _,
         ),
-        move |context| async { DefaultContext(context) },
-        |_| Game::new(),
+        move |context| {},
+        |_, _| Game::new(),
     )
 }
 
@@ -32,8 +30,8 @@ impl Game {
     }
 }
 
-impl State<DefaultContext> for Game {
-    fn start(&mut self, ctx: &mut DefaultContext) {
+impl State for Game {
+    fn start(&mut self, ctx: &mut Context) {
         let scaler = ScreenScaler::with_size(
             ctx,
             engine::util::WIDTH as _,
@@ -57,13 +55,13 @@ impl State<DefaultContext> for Game {
         };
         self.messagebox.message = Message {
             pages: vec![page, page2],
-            color: TextColor::Black,
+            color: TextColor::BLACK,
         };
         self.messagebox.spawn();
         // Ok(())
     }
 
-    fn update(&mut self, ctx: &mut DefaultContext, delta: f32) {
+    fn update(&mut self, ctx: &mut Context, delta: f32) {
         //-> Result {
         if !self.messagebox.alive() {
             engine::quit(ctx)
@@ -76,7 +74,7 @@ impl State<DefaultContext> for Game {
         // Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut DefaultContext) {
+    fn draw(&mut self, ctx: &mut Context) {
         //-> Result<(), ()> {
         graphics::clear(ctx, Color::rgb(0.1, 0.2, 0.56));
         Panel::draw(

@@ -5,9 +5,8 @@ use pokedex::{
     context::PokedexClientData,
     engine::{
         graphics::{Color, DrawParams, Texture},
-        gui::MessageBox,
+        gui::{MessageBox, MessagePage},
         math::{vec2, Rectangle},
-        text::MessagePage,
         util::{Completable, Entity, Reset},
         Context,
     },
@@ -51,12 +50,7 @@ impl BasicBattleIntroduction {
     }
 
     /// To - do: fix this function
-    pub(crate) fn concatenate<
-        'd,
-        ID,
-        P: Deref<Target = Pokemon>,
-        POKEMON: BasePokemonView<P>,
-    >(
+    pub(crate) fn concatenate<'d, ID, P: Deref<Target = Pokemon>, POKEMON: BasePokemonView<P>>(
         party: &PlayerParty<ID, usize, POKEMON>,
     ) -> String {
         let mut string = String::with_capacity(

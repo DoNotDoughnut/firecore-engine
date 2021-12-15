@@ -83,7 +83,12 @@ impl DefaultBattleOpener {
 }
 
 impl DefaultBattleOpener {
-    pub fn spawn<ID: Default, P: Deref<Target = Pokemon>>(&mut self, _: &PokedexClientData, _: &GuiRemotePlayer<ID, P>) {}
+    pub fn spawn<ID: Default, P: Deref<Target = Pokemon>>(
+        &mut self,
+        _: &PokedexClientData,
+        _: &GuiRemotePlayer<ID, P>,
+    ) {
+    }
 
     pub fn update(&mut self, delta: f32) {
         match self.wait < 0.0 {

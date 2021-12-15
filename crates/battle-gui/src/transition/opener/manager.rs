@@ -52,7 +52,11 @@ impl BattleOpenerManager {
     //     *state = TransitionState::Begin;
     // }
 
-    pub fn update<ID: Default, P: Deref<Target = Pokemon>>(&mut self, state: &mut TransitionState, delta: f32) {
+    pub fn update<ID: Default, P: Deref<Target = Pokemon>>(
+        &mut self,
+        state: &mut TransitionState,
+        delta: f32,
+    ) {
         let current = self.get_mut::<ID, P>();
         current.update(delta);
         if current.finished() {

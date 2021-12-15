@@ -1,6 +1,12 @@
-use macroquad::{camera::{Camera2D, set_camera, set_default_camera}, prelude::{screen_height, screen_width}};
+use macroquad::{
+    camera::{set_camera, set_default_camera, Camera2D},
+    prelude::{screen_height, screen_width},
+};
 
-use crate::{Context, math::{Rectangle, vec2}};
+use crate::{
+    math::{vec2, Rectangle},
+    Context,
+};
 
 pub fn set_scaler(ctx: &mut Context, scaler: ScreenScaler) {
     ctx.scaler = Some(scaler);
@@ -17,13 +23,7 @@ pub struct ScreenScaler {
 }
 
 impl ScreenScaler {
-
-    pub fn with_size(
-        _: &mut Context,
-        width: i32,
-        height: i32,
-        mode: ScalingMode,
-    ) -> Self {
+    pub fn with_size(_: &mut Context, width: i32, height: i32, mode: ScalingMode) -> Self {
         Self {
             width,
             height,
@@ -34,20 +34,22 @@ impl ScreenScaler {
     pub(crate) fn update(&mut self) {
         match &self.mode {
             ScalingMode::Fixed => set_default_camera(),
-            ScalingMode::Stretch => set_camera(&Camera2D::from_display_rect(Rectangle::new(0.0, 0.0, self.width as _, self.height as _))),
+            ScalingMode::Stretch => set_camera(&Camera2D::from_display_rect(Rectangle::new(
+                0.0,
+                0.0,
+                self.width as _,
+                self.height as _,
+            ))),
             ScalingMode::ShowAll => {
-
                 let inner_ratio = self.width as f32 / self.height as f32;
                 let screen_ratio = screen_width() as f32 / screen_height() as f32;
 
-                
                 self.mode = ScalingMode::Stretch;
                 self.update();
 
                 // let s
-            },
+            }
             ScalingMode::ShowAllPixelPerfect => {
-
                 self.mode = ScalingMode::Stretch;
                 self.update();
 
@@ -62,7 +64,7 @@ impl ScreenScaler {
                 let mut scale_factor = if inner_ratio > outer_ratio {
                     outer_w as i32 / inner_w
                 } else {
-                    outer_h as i32 / inner_h 
+                    outer_h as i32 / inner_h
                 };
 
                 if scale_factor == 0 {
@@ -78,20 +80,21 @@ impl ScreenScaler {
 
                 set_camera(&Camera2D {
                     target,
-                    zoom: vec2(1. / screen_width as f32 * 2., -1. / screen_height as f32 * 2.),
+                    zoom: vec2(
+                        1. / screen_width as f32 * 2.,
+                        -1. / screen_height as f32 * 2.,
+                    ),
                     offset: vec2(screen_x as f32, screen_y as f32),
                     rotation: 0.,
 
                     render_target: None,
                     viewport: None,
                 })
-
-            },
+            }
             ScalingMode::Crop => todo!(),
             ScalingMode::CropPixelPerfect => todo!(),
         }
     }
-
 }
 
 /// Algorithms that can be used to scale the game's screen.

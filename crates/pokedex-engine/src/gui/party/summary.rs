@@ -11,11 +11,12 @@ use crate::{
 };
 
 use engine::{
-    graphics::{draw_circle, draw_rectangle, draw_straight_line, draw_text_center, draw_text_left},
-    graphics::{Color, DrawParams, Texture},
-    gui::Panel,
+    graphics::{
+        draw_circle, draw_rectangle, draw_straight_line, draw_text_center, draw_text_left, Color,
+        DrawParams, Texture,
+    },
+    gui::{Panel, TextColor},
     input::controls::{pressed, Control},
-    text::TextColor,
     util::WIDTH,
     Context,
 };
@@ -92,7 +93,7 @@ impl SummaryGui {
             self.headers[current_page],
             5.0,
             1.0,
-            DrawParams::color(TextColor::White.into()),
+            DrawParams::color(TextColor::WHITE),
         );
         for page in 0..Self::PAGES {
             let color = if current_page < page {
@@ -119,7 +120,7 @@ impl SummaryGui {
                 LEVEL_PREFIX,
                 5.0,
                 19.0,
-                DrawParams::color(TextColor::White.into()),
+                DrawParams::color(TextColor::WHITE),
             );
             draw_text_left(
                 ctx,
@@ -127,7 +128,7 @@ impl SummaryGui {
                 summary.level.get(),
                 15.0,
                 19.0,
-                DrawParams::color(TextColor::White.into()),
+                DrawParams::color(TextColor::WHITE),
             );
             draw_text_left(
                 ctx,
@@ -135,7 +136,7 @@ impl SummaryGui {
                 pokemon.name(),
                 41.0,
                 19.0,
-                DrawParams::color(TextColor::White.into()),
+                DrawParams::color(TextColor::WHITE),
             );
             const TOP: f32 = 17.0;
             match self.page.get() {
@@ -147,7 +148,7 @@ impl SummaryGui {
                         &summary.id,
                         168.0,
                         21.0,
-                        DrawParams::color(TextColor::Black.into()),
+                        DrawParams::color(TextColor::BLACK),
                     );
                     draw_text_left(
                         ctx,
@@ -155,7 +156,7 @@ impl SummaryGui {
                         pokemon.name(),
                         168.0,
                         36.0,
-                        DrawParams::color(TextColor::Black.into()),
+                        DrawParams::color(TextColor::BLACK),
                     );
 
                     for (index, display) in summary.types.iter().flatten().enumerate() {
@@ -169,7 +170,7 @@ impl SummaryGui {
                             false,
                             x + 16.0,
                             52.0,
-                            DrawParams::color(TextColor::White.into()),
+                            DrawParams::color(TextColor::WHITE),
                         )
                     }
 
@@ -222,7 +223,9 @@ impl SummaryGui {
                 self.offset.float.set(Default::default());
                 self.pokemon.set(Some(pokemon))
             }
-            Err(err) => engine::log::error!("Cannot create summary gui pokemon with error: {}", err),
+            Err(err) => {
+                engine::log::error!("Cannot create summary gui pokemon with error: {}", err)
+            }
         }
     }
 

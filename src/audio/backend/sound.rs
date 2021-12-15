@@ -1,6 +1,20 @@
-use crate::Context;
+use crate::{
+    audio::{
+        backend::{add, GameAudioMap},
+        error::PlayAudioError,
+        SoundId, SoundVariant,
+    },
+    Context,
+};
 
-use crate::audio::{error::PlayAudioError, SoundId};
+pub fn add_sound(
+    sounds: &mut GameAudioMap<(SoundId, SoundVariant)>,
+    id: SoundId,
+    variant: SoundVariant,
+    data: Vec<u8>,
+) -> Result<(), macroquad::prelude::FileError> {
+    add(sounds, (id, variant), &data)
+}
 
 pub fn play_sound(
     ctx: &Context,

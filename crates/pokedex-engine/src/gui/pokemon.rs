@@ -75,5 +75,4 @@ impl PokemonTypeDisplay {
             _ => (PLACEHOLDER, PLACEHOLDER),
         }
     }
-
 }

@@ -5,8 +5,7 @@ use pokedex::{
     context::PokedexClientData,
     engine::{
         graphics::Texture,
-        gui::MessageBox,
-        text::MessagePage,
+        gui::{MessageBox, MessagePage},
         util::{Completable, Reset},
         Context,
     },

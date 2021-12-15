@@ -2,20 +2,20 @@ use core::ops::Deref;
 
 use pokedex::{
     engine::{
-        graphics::{draw_cursor, draw_text_left, DrawParams},
+        graphics::{draw_cursor, draw_text_left, Color, DrawParams},
         gui::Panel,
+        gui::TextColor,
         input::controls::{pressed, Control},
-        text::TextColor,
         util::Reset,
         Context,
     },
-    moves::{Move, owned::OwnedMove},
+    moves::{owned::OwnedMove, Move},
     pokemon::owned::OwnablePokemon,
 };
 
 pub struct MovePanel<M: Deref<Target = Move> + Clone> {
     pub cursor: usize,
-    pub names: [Option<(M, TextColor)>; 4],
+    pub names: [Option<(M, Color)>; 4],
 }
 
 impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
@@ -26,14 +26,17 @@ impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
         }
     }
 
-    pub fn update_names<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, H>(&mut self, instance: &OwnablePokemon<P, MSET, I, G, H>) {
+    pub fn update_names<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, H>(
+        &mut self,
+        instance: &OwnablePokemon<P, MSET, I, G, H>,
+    ) {
         for (index, instance) in instance.moves.iter().enumerate() {
             self.names[index] = Some((
                 instance.0.clone(),
                 if instance.is_empty() {
-                    TextColor::Red
+                    TextColor::RED
                 } else {
-                    TextColor::Black
+                    TextColor::BLACK
                 },
             ));
         }
@@ -93,7 +96,7 @@ impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
                 &pokemon_move.name,
                 16.0 + x_offset,
                 121.0 + y_offset,
-                DrawParams::color((*color).into())
+                DrawParams::color((*color).into()),
             );
             if index == self.cursor {
                 draw_cursor(ctx, 10.0 + x_offset, 123.0 + y_offset, Default::default());

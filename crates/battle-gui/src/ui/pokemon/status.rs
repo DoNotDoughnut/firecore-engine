@@ -4,8 +4,8 @@ use pokedex::{
     context::PokedexClientData,
     engine::{
         graphics::{draw_text_left, draw_text_right, DrawParams, Texture},
+        gui::TextColor,
         math::{vec2, Vec2},
-        text::TextColor,
         util::Entity,
         Context,
     },
@@ -360,7 +360,7 @@ impl PokemonStatusGui {
                     &self.data.name,
                     pos.x + self.data_pos.name,
                     y,
-                    DrawParams::color(TextColor::Black.into()),
+                    DrawParams::color(TextColor::BLACK),
                 );
 
                 draw_text_right(
@@ -369,7 +369,7 @@ impl PokemonStatusGui {
                     &self.data.level.0,
                     x2,
                     y,
-                    DrawParams::color(TextColor::Black.into()),
+                    DrawParams::color(TextColor::BLACK),
                 );
 
                 if !self.small {
@@ -380,7 +380,7 @@ impl PokemonStatusGui {
                         &self.data.health,
                         x2,
                         y + 18.0,
-                        DrawParams::color(TextColor::Black.into()),
+                        DrawParams::color(TextColor::BLACK),
                     );
                 }
 

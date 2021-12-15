@@ -4,13 +4,12 @@ pub struct PlayerBounce {
 }
 
 impl PlayerBounce {
-
     const MAX: f32 = 1.0;
     const MIN: f32 = 0.0;
 
     pub const fn new() -> Self {
         Self {
-			invert: true,
+            invert: true,
             offset: Self::MAX,
         }
     }
@@ -34,5 +33,4 @@ impl PlayerBounce {
             }
         }
     }
-
 }

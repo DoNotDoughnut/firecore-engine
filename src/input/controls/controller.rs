@@ -35,3 +35,11 @@ pub fn default_button_map() -> ButtonMap {
 pub fn set_button_map(ctx: &mut Context, buttons: ButtonMap) {
     ctx.controls.controller = buttons;
 }
+
+pub fn get_bind(ctx: &Context, control: Control) -> GamepadButton {
+    ctx.controls.controller[control]
+}
+
+pub fn get_bind_mut(ctx: &mut Context, control: Control) -> &mut GamepadButton {
+    &mut ctx.controls.controller[control]
+}

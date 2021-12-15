@@ -4,8 +4,8 @@ use pokedex::{
     engine::{
         graphics::{draw_cursor, draw_text_left, DrawParams},
         gui::Panel,
+        gui::TextColor,
         input::controls::{pressed, Control},
-        text::TextColor,
         Context,
     },
     pokemon::{owned::OwnablePokemon, Pokemon},
@@ -26,7 +26,10 @@ impl BattleOptions {
         }
     }
 
-    pub fn setup<P: Deref<Target = Pokemon>, M, I, G, H>(&mut self, instance: &OwnablePokemon<P, M, I, G, H>) {
+    pub fn setup<P: Deref<Target = Pokemon>, M, I, G, H>(
+        &mut self,
+        instance: &OwnablePokemon<P, M, I, G, H>,
+    ) {
         self.pokemon_do = format!("{} do?", instance.name());
     }
 
@@ -45,8 +48,22 @@ impl BattleOptions {
     pub fn draw(&self, ctx: &mut Context) {
         Panel::draw(ctx, 120.0, 113.0, 120.0, 47.0);
 
-        draw_text_left(ctx, &1, "What will", 11.0, 123.0, DrawParams::color(TextColor::White.into()));
-        draw_text_left(ctx, &1, &self.pokemon_do, 11.0, 139.0, DrawParams::color(TextColor::White.into()));
+        draw_text_left(
+            ctx,
+            &1,
+            "What will",
+            11.0,
+            123.0,
+            DrawParams::color(TextColor::WHITE),
+        );
+        draw_text_left(
+            ctx,
+            &1,
+            &self.pokemon_do,
+            11.0,
+            139.0,
+            DrawParams::color(TextColor::WHITE),
+        );
 
         for (index, string) in self.buttons.iter().enumerate() {
             draw_text_left(
@@ -55,7 +72,7 @@ impl BattleOptions {
                 string,
                 138.0 + if index % 2 == 0 { 0.0 } else { 56.0 },
                 123.0 + if index >> 1 == 0 { 0.0 } else { 16.0 },
-                DrawParams::color(TextColor::Black.into())
+                DrawParams::color(TextColor::BLACK),
             )
         }
 

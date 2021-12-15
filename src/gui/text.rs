@@ -1,13 +1,34 @@
+use macroquad::prelude::Color;
+use serde::{Deserialize, Serialize};
+
 use crate::{
-    text::FontId,
     graphics::{draw_button_for_text, draw_text_left, DrawParams},
     input::controls::{pressed, Control},
     math::Vec2,
+    text::FontId,
     util::{Completable, Entity, Reset},
     Context,
 };
 
-use crate::text::{Message, MessagePage, MessagePages, TextColor};
+#[derive(Default, Debug, Clone, Deserialize, Serialize)]
+pub struct Message {
+    pub pages: Vec<MessagePage>,
+
+    #[serde(default = "Message::default_color")]
+    pub color: Color,
+}
+
+impl Message {
+    fn default_color() -> Color {
+        Color::GRAY
+    }
+}
+
+#[derive(Default, Debug, Clone, Deserialize, Serialize)]
+pub struct MessagePage {
+    pub lines: Vec<String>,
+    pub wait: Option<f32>,
+}
 
 #[derive(Default, Clone)]
 pub struct MessageBox {
@@ -49,7 +70,7 @@ impl MessageBox {
         }
     }
 
-    pub fn set(&mut self, pages: MessagePages) {
+    pub fn set(&mut self, pages: Vec<MessagePage>) {
         self.message.pages = pages;
     }
 
@@ -65,7 +86,7 @@ impl MessageBox {
         self.message.pages.clear();
     }
 
-    pub fn color(&mut self, color: TextColor) {
+    pub fn color(&mut self, color: Color) {
         self.message.color = color;
     }
 

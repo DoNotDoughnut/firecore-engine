@@ -1,10 +1,10 @@
 use core::cell::Cell;
-use tinystr::{TinyStr4, Error};
+use tinystr::{Error, TinyStr4};
 
-pub mod pokemon;
+pub mod bag;
 pub mod health;
 pub mod party;
-pub mod bag;
+pub mod pokemon;
 
 pub const LEVEL_PREFIX: &str = "Lv";
 

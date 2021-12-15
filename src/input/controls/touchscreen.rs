@@ -1,4 +1,4 @@
-// use firecore_util::text::TextColor;
+// use firecore_util::gui::TextColor;
 use macroquad::prelude::Color;
 use macroquad::prelude::Touch;
 use macroquad::prelude::TouchPhase;

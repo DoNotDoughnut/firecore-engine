@@ -1,6 +1,9 @@
 use enum_map::EnumMap;
 
-use crate::{input::keyboard::{self, Key}, Context};
+use crate::{
+    input::keyboard::{self, Key},
+    Context,
+};
 
 use super::Control;
 
@@ -34,6 +37,14 @@ pub fn default_key_map() -> KeyMap {
 
 pub fn set_key_map(ctx: &mut Context, keys: KeyMap) {
     ctx.controls.keyboard = keys;
+}
+
+pub fn get_bind(ctx: &Context, control: Control) -> Key {
+    ctx.controls.keyboard[control]
+}
+
+pub fn get_bind_mut(ctx: &mut Context, control: Control) -> &mut Key {
+    &mut ctx.controls.keyboard[control]
 }
 
 // fn keyset(codes: &[Key]) -> KeySet {

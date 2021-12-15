@@ -5,7 +5,6 @@ pub struct Flicker {
 }
 
 impl Flicker {
-
     pub const HALF: f32 = Self::LENGTH / 2.0;
     pub const LENGTH: f32 = 0.20;
     pub const TIMES: u8 = 4;
@@ -26,5 +25,4 @@ impl Flicker {
     pub fn flickering(&self) -> bool {
         self.remaining != 0
     }
-
 }

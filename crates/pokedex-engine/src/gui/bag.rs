@@ -2,9 +2,8 @@ use core::{cell::Cell, ops::Deref};
 
 use engine::{
     graphics::{draw_cursor, draw_text_left, DrawParams, Texture},
-    gui::Panel,
+    gui::{Panel, TextColor},
     input::controls::{pressed, Control},
-    text::TextColor,
     util::HEIGHT,
     Context,
 };
@@ -121,16 +120,9 @@ impl BagGui {
                 &stack.item.name,
                 98.0,
                 y,
-                DrawParams::color(TextColor::Black.into()),
+                DrawParams::color(TextColor::BLACK),
             );
-            draw_text_left(
-                ctx,
-                &1,
-                "x",
-                200.0,
-                y,
-                DrawParams::color(TextColor::Black.into()),
-            );
+            draw_text_left(ctx, &1, "x", 200.0, y, DrawParams::color(TextColor::BLACK));
             // if let Some(ref count) = self.items.get(index - self.offset.get()).map(|cell| cell.get()).flatten() {
             //     draw_text_left(ctx, &1, &count, TextColor::Black, 208.0, y);
             // }
@@ -141,7 +133,7 @@ impl BagGui {
             "Cancel",
             98.0,
             11.0 + (items.len() << 4) as f32,
-            DrawParams::color(TextColor::Black.into()),
+            DrawParams::color(TextColor::BLACK),
         );
         if let Some(stack) = items.get(cursor) {
             if let Some(texture) = dex.item_textures.try_get(&stack.item.id) {
@@ -155,7 +147,7 @@ impl BagGui {
                     41.0,
                     117.0 + (index * 14) as f32,
                     DrawParams {
-                        color: TextColor::White.into(),
+                        color: TextColor::WHITE,
                         ..Default::default()
                     },
                 );
@@ -189,12 +181,17 @@ impl BagGui {
     //     }
     // }
 
-    pub fn take_selected_despawn<I: Deref<Target = Item> + Clone>(&self, items: &mut [ItemStack<I>]) -> Option<I> {
+    pub fn take_selected_despawn<I: Deref<Target = Item> + Clone>(
+        &self,
+        items: &mut [ItemStack<I>],
+    ) -> Option<I> {
         let selected = self.selected.get();
         selected
             .map(|selected| {
                 self.selected.set(None);
-                let item = items[selected].try_use().then(|| items[selected].item.clone());
+                let item = items[selected]
+                    .try_use()
+                    .then(|| items[selected].item.clone());
                 self.despawn();
                 item
             })

@@ -19,7 +19,8 @@ impl BattleBackground {
 
     pub fn draw(&self, ctx: &mut Context, offset: f32) {
         self.background.draw(ctx, 0.0, 1.0, Default::default());
-        self.ground.draw(ctx, 113.0 - offset, 50.0, Default::default());
+        self.ground
+            .draw(ctx, 113.0 - offset, 50.0, Default::default());
         self.ground.draw(ctx, offset, 103.0, Default::default());
     }
 }

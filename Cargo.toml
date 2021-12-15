@@ -13,13 +13,27 @@ default = []
 audio = ["macroquad/audio"]
 
 [dependencies]
-macroquad = { version = "0.3", default-features = false }
-enum-map = { version = "1", features = ["serde"] }
-serde = { version = "1", features = ["derive"] }
-tinystr = { version = "0.4", features = ["serde"], default-features = false }
+
+# Underlying engine
+
+macroquad = { version = "0.3", git = "https://github.com/DoNotDoughnut/macroquad", rev = "236d84b", default-features = false }
+quad-gamepad = "0.2.0-alpha"
+
+#
+
 image = { version = "0.23.14", default-features = false, features = ["png", "tga"] }
 
-firecore-text = { path = "crates/text" } # "0.0.1"
+# Controls 
+
+enum-map = { version = "1", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+
+# Audio utils
+
+tinystr = { version = "0.4", features = ["serde"], default-features = false }
+
+# Text rendering
+
 firecore-font-builder = { git = "https://github.com/DoNotDoughnut/firecore-font-builder", rev = "057373a", default-features = false }
 
 [dev-dependencies]
