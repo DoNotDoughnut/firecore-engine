@@ -26,10 +26,7 @@ pub struct PokedexSummaryData {
 }
 
 impl PokedexClientData {
-    pub async fn new(
-        ctx: &mut Context,
-        engine: SerializedPokedexEngine,
-    ) -> Result<Self, ImageError> {
+    pub fn new(ctx: &mut Context, engine: SerializedPokedexEngine) -> Result<Self, ImageError> {
         let mut pokemon_textures = PokemonTextures::with_capacity(engine.pokemon.len());
 
         for (id, (textures, cry)) in engine.pokemon {

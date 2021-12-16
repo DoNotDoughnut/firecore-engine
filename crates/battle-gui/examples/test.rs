@@ -13,7 +13,8 @@ fn main() {
             2 * engine::util::WIDTH as i32,
             (2.0 * engine::util::HEIGHT) as _,
         ),
-        move |context| {},
+        async {},
+        move |_, _| {},
         |_, _| Game::new(),
     )
 }

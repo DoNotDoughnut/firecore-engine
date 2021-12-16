@@ -13,7 +13,8 @@ fn main() {
             2 * engine::util::WIDTH as i32,
             (2.0 * engine::util::HEIGHT) as _,
         ),
-        |ctx| {
+        async {},
+        |ctx, ()| {
             let fonts: Vec<engine::text::FontSheet<Vec<u8>>> =
                 bincode::deserialize(include_bytes!("fonts.bin")).unwrap();
 

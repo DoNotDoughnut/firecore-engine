@@ -198,7 +198,7 @@ impl<
                                     pokemon: player
                                         .pokemon
                                         .into_iter()
-                                        .map(|u| u.map(|u| u.init(pokedex).unwrap()))
+                                        .flat_map(|u| u.map(|u| u.init(pokedex)))
                                         .collect(),
                                 }),
                             )
