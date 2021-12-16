@@ -12,12 +12,12 @@ pub type KeyMap = EnumMap<Control, Key>;
 
 pub fn pressed(ctx: &Context, control: Control) -> bool {
     let key = ctx.controls.keyboard[control];
-    keyboard::is_key_pressed(ctx, key)
+    keyboard::pressed(ctx, key)
 }
 
 pub fn down(ctx: &Context, control: Control) -> bool {
     let key = ctx.controls.keyboard[control];
-    keyboard::is_key_down(ctx, key)
+    keyboard::down(ctx, key)
     // .iter()
     // .any(|key| input::is_key_down(ctx, *key))
 }

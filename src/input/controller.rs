@@ -21,7 +21,7 @@ pub enum GamepadButton {
     Guide,
 }
 
-pub fn is_gamepad_button_pressed(ctx: &Context, gamepad_id: usize, button: GamepadButton) -> bool {
+pub fn is_gamepad_button_pressed(ctx: &Context, gamepad: usize, button: GamepadButton) -> bool {
     // if let Some(pad) = get_gamepad(ctx, gamepad_id) {
     //     pad.buttons_pressed.contains(&button)
     // } else {
@@ -31,7 +31,7 @@ pub fn is_gamepad_button_pressed(ctx: &Context, gamepad_id: usize, button: Gamep
     false
 }
 
-pub fn is_gamepad_button_down(ctx: &Context, gamepad_id: usize, button: GamepadButton) -> bool {
+pub fn is_gamepad_button_down(ctx: &Context, gamepad: usize, button: GamepadButton) -> bool {
     // if let Some(pad) = get_gamepad(ctx, gamepad_id) {
     //     pad.buttons_down.contains(&button)
     // } else {

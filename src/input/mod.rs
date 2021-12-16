@@ -1,9 +1,8 @@
 pub mod controller;
 pub mod keyboard;
+pub mod mouse;
 
 pub mod controls;
-
-pub use controls::{down, pressed, Control};
 
 // pub type DebugBind = tetra::input::Key;
 
