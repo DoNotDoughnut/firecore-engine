@@ -16,9 +16,7 @@ pub fn add_music(
 }
 
 pub fn play_music(ctx: &mut Context, music: &MusicId) -> Result<(), PlayAudioError> {
-    if let Some((_, instance)) = ctx.audio.current_music.take() {
-        macroquad::audio::stop_sound(instance);
-    }
+    stop_music(ctx);
     match ctx.audio.music.get_mut(music) {
         Some(audio) => {
             let audio = *audio;
@@ -41,5 +39,11 @@ pub fn play_music(ctx: &mut Context, music: &MusicId) -> Result<(), PlayAudioErr
             // Err(err) => Err(PlayAudioError::TetraError(err)),
         }
         None => Err(PlayAudioError::Missing),
+    }
+}
+
+pub fn stop_music(ctx: &mut Context) {
+    if let Some((_, instance)) = ctx.audio.current_music.take() {
+        macroquad::audio::stop_sound(instance);
     }
 }

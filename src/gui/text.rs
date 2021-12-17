@@ -30,6 +30,15 @@ pub struct MessagePage {
     pub wait: Option<f32>,
 }
 
+impl From<Vec<String>> for MessagePage {
+    fn from(lines: Vec<String>) -> Self {
+        Self {
+            lines,
+            wait: None,
+        }
+    }
+}
+
 #[derive(Default, Clone)]
 pub struct MessageBox {
     alive: bool,

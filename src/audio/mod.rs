@@ -30,6 +30,12 @@ pub fn get_current_music(ctx: &Context) -> Option<&MusicId> {
 }
 
 #[cfg_attr(not(feature = "audio"), allow(unused_variables))]
+pub fn stop_music(ctx: &mut Context) {
+    #[cfg(feature = "audio")]
+    backend::music::stop_music(ctx);
+}
+
+#[cfg_attr(not(feature = "audio"), allow(unused_variables))]
 pub fn play_sound(ctx: &Context, sound: &SoundId, variant: Option<u16>) {
     #[cfg(feature = "audio")]
     if let Err(err) = backend::sound::play_sound(ctx, sound, variant) {
