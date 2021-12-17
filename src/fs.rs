@@ -1,8 +1,4 @@
-
-pub enum FileError {
-    Engine(macroquad::prelude::FileError),
-    String(std::string::FromUtf8Error),
-}
+use crate::error::FileError;
 
 pub async fn read<S: AsRef<str>>(path: S) -> Result<Vec<u8>, FileError> {
     macroquad::prelude::load_file(path.as_ref()).await.map_err(FileError::Engine)

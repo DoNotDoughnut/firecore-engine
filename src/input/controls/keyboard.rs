@@ -11,12 +11,12 @@ use super::Control;
 pub type KeyMap = EnumMap<Control, Key>;
 
 pub fn pressed(ctx: &Context, control: Control) -> bool {
-    let key = ctx.controls.keyboard[control];
+    let key = ctx.input.controls.keyboard[control];
     keyboard::pressed(ctx, key)
 }
 
 pub fn down(ctx: &Context, control: Control) -> bool {
-    let key = ctx.controls.keyboard[control];
+    let key = ctx.input.controls.keyboard[control];
     keyboard::down(ctx, key)
     // .iter()
     // .any(|key| input::is_key_down(ctx, *key))
@@ -36,15 +36,15 @@ pub fn default_key_map() -> KeyMap {
 }
 
 pub fn set_key_map(ctx: &mut Context, keys: KeyMap) {
-    ctx.controls.keyboard = keys;
+    ctx.input.controls.keyboard = keys;
 }
 
 pub fn get_bind(ctx: &Context, control: Control) -> Key {
-    ctx.controls.keyboard[control]
+    ctx.input.controls.keyboard[control]
 }
 
 pub fn get_bind_mut(ctx: &mut Context, control: Control) -> &mut Key {
-    &mut ctx.controls.keyboard[control]
+    &mut ctx.input.controls.keyboard[control]
 }
 
 // fn keyset(codes: &[Key]) -> KeySet {

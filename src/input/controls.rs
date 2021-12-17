@@ -2,7 +2,7 @@ use crate::Context;
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
 
-pub mod controller;
+pub mod gamepad;
 pub mod keyboard;
 // pub mod touchscreen;
 
@@ -18,16 +18,16 @@ pub enum Control {
     Select,
 }
 
-pub struct GameControls {
+pub(crate) struct ControlsContext {
     pub keyboard: keyboard::KeyMap,
-    pub controller: controller::ButtonMap,
+    pub controller: gamepad::ButtonMap,
 }
 
-impl Default for GameControls {
+impl Default for ControlsContext {
     fn default() -> Self {
-        GameControls {
+        Self {
             keyboard: keyboard::default_key_map(),
-            controller: controller::default_button_map(),
+            controller: gamepad::default_button_map(),
         }
     }
 }
@@ -36,7 +36,7 @@ pub fn pressed(ctx: &Context, control: Control) -> bool {
     if keyboard::pressed(ctx, control) {
         return true;
     }
-    if controller::pressed(ctx, control) {
+    if gamepad::pressed(ctx, control) {
         return true;
     }
     // if let Some(controls) = unsafe{touchscreen::TOUCHSCREEN.as_ref()} {
@@ -51,7 +51,7 @@ pub fn down(ctx: &Context, control: Control) -> bool {
     if keyboard::down(ctx, control) {
         return true;
     }
-    if controller::down(ctx, control) {
+    if gamepad::down(ctx, control) {
         return true;
     }
     // if let Some(controls) = unsafe{touchscreen::TOUCHSCREEN.as_ref()} {

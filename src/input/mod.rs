@@ -1,8 +1,28 @@
-pub mod controller;
+use quad_gamepad::ControllerContext;
+
+use crate::EngineError;
+
+pub mod gamepad;
 pub mod keyboard;
 pub mod mouse;
 
 pub mod controls;
+
+pub(crate) struct InputContext {
+    gamepad: ControllerContext,
+    controls: controls::ControlsContext,
+}
+
+impl InputContext {
+
+    pub fn new() -> Result<Self, EngineError> {
+        Ok(Self {
+            gamepad: ControllerContext::new().ok_or(EngineError::GamepadContext)?,
+            controls: Default::default(),
+        })
+    }
+
+}
 
 // pub type DebugBind = tetra::input::Key;
 

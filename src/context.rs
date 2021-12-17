@@ -1,14 +1,17 @@
 use crate::{
     graphics::{scaling::ScreenScaler, text::TextRenderer, Texture},
-    input::controls::GameControls,
+    input::InputContext,
+    EngineError,
 };
 
 pub struct Context {
     pub(crate) running: bool,
     pub(crate) debug: bool,
 
+    pub(crate) input: InputContext,
+
+    #[deprecated]
     pub(crate) text: TextRenderer,
-    pub(crate) controls: GameControls,
     #[cfg(feature = "audio")]
     pub(crate) audio: crate::audio::backend::AudioContext,
 
@@ -36,10 +39,10 @@ pub trait State {
 }
 
 impl Context {
-    pub(crate) fn new() -> Result<Self, image::ImageError> {
+    pub(crate) fn new() -> Result<Self, EngineError> {
         Ok(Self {
             text: TextRenderer::new()?,
-            controls: Default::default(),
+            input: InputContext::new()?,
             panel: Texture::crate_new(include_bytes!("../assets/panel.png"))?,
             #[cfg(feature = "audio")]
             audio: Default::default(),
