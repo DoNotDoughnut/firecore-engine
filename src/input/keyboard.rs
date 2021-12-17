@@ -13,6 +13,6 @@ pub fn down(ctx: &Context, key: Key) -> bool {
 }
 
 #[allow(unused_variables)]
-pub fn get_text_input(ctx: &Context) -> &str {
-    macroquad::prelude::get_text_input()
+pub fn get_char_queue(ctx: &Context) -> Option<char> {
+    macroquad::prelude::get_char_pressed()
 }
