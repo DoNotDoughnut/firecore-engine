@@ -1,7 +1,7 @@
 use engine::{
     graphics::{self, Color, ScalingMode},
     gui::{MessageBox, Panel},
-    text::{Message, MessagePage},
+    text::{MessagePage},
     utils::{Completable, Entity},
     Context, ContextBuilder, State,
 };
@@ -62,15 +62,14 @@ impl State for Game {
                 "Page Test Page Test".to_owned(),
             ],
             wait: None,
+            color: Color::RED,
         };
         let page2 = MessagePage {
             lines: page.lines.clone(),
             wait: Some(1.0),
+            color: Color::GOLD,
         };
-        self.messagebox.message = Message {
-            pages: vec![page, page2],
-            color: Color::BLACK,
-        };
+        self.messagebox.extend([page, page2]);
         self.messagebox.spawn();
         // Ok(())
     }

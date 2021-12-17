@@ -17,7 +17,7 @@ use engine::{
     },
     gui::Panel,
     input::controls::{pressed, Control},
-    text::Message,
+    text::MessagePage,
     utils::WIDTH,
     Context,
 };
@@ -94,7 +94,7 @@ impl SummaryGui {
             self.headers[current_page],
             5.0,
             1.0,
-            DrawParams::color(Message::WHITE),
+            DrawParams::color(MessagePage::WHITE),
         );
         for page in 0..Self::PAGES {
             let color = if current_page < page {
@@ -121,7 +121,7 @@ impl SummaryGui {
                 LEVEL_PREFIX,
                 5.0,
                 19.0,
-                DrawParams::color(Message::WHITE),
+                DrawParams::color(MessagePage::WHITE),
             );
             draw_text_left(
                 ctx,
@@ -129,7 +129,7 @@ impl SummaryGui {
                 summary.level.get(),
                 15.0,
                 19.0,
-                DrawParams::color(Message::WHITE),
+                DrawParams::color(MessagePage::WHITE),
             );
             draw_text_left(
                 ctx,
@@ -137,7 +137,7 @@ impl SummaryGui {
                 pokemon.name(),
                 41.0,
                 19.0,
-                DrawParams::color(Message::WHITE),
+                DrawParams::color(MessagePage::WHITE),
             );
             const TOP: f32 = 17.0;
             match self.page.get() {
@@ -149,7 +149,7 @@ impl SummaryGui {
                         &summary.id,
                         168.0,
                         21.0,
-                        DrawParams::color(Message::BLACK),
+                        DrawParams::color(MessagePage::BLACK),
                     );
                     draw_text_left(
                         ctx,
@@ -157,7 +157,7 @@ impl SummaryGui {
                         pokemon.name(),
                         168.0,
                         36.0,
-                        DrawParams::color(Message::BLACK),
+                        DrawParams::color(MessagePage::BLACK),
                     );
 
                     for (index, display) in summary.types.iter().flatten().enumerate() {
@@ -171,7 +171,7 @@ impl SummaryGui {
                             false,
                             x + 16.0,
                             52.0,
-                            DrawParams::color(Message::WHITE),
+                            DrawParams::color(MessagePage::WHITE),
                         )
                     }
 

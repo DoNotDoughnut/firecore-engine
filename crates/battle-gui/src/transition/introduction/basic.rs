@@ -88,6 +88,7 @@ impl BasicBattleIntroduction {
         text.push(MessagePage {
             lines: vec![format!("Go! {}!", Self::concatenate(&player.player))],
             wait: Some(0.5),
+            color: MessagePage::WHITE,
         });
     }
 
@@ -168,6 +169,7 @@ impl<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<
                 Self::concatenate(&opponent.player)
             )],
             wait: None,
+            color: MessagePage::WHITE,
         });
         self.common_setup(text, player);
     }

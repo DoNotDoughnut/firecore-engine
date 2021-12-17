@@ -3,7 +3,7 @@ use core::cell::Cell;
 use engine::{
     graphics::{draw_cursor, draw_text_left, DrawParams, Texture},
     input::controls::{pressed, Control},
-    text::Message,
+    text::MessagePage,
     Context,
 };
 
@@ -113,7 +113,7 @@ impl PartySelectMenu {
                         line,
                         161.0,
                         93.0 + (index << 4) as f32,
-                        DrawParams::color(Message::BLACK),
+                        DrawParams::color(MessagePage::BLACK),
                     )
                 });
             }

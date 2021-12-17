@@ -4,7 +4,7 @@ use pokedex::{
     engine::{
         gui::MessageBox,
         math::vec2,
-        text::{Message, MessagePage},
+        text::{MessagePage},
     },
     item::Item,
     moves::Move,
@@ -14,8 +14,7 @@ use pokedex::{
 
 pub fn new() -> MessageBox {
     let mut messagebox = MessageBox::new(vec2(11.0, 11.0 + super::PANEL_Y), 1);
-    messagebox.color(Message::WHITE);
-    messagebox.message.pages.reserve(6);
+    messagebox.pages.reserve(6);
     messagebox
 }
 
@@ -23,6 +22,7 @@ pub(crate) fn on_move(text: &mut MessageBox, pokemon_move: &Move, user: &str) {
     text.push(MessagePage {
         lines: vec![format!("{} used {}!", user, pokemon_move.name)],
         wait: Some(0.5),
+        color: MessagePage::WHITE,
     });
 }
 
@@ -39,6 +39,7 @@ pub(crate) fn on_effective(text: &mut MessageBox, effective: &Effective) {
                 }
             )],
             wait: Some(0.5),
+            color: MessagePage::WHITE,
         });
     }
 }
@@ -47,6 +48,7 @@ pub(crate) fn on_crit(text: &mut MessageBox) {
     text.push(MessagePage {
         lines: vec!["It was a critical hit!".to_owned()],
         wait: Some(0.5),
+        color: MessagePage::WHITE,
     })
 }
 
@@ -70,6 +72,7 @@ pub(crate) fn on_stat_stage(
             ),
         ],
         wait: Some(0.5),
+        color: MessagePage::WHITE,
     })
 }
 
@@ -80,6 +83,7 @@ pub(crate) fn on_status(text: &mut MessageBox, pokemon: &str, status: Ailment) {
             format!("with {:?}", status),
         ],
         wait: Some(0.5),
+        color: MessagePage::WHITE,
     })
 }
 
@@ -87,6 +91,7 @@ pub(crate) fn on_miss(text: &mut MessageBox, pokemon: &str) {
     text.push(MessagePage {
         lines: vec![format!("{} missed!", pokemon)],
         wait: Some(0.5),
+        color: MessagePage::WHITE,
     });
 }
 
@@ -94,6 +99,7 @@ pub(crate) fn on_item(text: &mut MessageBox, target: &str, item: &Item) {
     text.push(MessagePage {
         lines: vec![format!("A {} was used on {}", item.name, target,)],
         wait: Some(0.5),
+        color: MessagePage::WHITE,
     });
 }
 
@@ -101,6 +107,7 @@ fn on_leave(text: &mut MessageBox, leaving: &str) {
     text.push(MessagePage {
         lines: vec![format!("Come back, {}!", leaving)],
         wait: Some(0.5),
+        color: MessagePage::WHITE,
     });
 }
 
@@ -113,6 +120,7 @@ pub(crate) fn on_go(text: &mut MessageBox, coming: &str) {
     text.push(MessagePage {
         lines: vec![format!("Go, {}!", coming)],
         wait: Some(0.5),
+        color: MessagePage::WHITE,
     });
 }
 
@@ -124,6 +132,7 @@ pub(crate) fn on_replace(text: &mut MessageBox, user: &str, coming: Option<&str>
         text.push(MessagePage {
             lines: vec![format!("{} sent out {}!", user, coming)],
             wait: Some(0.5),
+            color: MessagePage::WHITE,
         });
     }
 }
@@ -145,6 +154,7 @@ pub(crate) fn on_faint(text: &mut MessageBox, is_wild: bool, is_player: bool, po
             String::from("fainted!"),
         ],
         wait: Some(1.0),
+        color: MessagePage::WHITE,
     });
 }
 
@@ -152,6 +162,7 @@ pub(crate) fn on_catch(text: &mut MessageBox, pokemon: &str) {
     text.push(MessagePage {
         lines: vec![String::from("Gotcha!"), format!("{} was caught!", pokemon)],
         wait: None,
+        color: MessagePage::WHITE,
     });
 }
 
@@ -167,6 +178,7 @@ pub(crate) fn on_gain_exp(
             format!("and {} levels!", level),
         ],
         wait: Some(1.0),
+        color: MessagePage::WHITE,
     });
 }
 
@@ -184,6 +196,7 @@ pub(crate) fn on_fail(text: &mut MessageBox, lines: Vec<String>) {
     text.push(MessagePage {
         lines,
         wait: Some(0.5),
+        color: MessagePage::WHITE,
     });
 }
 
@@ -191,5 +204,6 @@ pub(crate) fn on_flinch(text: &mut MessageBox, name: &str) {
     text.push(MessagePage {
         lines: vec![format!("{} flinched!", name)],
         wait: Some(0.5),
+        color: MessagePage::WHITE,
     });
 }

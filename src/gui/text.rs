@@ -1,10 +1,8 @@
-use macroquad::prelude::Color;
-
 use crate::{
     graphics::{draw_button_for_text, draw_text_left, DrawParams},
     input::controls::{pressed, Control},
     math::Vec2,
-    text::{FontId, Message, MessagePage},
+    text::{FontId, MessagePage},
     utils::{Completable, Entity, Reset},
     Context,
 };
@@ -15,7 +13,7 @@ pub struct MessageBox {
     origin: Vec2,
 
     pub font: FontId,
-    pub message: Message,
+    pub pages: Vec<MessagePage>,
 
     button: Button,
 
@@ -39,7 +37,7 @@ impl MessageBox {
             alive: false,
             origin,
             font,
-            message: Default::default(),
+            pages: Default::default(),
             button: Default::default(),
             page: 0,
             line: 0,
@@ -49,24 +47,28 @@ impl MessageBox {
         }
     }
 
-    pub fn set(&mut self, pages: Vec<MessagePage>) {
-        self.message.pages = pages;
+    pub fn extend<I: IntoIterator<Item = MessagePage>>(&mut self, pages: I) {
+        self.pages.extend(pages);
+    }
+
+    pub fn get(&self, index: usize) -> Option<&MessagePage> {
+        self.pages.get(index)
+    }
+
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut MessagePage> {
+        self.pages.get_mut(index)
     }
 
     pub fn push(&mut self, page: MessagePage) {
-        self.message.pages.push(page);
+        self.pages.push(page);
     }
 
     pub fn remove(&mut self, index: usize) {
-        self.message.pages.remove(index);
+        self.pages.remove(index);
     }
 
     pub fn clear(&mut self) {
-        self.message.pages.clear();
-    }
-
-    pub fn color(&mut self, color: Color) {
-        self.message.color = color;
+        self.pages.clear();
     }
 
     pub fn is_empty(&self) -> bool {
@@ -78,7 +80,7 @@ impl MessageBox {
     }
 
     pub fn pages(&self) -> usize {
-        self.message.pages.len()
+        self.pages.len()
     }
 
     pub fn waiting(&self) -> bool {
@@ -92,7 +94,7 @@ impl MessageBox {
 
     pub fn update(&mut self, ctx: &Context, delta: f32) {
         if self.alive {
-            match self.message.pages.get(self.page) {
+            match self.pages.get(self.page) {
                 Some(page) => match self.waiting {
                     false => {
                         if (self.accumulator as usize)
@@ -152,7 +154,7 @@ impl MessageBox {
 
     pub fn draw(&self, ctx: &mut Context) {
         if self.alive {
-            if let Some(page) = self.message.pages.get(self.page) {
+            if let Some(page) = self.pages.get(self.page) {
                 if let Some(line) = page.lines.get(self.line) {
                     let len = self.accumulator as usize;
                     let (string, finished) = if line.len() > len && !self.waiting {
@@ -168,7 +170,7 @@ impl MessageBox {
                         string,
                         self.origin.x,
                         self.origin.y + y,
-                        DrawParams::color(self.message.color.into()),
+                        DrawParams::color(page.color),
                     );
 
                     for index in 0..self.line {
@@ -178,7 +180,7 @@ impl MessageBox {
                             &page.lines[index],
                             self.origin.x,
                             self.origin.y + (index << 4) as f32,
-                            DrawParams::color(self.message.color.into()),
+                            DrawParams::color(page.color),
                         );
                     }
 

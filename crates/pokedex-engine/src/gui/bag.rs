@@ -4,7 +4,7 @@ use engine::{
     graphics::{draw_cursor, draw_text_left, DrawParams, Texture},
     gui::Panel,
     input::controls::{pressed, Control},
-    text::Message,
+    text::MessagePage,
     utils::HEIGHT,
     Context,
 };
@@ -121,11 +121,11 @@ impl BagGui {
                 &stack.item.name,
                 98.0,
                 y,
-                DrawParams::color(Message::BLACK),
+                DrawParams::color(MessagePage::BLACK),
             );
-            draw_text_left(ctx, &1, "x", 200.0, y, DrawParams::color(Message::BLACK));
+            draw_text_left(ctx, &1, "x", 200.0, y, DrawParams::color(MessagePage::BLACK));
             // if let Some(ref count) = self.items.get(index - self.offset.get()).map(|cell| cell.get()).flatten() {
-            //     draw_text_left(ctx, &1, &count, Message::BLACK, 208.0, y);
+            //     draw_text_left(ctx, &1, &count, MessagePage::BLACK, 208.0, y);
             // }
         }
         draw_text_left(
@@ -134,7 +134,7 @@ impl BagGui {
             "Cancel",
             98.0,
             11.0 + (items.len() << 4) as f32,
-            DrawParams::color(Message::BLACK),
+            DrawParams::color(MessagePage::BLACK),
         );
         if let Some(stack) = items.get(cursor) {
             if let Some(texture) = dex.item_textures.try_get(&stack.item.id) {
@@ -148,7 +148,7 @@ impl BagGui {
                     41.0,
                     117.0 + (index * 14) as f32,
                     DrawParams {
-                        color: Message::WHITE,
+                        color: MessagePage::WHITE,
                         ..Default::default()
                     },
                 );

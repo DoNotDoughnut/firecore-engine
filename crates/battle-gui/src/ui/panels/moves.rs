@@ -5,7 +5,7 @@ use pokedex::{
         graphics::{draw_cursor, draw_text_left, Color, DrawParams},
         gui::Panel,
         input::controls::{pressed, Control},
-        text::Message,
+        text::MessagePage,
         utils::Reset,
         Context,
     },
@@ -36,7 +36,7 @@ impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
                 if instance.is_empty() {
                     Color::RED
                 } else {
-                    Message::BLACK
+                    MessagePage::BLACK
                 },
             ));
         }

@@ -63,6 +63,7 @@ impl<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<
             text.push(MessagePage {
                 lines: vec![name.to_owned(), "would like to battle!".to_owned()],
                 wait: None,
+                color: MessagePage::WHITE,
             });
 
             text.push(MessagePage {
@@ -74,11 +75,13 @@ impl<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<
                     ),
                 ],
                 wait: Some(0.5),
+                color: MessagePage::WHITE,
             });
         } else {
             text.push(MessagePage {
                 lines: vec![String::from("No trainer data found!")],
                 wait: None,
+                color: MessagePage::WHITE,
             });
         }
 

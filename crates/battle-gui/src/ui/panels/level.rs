@@ -4,7 +4,7 @@ use pokedex::{
     engine::{
         gui::MessageBox,
         input::controls::{pressed, Control},
-        text::{Message, MessagePage},
+        text::MessagePage,
         utils::{Completable, Entity},
         Context,
     },
@@ -75,6 +75,7 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
                                 format!("learn {}", move_ref.name),
                             ],
                             wait: None,
+                            color: MessagePage::BLACK,
                         });
                         self.update(ctx, text, delta, pokemon)
                     }
@@ -92,7 +93,7 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
                     let pokemon_move = self.moves.remove(0);
                     if a {
                         self.move_panel.names[self.move_panel.cursor] =
-                            Some((pokemon_move.clone(), Message::BLACK));
+                            Some((pokemon_move.clone(), MessagePage::BLACK));
                         pokemon
                             .moves
                             .add(Some(self.move_panel.cursor), pokemon_move.clone());

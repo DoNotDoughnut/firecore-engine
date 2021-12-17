@@ -4,7 +4,7 @@ use pokedex::{
     engine::{
         graphics::{draw_text_left, draw_text_right, DrawParams, Texture},
         math::{vec2, Vec2},
-        text::Message,
+        text::MessagePage,
         utils::Entity,
         Context,
     },
@@ -360,7 +360,7 @@ impl PokemonStatusGui {
                     &self.data.name,
                     pos.x + self.data_pos.name,
                     y,
-                    DrawParams::color(Message::BLACK),
+                    DrawParams::color(MessagePage::BLACK),
                 );
 
                 draw_text_right(
@@ -369,7 +369,7 @@ impl PokemonStatusGui {
                     &self.data.level.0,
                     x2,
                     y,
-                    DrawParams::color(Message::BLACK),
+                    DrawParams::color(MessagePage::BLACK),
                 );
 
                 if !self.small {
@@ -380,7 +380,7 @@ impl PokemonStatusGui {
                         &self.data.health,
                         x2,
                         y + 18.0,
-                        DrawParams::color(Message::BLACK),
+                        DrawParams::color(MessagePage::BLACK),
                     );
                 }
 
