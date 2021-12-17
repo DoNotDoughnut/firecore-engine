@@ -10,8 +10,6 @@ pub mod utils;
 
 mod context;
 
-// pub use macroquad::main;
-
 use std::future::Future;
 
 pub use self::{context::*, error::EngineError};
@@ -19,6 +17,9 @@ pub use self::{context::*, error::EngineError};
 pub mod log {
     pub use macroquad::miniquad::{debug, error, info, log::Level, trace, warn};
 }
+
+#[deprecated]
+pub extern crate macroquad;
 
 pub fn run<
     OPEN,
