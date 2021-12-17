@@ -14,14 +14,12 @@ pub(crate) struct InputContext {
 }
 
 impl InputContext {
-
     pub fn new() -> Result<Self, EngineError> {
         Ok(Self {
             gamepad: ControllerContext::new().ok_or(EngineError::GamepadContext)?,
             controls: Default::default(),
         })
     }
-
 }
 
 // pub type DebugBind = tetra::input::Key;

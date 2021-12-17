@@ -2,12 +2,12 @@ use core::{cell::Cell, ops::Deref};
 use tinystr::TinyStr4;
 
 use crate::{
-    context::PokedexClientData,
     gui::{
         cellref, party::PartyCell, pokemon::PokemonTypeDisplay, to_ascii4, IntegerStr4,
         LEVEL_PREFIX,
     },
     texture::PokemonTexture::Front,
+    PokedexClientData,
 };
 
 use engine::{
@@ -15,9 +15,10 @@ use engine::{
         draw_circle, draw_rectangle, draw_straight_line, draw_text_center, draw_text_left, Color,
         DrawParams, Texture,
     },
-    gui::{Panel, TextColor},
+    gui::Panel,
     input::controls::{pressed, Control},
-    util::WIDTH,
+    text::Message,
+    utils::WIDTH,
     Context,
 };
 
@@ -93,7 +94,7 @@ impl SummaryGui {
             self.headers[current_page],
             5.0,
             1.0,
-            DrawParams::color(TextColor::WHITE),
+            DrawParams::color(Message::WHITE),
         );
         for page in 0..Self::PAGES {
             let color = if current_page < page {
@@ -120,7 +121,7 @@ impl SummaryGui {
                 LEVEL_PREFIX,
                 5.0,
                 19.0,
-                DrawParams::color(TextColor::WHITE),
+                DrawParams::color(Message::WHITE),
             );
             draw_text_left(
                 ctx,
@@ -128,7 +129,7 @@ impl SummaryGui {
                 summary.level.get(),
                 15.0,
                 19.0,
-                DrawParams::color(TextColor::WHITE),
+                DrawParams::color(Message::WHITE),
             );
             draw_text_left(
                 ctx,
@@ -136,7 +137,7 @@ impl SummaryGui {
                 pokemon.name(),
                 41.0,
                 19.0,
-                DrawParams::color(TextColor::WHITE),
+                DrawParams::color(Message::WHITE),
             );
             const TOP: f32 = 17.0;
             match self.page.get() {
@@ -148,7 +149,7 @@ impl SummaryGui {
                         &summary.id,
                         168.0,
                         21.0,
-                        DrawParams::color(TextColor::BLACK),
+                        DrawParams::color(Message::BLACK),
                     );
                     draw_text_left(
                         ctx,
@@ -156,7 +157,7 @@ impl SummaryGui {
                         pokemon.name(),
                         168.0,
                         36.0,
-                        DrawParams::color(TextColor::BLACK),
+                        DrawParams::color(Message::BLACK),
                     );
 
                     for (index, display) in summary.types.iter().flatten().enumerate() {
@@ -170,11 +171,11 @@ impl SummaryGui {
                             false,
                             x + 16.0,
                             52.0,
-                            DrawParams::color(TextColor::WHITE),
+                            DrawParams::color(Message::WHITE),
                         )
                     }
 
-                    // draw_text_left(1, &pokemon.item, &TextColor::Black, 168.0, 96.0);
+                    // draw_text_left(1, &pokemon.item, &crate::TEXT_BLACK, 168.0, 96.0);
                 }
                 1 => {
                     self.pages[1].draw(ctx, 0.0, TOP, Default::default());

@@ -4,9 +4,9 @@ use pokedex::{
     engine::{
         graphics::{draw_cursor, draw_text_left, Color, DrawParams},
         gui::Panel,
-        gui::TextColor,
         input::controls::{pressed, Control},
-        util::Reset,
+        text::Message,
+        utils::Reset,
         Context,
     },
     moves::{owned::OwnedMove, Move},
@@ -34,9 +34,9 @@ impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
             self.names[index] = Some((
                 instance.0.clone(),
                 if instance.is_empty() {
-                    TextColor::RED
+                    Color::RED
                 } else {
-                    TextColor::BLACK
+                    Message::BLACK
                 },
             ));
         }

@@ -1,13 +1,13 @@
 use pokedex::{
-    context::PokedexClientData,
     engine::{
         graphics::{Color, DrawParams, Texture},
         math::{Rectangle, Vec2},
-        util::Reset,
+        utils::Reset,
         Context,
     },
     pokemon::PokemonId,
     texture::PokemonTexture,
+    PokedexClientData,
 };
 
 use crate::{

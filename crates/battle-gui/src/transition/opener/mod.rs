@@ -2,13 +2,13 @@ use core::ops::Deref;
 use pokedex::pokemon::Pokemon;
 
 use pokedex::{
-    context::PokedexClientData,
     engine::{
         graphics::{draw_rectangle, Color, DrawParams, Texture},
         math::Rectangle,
-        util::{Completable, Reset, WIDTH},
+        utils::{Completable, Reset, WIDTH},
         Context,
     },
+    PokedexClientData,
 };
 
 use crate::{

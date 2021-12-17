@@ -2,9 +2,10 @@ use core::ops::Deref;
 
 use pokedex::{
     engine::{
-        gui::{MessageBox, MessagePage, TextColor},
+        gui::MessageBox,
         input::controls::{pressed, Control},
-        util::{Completable, Entity},
+        text::{Message, MessagePage},
+        utils::{Completable, Entity},
         Context,
     },
     moves::{owned::OwnedMove, set::OwnedMoveSet, Move},
@@ -91,7 +92,7 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
                     let pokemon_move = self.moves.remove(0);
                     if a {
                         self.move_panel.names[self.move_panel.cursor] =
-                            Some((pokemon_move.clone(), TextColor::BLACK));
+                            Some((pokemon_move.clone(), Message::BLACK));
                         pokemon
                             .moves
                             .add(Some(self.move_panel.cursor), pokemon_move.clone());

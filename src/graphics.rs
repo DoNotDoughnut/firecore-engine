@@ -1,147 +1,18 @@
-use crate::{text::FontId, Context};
+pub(self) use crate::Context;
 
 mod image;
-pub mod text;
+mod shapes;
+pub(crate) mod text;
 mod texture;
-
-pub mod scaling;
+mod window;
 
 pub use self::image::*;
+pub use self::shapes::*;
+pub use self::text::*;
 pub use self::texture::*;
-pub use macroquad::prelude::Color;
+pub use self::window::*;
 
-// pub const GRAY: Color = Color::rgb(0.51, 0.51, 0.51);
-// pub const RED: Color = Color::rgb(0.90, 0.16, 0.22);
-// pub const DARKBLUE: Color = Color::rgb(0.00, 0.32, 0.67);
-
-// pub const ZERO: Vec2 = Vec2::new(0.0, 0.0);
-
-// #[inline]
-// pub fn draw_bottom(ctx: &mut Context, texture: &Texture, x: f32, y: f32) {
-//     texture.draw(ctx, position(x, y - texture.height() as f32));
-// }
-
-// #[inline]
-// pub fn draw_o(ctx: &mut Context, texture: Option<&Texture>, x: f32, y: f32) {
-//     if let Some(texture) = texture {
-//         texture.draw(ctx, position(x, y));
-//     }
-// }
-
-// #[inline]
-// pub fn draw_o_bottom(ctx: &mut Context, texture: Option<&Texture>, x: f32, y: f32) {
-//     if let Some(texture) = texture {
-//         draw_bottom(ctx, texture, x, y);
-//     }
-// }
-
-pub fn clear(_: &mut Context, color: Color) {
-    macroquad::prelude::clear_background(color);
-}
-
-pub fn draw_rectangle(_: &mut Context, x: f32, y: f32, w: f32, h: f32, color: Color) {
-    macroquad::prelude::draw_rectangle(x, y, w, h, color)
-}
-
-pub fn draw_rectangle_lines(
-    _: &mut Context,
-    x: f32,
-    y: f32,
-    w: f32,
-    h: f32,
-    thickness: f32,
-    color: Color,
-) {
-    macroquad::prelude::draw_rectangle_lines(x, y, w, h, thickness, color)
-}
-
-/// Deprecated
-pub fn draw_straight_line(
-    ctx: &mut Context,
-    x: f32,
-    y: f32,
-    len: f32,
-    horizontal: bool,
-    thickness: f32,
-    color: Color,
-) {
-    match horizontal {
-        true => draw_line(ctx, x, x, x + len, y, thickness, color),
-        false => draw_line(ctx, x, y, x, y + len, thickness, color),
-    }
-}
-
-pub fn draw_line(
-    _: &mut Context,
-    x1: f32,
-    y1: f32,
-    x2: f32,
-    y2: f32,
-    thickness: f32,
-    color: Color,
-) {
-    macroquad::prelude::draw_line(x1, y1, x2, y2, thickness, color)
-}
-
-#[allow(unused_variables)]
-pub fn draw_circle(_: &mut Context, x: f32, y: f32, r: f32, color: Color) {
-    // todo!("draw circle")
-    macroquad::prelude::draw_circle(x, y, r, color);
-}
-
-pub fn draw_text_left(
-    ctx: &mut Context,
-    font: &FontId,
-    text: &str,
-    x: f32,
-    y: f32,
-    params: DrawParams,
-) {
-    ctx.text.draw_text_left(font, text, x, y, params)
-}
-
-pub fn draw_text_right(
-    ctx: &mut Context,
-    font: &FontId,
-    text: &str,
-    x: f32,
-    y: f32,
-    params: DrawParams,
-) {
-    ctx.text.draw_text_right(font, text, x, y, params)
-}
-
-pub fn draw_text_center(
-    ctx: &mut Context,
-    font: &FontId,
-    text: &str,
-    center_vertical: bool,
-    x: f32,
-    y: f32,
-    params: DrawParams,
-) {
-    ctx.text
-        .draw_text_center(font, text, center_vertical, x, y, params)
-}
-
-pub fn draw_button_for_text(
-    ctx: &mut Context,
-    font: &FontId,
-    text: &str,
-    x: f32,
-    y: f32,
-    params: DrawParams,
-) {
-    ctx.text.draw_button_for_text(font, text, x, y, params)
-}
-
-pub fn draw_cursor(ctx: &mut Context, x: f32, y: f32, params: DrawParams) {
-    ctx.text.draw_cursor(x, y, params)
-}
-
-pub fn text_len(ctx: &Context, font: &FontId, text: &str) -> f32 {
-    ctx.text.text_len(font, text)
-}
+pub type Color = macroquad::prelude::Color;
 
 // pub fn fade_in_out(
 //     ctx: &mut Context,

@@ -1,3 +1,5 @@
+pub use macroquad::prelude::{HashMap, HashSet};
+
 /// deprecated
 pub const WIDTH: f32 = 240.0;
 /// deprecated

@@ -4,7 +4,7 @@ use pokedex::{item::Item, pokemon::Pokemon};
 use pokedex::{
     engine::{
         input::controls::{pressed, Control},
-        util::{Entity, Reset},
+        utils::{Entity, Reset},
         Context,
     },
     item::ItemId,

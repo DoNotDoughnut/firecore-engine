@@ -2,11 +2,10 @@ use core::ops::Deref;
 use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
 
 use pokedex::{
-    context::PokedexClientData,
     engine::{graphics::Color, math::vec2, Context},
     pokemon::owned::OwnedPokemon,
     texture::PokemonTexture,
-    Identifiable, NpcGroupId,
+    Identifiable, NpcGroupId, PokedexClientData,
 };
 
 use battle::{party::PlayerParty, pokemon::remote::UnknownPokemon};

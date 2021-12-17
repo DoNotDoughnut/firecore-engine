@@ -1,8 +1,9 @@
 use firecore_battle_gui::pokedex::engine::{
     self,
-    graphics::{self, scaling::ScreenScaler, Color},
-    gui::{Message, MessageBox, MessagePage, Panel, TextColor},
-    util::{Completable, Entity},
+    graphics::{self, Color, ScalingMode},
+    gui::{MessageBox, Panel},
+    text::{Message, MessagePage},
+    utils::{Completable, Entity},
     Context, ContextBuilder, State,
 };
 
@@ -10,8 +11,8 @@ fn main() {
     engine::run(
         ContextBuilder::new(
             "MessageBox",
-            2 * engine::util::WIDTH as i32,
-            (2.0 * engine::util::HEIGHT) as _,
+            2 * engine::utils::WIDTH as i32,
+            (2.0 * engine::utils::HEIGHT) as _,
         ),
         async {},
         move |_, _| {},
@@ -33,14 +34,7 @@ impl Game {
 
 impl State for Game {
     fn start(&mut self, ctx: &mut Context) {
-        let scaler = ScreenScaler::with_size(
-            ctx,
-            engine::util::WIDTH as _,
-            engine::util::HEIGHT as _,
-            graphics::scaling::ScalingMode::ShowAllPixelPerfect,
-        );
-
-        engine::graphics::scaling::set_scaler(ctx, scaler);
+        graphics::set_scaling_mode(ctx, ScalingMode::Stretch);
 
         //-> Result {
         let page = MessagePage {
@@ -56,7 +50,7 @@ impl State for Game {
         };
         self.messagebox.message = Message {
             pages: vec![page, page2],
-            color: TextColor::BLACK,
+            color: Message::BLACK,
         };
         self.messagebox.spawn();
         // Ok(())
@@ -65,7 +59,7 @@ impl State for Game {
     fn update(&mut self, ctx: &mut Context, delta: f32) {
         //-> Result {
         if !self.messagebox.alive() {
-            engine::quit(ctx)
+            ctx.quit();
         } else {
             self.messagebox.update(ctx, delta);
             if self.messagebox.finished() {
@@ -82,8 +76,8 @@ impl State for Game {
             ctx,
             10.0,
             10.0,
-            engine::util::WIDTH - 20.0,
-            engine::util::HEIGHT - 20.0,
+            engine::utils::WIDTH - 20.0,
+            engine::utils::HEIGHT - 20.0,
         );
         self.messagebox.draw(ctx);
         // Ok(())

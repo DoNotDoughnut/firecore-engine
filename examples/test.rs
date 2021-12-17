@@ -1,7 +1,8 @@
 use engine::{
-    graphics::{self, scaling::ScreenScaler, Color},
-    gui::{Message, MessageBox, MessagePage, Panel},
-    util::{Completable, Entity},
+    graphics::{self, Color, ScalingMode},
+    gui::{MessageBox, Panel},
+    text::{Message, MessagePage},
+    utils::{Completable, Entity},
     Context, ContextBuilder, State,
 };
 use firecore_engine as engine;
@@ -10,13 +11,12 @@ fn main() {
     engine::run(
         ContextBuilder::new(
             "MessageBox",
-            2 * engine::util::WIDTH as i32,
-            (2.0 * engine::util::HEIGHT) as _,
+            2 * engine::utils::WIDTH as i32,
+            (2.0 * engine::utils::HEIGHT) as _,
         ),
         async {},
         |ctx, ()| {
-            let fonts: Vec<engine::text::FontSheet<Vec<u8>>> =
-                bincode::deserialize(include_bytes!("fonts.bin")).unwrap();
+            let fonts: Vec<_> = bincode::deserialize(include_bytes!("fonts.bin")).unwrap();
 
             // let mut audio: engine::context::audio::SerializedAudio =
             //     bincode::deserialize(include_bytes!("audio.bin")).unwrap();
@@ -51,14 +51,7 @@ impl Game {
 
 impl State for Game {
     fn start(&mut self, ctx: &mut Context) {
-        let scaler = ScreenScaler::with_size(
-            ctx,
-            engine::util::WIDTH as _,
-            engine::util::HEIGHT as _,
-            graphics::scaling::ScalingMode::ShowAllPixelPerfect,
-        );
-
-        engine::graphics::scaling::set_scaler(ctx, scaler);
+        engine::graphics::set_scaling_mode(ctx, ScalingMode::Stretch);
 
         //-> Result {
         let page = MessagePage {
@@ -83,7 +76,7 @@ impl State for Game {
     fn update(&mut self, ctx: &mut Context, delta: f32) {
         //-> Result {
         if !self.messagebox.alive() {
-            engine::quit(ctx)
+            ctx.quit();
         } else {
             self.messagebox.update(ctx, delta);
             if self.messagebox.finished() {
@@ -100,8 +93,8 @@ impl State for Game {
             ctx,
             10.0,
             10.0,
-            engine::util::WIDTH - 20.0,
-            engine::util::HEIGHT - 20.0,
+            engine::utils::WIDTH - 20.0,
+            engine::utils::HEIGHT - 20.0,
         );
         self.messagebox.draw(ctx);
         // Ok(())

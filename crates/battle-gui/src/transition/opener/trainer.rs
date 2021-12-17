@@ -2,12 +2,12 @@ use core::ops::Deref;
 use pokedex::pokemon::Pokemon;
 
 use pokedex::{
-    context::PokedexClientData,
     engine::{
         graphics::Texture,
-        util::{Completable, Reset},
+        utils::{Completable, Reset},
         Context,
     },
+    PokedexClientData,
 };
 
 use crate::{

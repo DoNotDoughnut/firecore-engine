@@ -1,7 +1,7 @@
 use core::ops::Deref;
 use pokedex::pokemon::Pokemon;
 
-use pokedex::{context::PokedexClientData, engine::Context};
+use pokedex::{engine::Context, PokedexClientData};
 
 use battle::data::BattleType;
 

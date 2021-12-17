@@ -4,8 +4,8 @@ use pokedex::{
     engine::{
         graphics::{draw_cursor, draw_text_left, DrawParams},
         gui::Panel,
-        gui::TextColor,
         input::controls::{pressed, Control},
+        text::Message,
         Context,
     },
     pokemon::{owned::OwnablePokemon, Pokemon},
@@ -54,7 +54,7 @@ impl BattleOptions {
             "What will",
             11.0,
             123.0,
-            DrawParams::color(TextColor::WHITE),
+            DrawParams::color(Message::WHITE),
         );
         draw_text_left(
             ctx,
@@ -62,7 +62,7 @@ impl BattleOptions {
             &self.pokemon_do,
             11.0,
             139.0,
-            DrawParams::color(TextColor::WHITE),
+            DrawParams::color(Message::WHITE),
         );
 
         for (index, string) in self.buttons.iter().enumerate() {
@@ -72,7 +72,7 @@ impl BattleOptions {
                 string,
                 138.0 + if index % 2 == 0 { 0.0 } else { 56.0 },
                 123.0 + if index >> 1 == 0 { 0.0 } else { 16.0 },
-                DrawParams::color(TextColor::BLACK),
+                DrawParams::color(Message::BLACK),
             )
         }
 

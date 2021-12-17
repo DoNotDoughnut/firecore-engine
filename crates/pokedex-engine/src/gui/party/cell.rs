@@ -7,9 +7,9 @@ use pokedex::{
 };
 
 use crate::{
-    context::PokedexClientData,
     gui::{health::HealthBar, IntegerStr4},
     texture::PokemonTexture,
+    PokedexClientData,
 };
 
 #[derive(Default)]

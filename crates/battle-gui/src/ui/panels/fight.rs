@@ -1,7 +1,7 @@
 use core::ops::Deref;
 
 use pokedex::{
-    engine::{util::Reset, Context},
+    engine::{utils::Reset, Context},
     moves::{owned::OwnedMove, Move},
     pokemon::owned::OwnablePokemon,
 };

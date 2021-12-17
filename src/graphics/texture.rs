@@ -1,5 +1,5 @@
+use crate::utils::HashMap;
 use macroquad::prelude::{DrawTextureParams, FilterMode, Texture2D};
-use std::collections::HashMap;
 use std::{fmt::Display, hash::Hash, rc::Rc};
 
 use crate::{
@@ -172,7 +172,7 @@ impl<ID: Eq + Hash + Display> TextureManager<ID> {
         self.try_get(id).unwrap_or_else(|| {
             panic!(
                 "Could not get texture from texture manager \"{}\" with id {}",
-                crate::util::type_name::<Self>(),
+                crate::utils::type_name::<Self>(),
                 id
             )
         })

@@ -7,10 +7,8 @@ use serde::{Deserialize, Serialize};
 
 // }
 
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct BattleActionScript {
-
     pub actions: VecDeque<BattleAction>,
 
     #[serde(skip)]
@@ -18,30 +16,24 @@ pub struct BattleActionScript {
 
     #[serde(skip)]
     pub texture: Option<Vec2>,
-
     // #[serde(skip)]
     // pub texture: Option<Texture2D>,
-
 }
 
 #[derive(Debug, Clone)]
 pub struct BattleActionScriptInstance {
-
     pub script: BattleActionScript,
     pub texture: Option<Texture>,
-
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum BattleAction {
-
     MoveAndReturnPokemon(f32),
     MoveTexture(f32, f32, f32),
     SpawnTexture(f32, f32),
     Wait(f32),
     // MoveTexture(f32, f32, f32),
     DespawnTexture,
-
 }
 
 #[derive(Debug, Clone)]

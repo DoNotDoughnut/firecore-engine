@@ -2,12 +2,12 @@ use core::cell::Cell;
 
 use engine::{
     graphics::{draw_cursor, draw_text_left, DrawParams, Texture},
-    gui::TextColor,
     input::controls::{pressed, Control},
+    text::Message,
     Context,
 };
 
-use crate::context::PokedexClientData;
+use crate::data::PokedexClientData;
 
 pub struct PartySelectMenu {
     pub alive: Cell<bool>,
@@ -113,7 +113,7 @@ impl PartySelectMenu {
                         line,
                         161.0,
                         93.0 + (index << 4) as f32,
-                        DrawParams::color(TextColor::BLACK),
+                        DrawParams::color(Message::BLACK),
                     )
                 });
             }

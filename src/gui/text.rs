@@ -1,43 +1,13 @@
 use macroquad::prelude::Color;
-use serde::{Deserialize, Serialize};
 
 use crate::{
     graphics::{draw_button_for_text, draw_text_left, DrawParams},
     input::controls::{pressed, Control},
     math::Vec2,
-    text::FontId,
-    util::{Completable, Entity, Reset},
+    text::{FontId, Message, MessagePage},
+    utils::{Completable, Entity, Reset},
     Context,
 };
-
-#[derive(Default, Debug, Clone, Deserialize, Serialize)]
-pub struct Message {
-    pub pages: Vec<MessagePage>,
-
-    #[serde(default = "Message::default_color")]
-    pub color: Color,
-}
-
-impl Message {
-    fn default_color() -> Color {
-        Color::GRAY
-    }
-}
-
-#[derive(Default, Debug, Clone, Deserialize, Serialize)]
-pub struct MessagePage {
-    pub lines: Vec<String>,
-    pub wait: Option<f32>,
-}
-
-impl From<Vec<String>> for MessagePage {
-    fn from(lines: Vec<String>) -> Self {
-        Self {
-            lines,
-            wait: None,
-        }
-    }
-}
 
 #[derive(Default, Clone)]
 pub struct MessageBox {

@@ -2,8 +2,9 @@ use battle::pokemon::stat::{BattleStatType, Stage};
 use pokedex::{
     ailment::Ailment,
     engine::{
-        gui::{MessageBox, MessagePage, TextColor},
+        gui::MessageBox,
         math::vec2,
+        text::{Message, MessagePage},
     },
     item::Item,
     moves::Move,
@@ -13,7 +14,7 @@ use pokedex::{
 
 pub fn new() -> MessageBox {
     let mut messagebox = MessageBox::new(vec2(11.0, 11.0 + super::PANEL_Y), 1);
-    messagebox.color(TextColor::WHITE);
+    messagebox.color(Message::WHITE);
     messagebox.message.pages.reserve(6);
     messagebox
 }

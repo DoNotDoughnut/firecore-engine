@@ -1,11 +1,11 @@
 use enum_map::{enum_map, EnumMap};
-use std::collections::HashMap;
 
 use pokedex::{item::ItemId, pokemon::PokemonId};
 
 use engine::{
     error::ImageError,
     graphics::{Texture, TextureManager},
+    utils::HashMap,
     Context,
 };
 

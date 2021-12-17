@@ -6,7 +6,7 @@ use engine::{
     Context,
 };
 
-use crate::context::PokedexClientData;
+use crate::data::PokedexClientData;
 
 use pokedex::pokemon::Health;
 

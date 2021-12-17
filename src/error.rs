@@ -19,8 +19,6 @@ impl std::fmt::Display for EngineError {
     }
 }
 
-
-
 #[derive(Debug)]
 pub enum FileError {
     Engine(macroquad::prelude::FileError),

@@ -1,5 +1,5 @@
 use crate::{
-    graphics::{scaling::ScreenScaler, text::TextRenderer, Texture},
+    graphics::{text::renderer::TextRenderer, ScalingMode, Texture},
     input::InputContext,
     EngineError,
 };
@@ -10,21 +10,37 @@ pub struct Context {
 
     pub(crate) input: InputContext,
 
-    #[deprecated]
-    pub(crate) text: TextRenderer,
     #[cfg(feature = "audio")]
     pub(crate) audio: crate::audio::backend::AudioContext,
 
-    #[deprecated(note = "Scaler implementation will be replaced")]
-    pub(crate) scaler: Option<ScreenScaler>,
+    #[deprecated]
+    pub(crate) text: TextRenderer,
+
+    pub(crate) scaling: ScalingMode,
 
     pub(crate) panel: Texture,
 }
 
 impl Context {
+    pub fn set_debug(&mut self, debug: bool) {
+        self.debug = debug;
+    }
+
     pub fn debug(&self) -> bool {
         self.debug
     }
+
+    pub fn quit(&mut self) {
+        self.running = false;
+    }
+
+    // pub fn execute_future<O>(future: impl std::future::Future<Output = O>) {
+
+    // }
+
+    // pub fn get_future_result<T: Any>() -> Option<impl Deref<Target = T>>  {
+
+    // }
 }
 
 #[allow(unused_variables)]
@@ -48,7 +64,7 @@ impl Context {
             audio: Default::default(),
             running: true,
             debug: cfg!(debug_assertions),
-            scaler: None,
+            scaling: ScalingMode::Fixed,
         })
     }
 }

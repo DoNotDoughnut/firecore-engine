@@ -1,7 +1,7 @@
 use pokedex::engine::{
     graphics::{Color, DrawParams, Texture},
     math::{vec2, Rectangle, Vec2},
-    util::{Reset, WIDTH},
+    utils::{Reset, WIDTH},
     Context,
 };
 

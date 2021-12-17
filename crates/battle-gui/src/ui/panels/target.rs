@@ -4,9 +4,9 @@ use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
 use pokedex::engine::{
     graphics::{draw_cursor, draw_text_left, DrawParams},
     gui::Panel,
-    gui::TextColor,
     input::controls::{pressed, Control},
-    util::Reset,
+    text::Message,
+    utils::Reset,
     Context,
 };
 
@@ -63,7 +63,7 @@ impl TargetPanel {
                 name.as_ref().map(|name| name.as_str()).unwrap_or("None"),
                 16.0 + x_offset,
                 121.0 + y_offset,
-                DrawParams::color(TextColor::BLACK),
+                DrawParams::color(Message::BLACK),
             );
             if index == self.cursor {
                 draw_cursor(ctx, 10.0 + x_offset, 123.0 + y_offset, Default::default());

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use crate::utils::HashMap;
 
 use crate::audio::{MusicId, SoundId, SoundVariant};
 

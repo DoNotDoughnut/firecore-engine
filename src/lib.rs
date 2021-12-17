@@ -6,7 +6,7 @@ pub mod gui;
 pub mod input;
 pub mod math;
 pub mod text;
-pub mod util;
+pub mod utils;
 
 mod context;
 
@@ -18,16 +18,6 @@ pub use self::{context::*, error::EngineError};
 
 pub mod log {
     pub use macroquad::miniquad::{debug, error, info, log::Level, trace, warn};
-}
-
-pub extern crate macroquad as inner;
-
-pub fn quit(ctx: &mut Context) {
-    ctx.running = false;
-}
-
-pub fn debug(ctx: &mut Context, debug: bool) {
-    ctx.debug = debug;
 }
 
 pub fn run<
@@ -61,10 +51,6 @@ pub fn run<
         state.start(&mut ctx);
 
         loop {
-            if let Some(scaler) = ctx.scaler.as_mut() {
-                scaler.update();
-            }
-
             state.update(&mut ctx, macroquad::prelude::get_frame_time());
 
             state.draw(&mut ctx);

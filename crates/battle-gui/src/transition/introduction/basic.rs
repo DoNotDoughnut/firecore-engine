@@ -2,14 +2,15 @@ use core::ops::Deref;
 use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
 
 use pokedex::{
-    context::PokedexClientData,
     engine::{
         graphics::{Color, DrawParams, Texture},
-        gui::{MessageBox, MessagePage},
+        gui::MessageBox,
         math::{vec2, Rectangle},
-        util::{Completable, Entity, Reset},
+        text::MessagePage,
+        utils::{Completable, Entity, Reset},
         Context,
     },
+    PokedexClientData,
 };
 
 use battle::{data::BattleType, party::PlayerParty};

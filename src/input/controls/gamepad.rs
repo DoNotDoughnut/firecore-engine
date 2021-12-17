@@ -1,8 +1,8 @@
 use enum_map::EnumMap;
-use std::collections::HashSet;
 
 use crate::{
     input::gamepad::{self, button::GamepadButton},
+    utils::HashSet,
     Context,
 };
 
