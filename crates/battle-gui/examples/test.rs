@@ -7,12 +7,14 @@ use firecore_battle_gui::pokedex::engine::{
     Context, ContextBuilder, State,
 };
 
+const SCALE: f32 = 2.0;
+
 fn main() {
     engine::run(
         ContextBuilder::new(
             "MessageBox",
-            2 * engine::utils::WIDTH as i32,
-            (2.0 * engine::utils::HEIGHT) as _,
+            (SCALE * engine::utils::WIDTH) as _,
+            (SCALE * engine::utils::HEIGHT) as _,
         ),
         async {},
         move |_, _| {},
@@ -34,7 +36,7 @@ impl Game {
 
 impl State for Game {
     fn start(&mut self, ctx: &mut Context) {
-        graphics::set_scaling_mode(ctx, ScalingMode::Stretch);
+        graphics::set_scaling_mode(ctx, ScalingMode::Stretch, Some(SCALE));
 
         //-> Result {
         let page = MessagePage {

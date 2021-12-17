@@ -33,18 +33,19 @@ impl Default for ScalingMode {
 }
 
 #[allow(unused_variables)]
-pub fn set_scaling_mode(ctx: &mut Context, mode: ScalingMode) {
+pub fn set_scaling_mode(ctx: &mut Context, mode: ScalingMode, scale: Option<f32>) {
     use macroquad::prelude::*;
+    let scaling = scale.unwrap_or(1.0);
     match mode {
         ScalingMode::Fixed => set_default_camera(),
         ScalingMode::Stretch => set_camera(&Camera2D::from_display_rect(Rect::new(
             0.0,
             0.0,
-            width(ctx),
-            height(ctx),
+            width(ctx) / scaling,
+            height(ctx) / scaling,
         ))),
     }
-    ctx.scaling = mode;
+    ctx.scaling = (mode, scale).into();
 }
 
 #[allow(unused_variables)]

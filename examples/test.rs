@@ -7,12 +7,14 @@ use engine::{
 };
 use firecore_engine as engine;
 
+const SCALE: f32 = 2.0;
+
 fn main() {
     engine::run(
         ContextBuilder::new(
             "MessageBox",
-            2 * engine::utils::WIDTH as i32,
-            (2.0 * engine::utils::HEIGHT) as _,
+            (SCALE * engine::utils::WIDTH) as i32,
+            (SCALE * engine::utils::HEIGHT) as _,
         ),
         async {},
         |ctx, ()| {
@@ -51,7 +53,7 @@ impl Game {
 
 impl State for Game {
     fn start(&mut self, ctx: &mut Context) {
-        engine::graphics::set_scaling_mode(ctx, ScalingMode::Stretch);
+        engine::graphics::set_scaling_mode(ctx, ScalingMode::Stretch, Some(SCALE));
 
         //-> Result {
         let page = MessagePage {

@@ -16,10 +16,20 @@ pub struct Context {
     #[deprecated]
     pub(crate) text: TextRenderer,
 
-    pub(crate) scaling: ScalingMode,
+    pub(crate) scaling: Scaling,
 
     pub(crate) panel: Texture,
 }
+
+#[derive(Default)]
+pub struct Scaling(ScalingMode, Option<f32>);
+
+impl From<(ScalingMode, Option<f32>)> for Scaling {
+    fn from(s: (ScalingMode, Option<f32>)) -> Self {
+        Self(s.0, s.1)
+    }
+}
+
 
 impl Context {
     pub fn set_debug(&mut self, debug: bool) {
@@ -64,7 +74,7 @@ impl Context {
             audio: Default::default(),
             running: true,
             debug: cfg!(debug_assertions),
-            scaling: ScalingMode::Fixed,
+            scaling: Default::default(),
         })
     }
 }
