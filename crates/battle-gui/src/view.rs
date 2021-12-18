@@ -174,7 +174,7 @@ impl<P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item
 
     fn decrement_pp(&mut self, pokemon_move: &Move, pp: PP) {
         if let Some(o) = self.moves.iter_mut().find(|o| o.0.id == pokemon_move.id) {
-            o.decrement();
+            o.1 -= pp;
         }
     }
 }

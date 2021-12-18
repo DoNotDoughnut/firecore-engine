@@ -9,7 +9,8 @@ use engine::{
     Context,
 };
 
-use pokedex::item::{Item, ItemStack};
+use firecore_pokedex::item::{bag::OwnedBag, ItemId};
+use pokedex::item::Item;
 
 use crate::data::PokedexClientData;
 
@@ -34,7 +35,7 @@ pub struct BagGui {
     select_cursor: Cell<usize>,
     // select_text: Cell<Option<TextOption>>,
     // items: [Cell<Option<TinyStr4>>; 12],
-    selected: Cell<Option<usize>>,
+    selected: Cell<Option<ItemId>>,
 }
 
 impl BagGui {
@@ -51,7 +52,17 @@ impl BagGui {
         }
     }
 
-    pub fn input<I>(&self, ctx: &Context, items: &[ItemStack<I>]) {
+    fn get_item_at_cursor<'a, I: Deref<Target = Item> + 'a>(&self, items: &'a OwnedBag<I>) -> Option<&'a ItemId> {
+        let cursor = self.cursor.get();
+        for (index, stack) in items.iter().enumerate() {
+            if index == cursor {
+                return Some(&stack.item.id);
+            }
+        }
+        None
+    }
+
+    pub fn input<I: Deref<Target = Item>>(&self, ctx: &Context, items: &OwnedBag<I>) {
         match self.selecting.get() {
             true => {
                 // match self.select_text {
@@ -69,7 +80,7 @@ impl BagGui {
                 if pressed(ctx, Control::A) {
                     match cursor {
                         0 => {
-                            self.selected.set(Some(cursor));
+                            
                         }
                         1 => (), // cancel
                         _ => unreachable!("Selected an option that is not use/cancel"),
@@ -109,11 +120,11 @@ impl BagGui {
         &self,
         ctx: &mut Context,
         dex: &PokedexClientData,
-        items: &[ItemStack<I>],
+        bag: &OwnedBag<I>,
     ) {
         self.background.draw(ctx, 0.0, 0.0, Default::default());
         let cursor = self.cursor.get();
-        for (index, stack) in items.iter().enumerate() {
+        for (index, stack) in bag.iter().enumerate() {
             let y = 11.0 + (index << 4) as f32;
             draw_text_left(
                 ctx,
@@ -123,7 +134,14 @@ impl BagGui {
                 y,
                 DrawParams::color(MessagePage::BLACK),
             );
-            draw_text_left(ctx, &1, "x", 200.0, y, DrawParams::color(MessagePage::BLACK));
+            draw_text_left(
+                ctx,
+                &1,
+                "x",
+                200.0,
+                y,
+                DrawParams::color(MessagePage::BLACK),
+            );
             // if let Some(ref count) = self.items.get(index - self.offset.get()).map(|cell| cell.get()).flatten() {
             //     draw_text_left(ctx, &1, &count, MessagePage::BLACK, 208.0, y);
             // }
@@ -133,10 +151,10 @@ impl BagGui {
             &1,
             "Cancel",
             98.0,
-            11.0 + (items.len() << 4) as f32,
+            11.0 + (bag.len() << 4) as f32,
             DrawParams::color(MessagePage::BLACK),
         );
-        if let Some(stack) = items.get(cursor) {
+        if let Some(stack) = self.get_item_at_cursor(bag).map(|id| bag.get(id)).flatten() {
             if let Some(texture) = dex.item_textures.try_get(&stack.item.id) {
                 texture.draw(ctx, 8.0, 125.0, Default::default());
             }
@@ -184,15 +202,13 @@ impl BagGui {
 
     pub fn take_selected_despawn<I: Deref<Target = Item> + Clone>(
         &self,
-        items: &mut [ItemStack<I>],
+        bag: &mut OwnedBag<I>,
     ) -> Option<I> {
         let selected = self.selected.get();
         selected
             .map(|selected| {
                 self.selected.set(None);
-                let item = items[selected]
-                    .try_use()
-                    .then(|| items[selected].item.clone());
+                let item = bag.try_take(&selected, 1).map(|stack| stack.item.clone());
                 self.despawn();
                 item
             })

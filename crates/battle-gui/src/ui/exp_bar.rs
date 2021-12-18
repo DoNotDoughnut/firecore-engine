@@ -42,7 +42,7 @@ impl ExperienceBar {
     ) {
         let width = Self::width(
             pokemon.experience,
-            pokemon.pokemon.training.growth_rate.max_exp(pokemon.level),
+            pokemon.pokemon.training.growth.max_exp(pokemon.level),
         );
         self.remaining = (pokemon.level.saturating_sub(previous), width);
         if self.remaining.0 != 0 {

@@ -5,7 +5,10 @@ use std::{collections::VecDeque, fmt::Debug, hash::Hash, ops::Deref, rc::Rc};
 
 use context::BattleGuiContext;
 
-use pokedex::engine::log::{self, debug, warn};
+use pokedex::{
+    engine::log::{self, debug, warn},
+    item::ItemCategory,
+};
 
 use pokedex::{
     engine::{
@@ -15,7 +18,7 @@ use pokedex::{
         Context,
     },
     gui::{bag::BagGui, party::PartyGui},
-    item::{bag::OwnedBag, usage::ItemUsageKind, Item},
+    item::{bag::OwnedBag, usage::ItemExecution, Item},
     moves::{Move, MoveTarget},
     pokemon::{owned::OwnedPokemon, party::Party, Pokemon},
     types::Effective,
@@ -278,7 +281,7 @@ impl<
                 //         party[index] = pokemon.clone();
                 //     }
                 // }
-                ServerMessage::Ping(p) => log::warn!("TODO: server ping message ({:?})", p),
+                ServerMessage::Ping(..) => (),
                 ServerMessage::Fail(action) => match action {
                     FailedAction::Move(i) | FailedAction::Switch(i) => match &self.state {
                         BattlePlayerState::Select(..) => {
@@ -403,27 +406,29 @@ impl<
                                         // Checks if a move is queued from an action done in the GUI
 
                                         if self.bag.alive() {
-                                            self.bag.input(ctx, &mut bag.items);
-                                            if let Some(item) =
-                                                self.bag.take_selected_despawn(&mut bag.items)
+                                            self.bag.input(ctx, bag);
+                                            if let Some(item) = self.bag.take_selected_despawn(bag)
                                             {
-                                                match &item.usage.kind {
-                                                    ItemUsageKind::Actions(..) => todo!(),
-                                                    ItemUsageKind::Script => {
-                                                        todo!("user targeting")
+                                                match item.category {
+                                                    pokedex::item::ItemCategory::Pokeballs => {
+                                                        self.gui.panel.active =
+                                                            BattlePanels::Target(
+                                                                MoveTarget::Opponent,
+                                                                Some(item.id),
+                                                            );
                                                     }
-                                                    ItemUsageKind::Pokeball => {
-                                                        self.gui.panel.active = BattlePanels::Target(
-                                                            MoveTarget::Opponent,
-                                                            Some(item.id),
-                                                        )
-                                                    }
-                                                    ItemUsageKind::None => {
-                                                        todo!("make item unusable")
-                                                    }
-                                                    // ItemUsageKind::Pokeball => ,
-                                                    // ItemUsageKind::Script(..) => ,
-                                                    // ItemUsageKind::None => ,
+                                                    _ => match &item.usage.execute {
+                                                        ItemExecution::Actions(..) => todo!(),
+                                                        // ItemExecution::Script => {
+                                                        //     todo!("user targeting")
+                                                        // }
+                                                        ItemExecution::None => {
+                                                            debug!("make items with usage kind None unusable")
+                                                        }
+                                                        // ItemUsageKind::Pokeball => ,
+                                                        // ItemUsageKind::Script(..) => ,
+                                                        // ItemUsageKind::None => ,
+                                                    },
                                                 }
                                             }
                                         } else if self.party.alive() {
@@ -458,7 +463,7 @@ impl<
                                                     }
                                                 }
                                                 BattlePanels::Fight => match pokemon.moves.get(self.gui.panel.fight.moves.cursor) {
-                                                    Some(instance) => match instance.try_use() {
+                                                    Some(instance) => match (!instance.is_empty()).then(|| instance.0.clone()) {
                                                         Some(move_ref) => {
                                                             match move_ref.target {
                                                                 MoveTarget::Opponent | MoveTarget::Any => {
@@ -680,15 +685,10 @@ impl<
                                                             if let Some(item) =
                                                                 itemdex.try_get(&item)
                                                             {
-                                                                if let Some(pokemon) = match &item
-                                                                    .usage
-                                                                    .kind
+                                                                if let Some(pokemon) = match item
+                                                                    .category
                                                                 {
-                                                                    ItemUsageKind::Script
-                                                                    | ItemUsageKind::Actions(..) => {
-                                                                        user.active(target.index())
-                                                                    }
-                                                                    ItemUsageKind::Pokeball => self
+                                                                    ItemCategory::Pokeballs => self
                                                                         .remotes
                                                                         .get(target.team())
                                                                         .map(|p| {
@@ -698,10 +698,16 @@ impl<
                                                                         })
                                                                         .flatten()
                                                                         .map(|p| p as _),
-                                                                    ItemUsageKind::None => None,
+                                                                    _ => match &item.usage.execute {
+                                                                        ItemExecution::Actions(
+                                                                            ..,
+                                                                        ) => user
+                                                                            .active(target.index()),
+                                                                        ItemExecution::None => None,
+                                                                    },
                                                                 } {
-                                                                    if let ItemUsageKind::Pokeball =
-                                                                        &item.usage.kind
+                                                                    if let ItemCategory::Pokeballs =
+                                                                        &item.category
                                                                     {
                                                                         // self.messages.push(ClientMessage::RequestPokemon(index));
                                                                         queue.actions.push_front(Indexed(target.clone(), BattleClientGuiAction::Catch));
@@ -1204,7 +1210,7 @@ impl<
                     if self.party.alive() {
                         self.party.draw(ctx, &party);
                     } else if self.bag.alive() {
-                        self.bag.draw(ctx, dex, &bag.items);
+                        self.bag.draw(ctx, dex, &bag);
                     } else {
                         for (current, active) in self.local.renderer.iter().enumerate() {
                             if &current == index {
