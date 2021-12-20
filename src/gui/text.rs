@@ -47,33 +47,6 @@ impl MessageBox {
         }
     }
 
-    pub fn extend<I: IntoIterator<Item = MessagePage>>(&mut self, pages: I) {
-        self.pages.extend(pages);
-    }
-
-    pub fn get(&self, index: usize) -> Option<&MessagePage> {
-        self.pages.get(index)
-    }
-
-    pub fn get_mut(&mut self, index: usize) -> Option<&mut MessagePage> {
-        self.pages.get_mut(index)
-    }
-
-    pub fn push(&mut self, page: MessagePage) {
-        self.pages.push(page);
-    }
-
-    pub fn remove(&mut self, index: usize) {
-        self.pages.remove(index);
-    }
-
-    pub fn clear(&mut self) {
-        self.pages.clear();
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.pages() == 0
-    }
 
     pub fn page(&self) -> usize {
         self.page
@@ -211,7 +184,7 @@ impl Reset for MessageBox {
 
 impl Completable for MessageBox {
     fn finished(&self) -> bool {
-        self.finished || self.is_empty()
+        self.finished || self.pages.is_empty()
     }
 }
 
@@ -224,7 +197,7 @@ impl Entity for MessageBox {
     fn despawn(&mut self) {
         self.alive = false;
         self.reset();
-        self.clear();
+        self.pages.clear();
     }
 
     fn alive(&self) -> bool {

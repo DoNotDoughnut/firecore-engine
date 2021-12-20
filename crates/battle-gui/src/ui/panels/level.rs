@@ -69,7 +69,7 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
                 false => match self.moves.first() {
                     Some(move_ref) => {
                         text.spawn();
-                        text.push(MessagePage {
+                        text.pages.push(MessagePage {
                             lines: vec![
                                 format!("{} is trying to", pokemon.name()),
                                 format!("learn {}", move_ref.name),

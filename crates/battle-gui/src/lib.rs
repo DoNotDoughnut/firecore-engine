@@ -223,53 +223,48 @@ impl<
                                 .collect(),
                             current: None,
                         });
-                        self.gui.text.clear();
+                        self.gui.text.pages.clear();
                         self.gui.text.spawn();
                     }
                 },
-                ServerMessage::Replace(Indexed(pokemon, new)) => {
-                    dbg!(&pokemon);
-                    dbg!(new);
-                    match &mut self.state {
-                        BattlePlayerState::Moving(queue) => {
-                            queue.actions.push_back(Indexed(
-                                pokemon,
-                                BattleClientGuiAction::Replace(Some(new)),
-                            ));
-                        }
-                        _ => {
-                            if let Some((renderer, pokemon)) =
-                                match pokemon.team() == self.local.player.id() {
-                                    true => {
-                                        self.local.player.replace(pokemon.index(), Some(new));
-                                        let renderer = &mut self.local.renderer[pokemon.index()];
-                                        let pokemon = self.local.player.active(pokemon.index());
-                                        let id = pokemon.map(|p| p.pokemon.id);
-                                        renderer.status.update_gui(pokemon, None, true);
+                ServerMessage::Replace(Indexed(pokemon, new)) => match &mut self.state {
+                    BattlePlayerState::Moving(queue) => {
+                        queue
+                            .actions
+                            .push_back(Indexed(pokemon, BattleClientGuiAction::Replace(Some(new))));
+                    }
+                    _ => {
+                        if let Some((renderer, pokemon)) =
+                            match pokemon.team() == self.local.player.id() {
+                                true => {
+                                    self.local.player.replace(pokemon.index(), Some(new));
+                                    let renderer = &mut self.local.renderer[pokemon.index()];
+                                    let pokemon = self.local.player.active(pokemon.index());
+                                    let id = pokemon.map(|p| p.pokemon.id);
+                                    renderer.status.update_gui(pokemon, None, true);
+                                    Some((renderer, id))
+                                }
+                                false => {
+                                    if let Some(remote) = self.remotes.get_mut(pokemon.team()) {
+                                        remote.player.replace(pokemon.index(), Some(new));
+                                        let renderer = &mut remote.renderer[pokemon.index()];
+                                        let pokemon = remote
+                                            .player
+                                            .active(pokemon.index())
+                                            .map(|u| u as &dyn GuiPokemonView<P, M, I>);
+                                        let id = pokemon.map(|v| v.pokemon().id);
+                                        renderer.status.update_gui_view(pokemon, None, true);
                                         Some((renderer, id))
-                                    }
-                                    false => {
-                                        if let Some(remote) = self.remotes.get_mut(pokemon.team()) {
-                                            remote.player.replace(pokemon.index(), Some(new));
-                                            let renderer = &mut remote.renderer[pokemon.index()];
-                                            let pokemon = remote
-                                                .player
-                                                .active(pokemon.index())
-                                                .map(|u| u as &dyn GuiPokemonView<P, M, I>);
-                                            let id = pokemon.map(|v| v.pokemon().id);
-                                            renderer.status.update_gui_view(pokemon, None, true);
-                                            Some((renderer, id))
-                                        } else {
-                                            None
-                                        }
+                                    } else {
+                                        None
                                     }
                                 }
-                            {
-                                renderer.pokemon.new_pokemon(data, pokemon);
                             }
+                        {
+                            renderer.pokemon.new_pokemon(data, pokemon);
                         }
                     }
-                }
+                },
                 ServerMessage::AddRemote(Indexed(target, unknown)) => {
                     if let Some(party) = self.remotes.get_mut(target.team()) {
                         party.player.add(target.index(), unknown.init(pokedex));
@@ -543,7 +538,7 @@ impl<
                             Some(Indexed(user_id, action)) => {
                                 // log::trace!("set current");
 
-                                self.gui.text.clear();
+                                self.gui.text.pages.clear();
                                 self.gui.text.reset();
 
                                 let user = match user_id.team() == self.local.player.id() {
@@ -575,22 +570,23 @@ impl<
                                                             match movedex.try_get(&pokemon_move) {
                                                                 Some(pokemon_move) => {
                                                                     {
-                                                                        let user_active = user
-                                                                            .active_mut(
+                                                                        if let Some(user_active) =
+                                                                            user.active_mut(
                                                                                 user_id.index(),
                                                                             )
-                                                                            .unwrap();
+                                                                        {
+                                                                            user_active
+                                                                                .decrement_pp(
+                                                                                    &pokemon_move,
+                                                                                    pp,
+                                                                                );
 
-                                                                        user_active.decrement_pp(
-                                                                            &pokemon_move,
-                                                                            pp,
-                                                                        );
-
-                                                                        ui::text::on_move(
-                                                                            &mut self.gui.text,
-                                                                            &pokemon_move,
-                                                                            user_active.name(),
-                                                                        );
+                                                                            ui::text::on_move(
+                                                                                &mut self.gui.text,
+                                                                                &pokemon_move,
+                                                                                user_active.name(),
+                                                                            );
+                                                                        }
 
                                                                         // user_active.decrement_pp(pp);
                                                                     }
@@ -1254,5 +1250,20 @@ impl<
                 }
             }
         }
+    }
+}
+
+impl<
+        ID: Default + Eq + Hash,
+        P: Deref<Target = Pokemon> + Clone,
+        M: Deref<Target = Move> + Clone,
+        I: Deref<Target = Item> + Clone,
+    > Reset for BattlePlayerGui<ID, P, M, I>
+{
+    fn reset(&mut self) {
+        self.gui.reset();
+        self.local.reset();
+        self.remotes.clear();
+
     }
 }

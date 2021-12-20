@@ -1,7 +1,7 @@
 use engine::{
     graphics::{self, Color, ScalingMode},
     gui::{MessageBox, Panel},
-    text::{MessagePage},
+    text::MessagePage,
     utils::{Completable, Entity},
     Context, ContextBuilder, State,
 };
@@ -69,7 +69,8 @@ impl State for Game {
             wait: Some(1.0),
             color: Color::GOLD,
         };
-        self.messagebox.extend([page, page2]);
+        // self.messagebox.pages.push(page);
+        self.messagebox.pages.extend([page, page2]);
         self.messagebox.spawn();
         // Ok(())
     }

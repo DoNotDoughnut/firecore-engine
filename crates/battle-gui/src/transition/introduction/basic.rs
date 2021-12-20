@@ -85,7 +85,7 @@ impl BasicBattleIntroduction {
         text: &mut MessageBox,
         player: &GuiLocalPlayer<ID, P, M, I>,
     ) {
-        text.push(MessagePage {
+        text.pages.push(MessagePage {
             lines: vec![format!("Go! {}!", Self::concatenate(&player.player))],
             wait: Some(0.5),
             color: MessagePage::WHITE,
@@ -162,8 +162,8 @@ impl<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<
         opponent: &GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
-        text.clear();
-        text.push(MessagePage {
+        text.pages.clear();
+        text.pages.push(MessagePage {
             lines: vec![format!(
                 "Wild {} appeared!",
                 Self::concatenate(&opponent.player)

@@ -52,7 +52,7 @@ impl State for Game {
             wait: Some(1.0),
             color: MessagePage::BLACK,
         };
-        self.messagebox.extend([page, page2]);
+        self.messagebox.pages.extend([page, page2]);
         self.messagebox.spawn();
         // Ok(())
     }

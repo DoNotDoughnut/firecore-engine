@@ -53,20 +53,20 @@ impl<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<
         opponent: &GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
-        text.clear();
+        text.pages.clear();
 
         if let Some(id) = &opponent.npc_group {
             self.texture = Some(ctx.npc_group_textures.get(id).clone());
         }
 
         if let Some(name) = &opponent.player.name {
-            text.push(MessagePage {
+            text.pages.push(MessagePage {
                 lines: vec![name.to_owned(), "would like to battle!".to_owned()],
                 wait: None,
                 color: MessagePage::WHITE,
             });
 
-            text.push(MessagePage {
+            text.pages.push(MessagePage {
                 lines: vec![
                     format!("{} sent", name),
                     format!(
@@ -78,7 +78,7 @@ impl<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<
                 color: MessagePage::WHITE,
             });
         } else {
-            text.push(MessagePage {
+            text.pages.push(MessagePage {
                 lines: vec![String::from("No trainer data found!")],
                 wait: None,
                 color: MessagePage::WHITE,

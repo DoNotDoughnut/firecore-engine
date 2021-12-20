@@ -1,5 +1,5 @@
 use core::ops::Deref;
-use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
+use pokedex::{item::Item, moves::Move, pokemon::Pokemon, engine::utils::Reset};
 
 use pokedex::{
     engine::{
@@ -112,7 +112,8 @@ impl BattleIntroductionManager {
     }
 
     pub fn end(&mut self, text: &mut MessageBox) {
-        text.clear();
+        text.pages.clear();
+        text.reset();
     }
 
     pub fn update<

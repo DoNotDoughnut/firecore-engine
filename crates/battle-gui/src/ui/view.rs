@@ -1,5 +1,5 @@
 use core::ops::Deref;
-use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
+use pokedex::{item::Item, moves::Move, pokemon::Pokemon, engine::utils::Reset};
 
 use pokedex::{
     engine::{graphics::Color, math::vec2, Context},
@@ -37,6 +37,13 @@ impl<ID, P> ActivePlayer<ID, P> {
             renderer: Vec::new(),
             npc_group: None,
         }
+    }
+}
+
+impl<ID, P> Reset for ActivePlayer<ID, P> {
+    fn reset(&mut self) {
+        self.renderer.clear();
+        self.npc_group = None;
     }
 }
 

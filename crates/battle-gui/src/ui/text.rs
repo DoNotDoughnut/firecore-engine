@@ -19,7 +19,7 @@ pub fn new() -> MessageBox {
 }
 
 pub(crate) fn on_move(text: &mut MessageBox, pokemon_move: &Move, user: &str) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![format!("{} used {}!", user, pokemon_move.name)],
         wait: Some(0.5),
         color: MessagePage::WHITE,
@@ -28,7 +28,7 @@ pub(crate) fn on_move(text: &mut MessageBox, pokemon_move: &Move, user: &str) {
 
 pub(crate) fn on_effective(text: &mut MessageBox, effective: &Effective) {
     if effective != &Effective::Effective {
-        text.push(MessagePage {
+        text.pages.push(MessagePage {
             lines: vec![format!(
                 "It was {}{}",
                 effective,
@@ -45,7 +45,7 @@ pub(crate) fn on_effective(text: &mut MessageBox, effective: &Effective) {
 }
 
 pub(crate) fn on_crit(text: &mut MessageBox) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec!["It was a critical hit!".to_owned()],
         wait: Some(0.5),
         color: MessagePage::WHITE,
@@ -58,7 +58,7 @@ pub(crate) fn on_stat_stage(
     stat: BattleStatType,
     stage: Stage,
 ) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![
             format!("{}'s {} was", pokemon, stat),
             format!(
@@ -77,7 +77,7 @@ pub(crate) fn on_stat_stage(
 }
 
 pub(crate) fn on_status(text: &mut MessageBox, pokemon: &str, status: Ailment) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![
             format!("{} was afflicted", pokemon),
             format!("with {:?}", status),
@@ -88,7 +88,7 @@ pub(crate) fn on_status(text: &mut MessageBox, pokemon: &str, status: Ailment) {
 }
 
 pub(crate) fn on_miss(text: &mut MessageBox, pokemon: &str) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![format!("{} missed!", pokemon)],
         wait: Some(0.5),
         color: MessagePage::WHITE,
@@ -96,7 +96,7 @@ pub(crate) fn on_miss(text: &mut MessageBox, pokemon: &str) {
 }
 
 pub(crate) fn on_item(text: &mut MessageBox, target: &str, item: &Item) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![format!("A {} was used on {}", item.name, target,)],
         wait: Some(0.5),
         color: MessagePage::WHITE,
@@ -104,7 +104,7 @@ pub(crate) fn on_item(text: &mut MessageBox, target: &str, item: &Item) {
 }
 
 fn on_leave(text: &mut MessageBox, leaving: &str) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![format!("Come back, {}!", leaving)],
         wait: Some(0.5),
         color: MessagePage::WHITE,
@@ -117,7 +117,7 @@ pub(crate) fn on_switch(text: &mut MessageBox, leaving: &str, coming: &str) {
 }
 
 pub(crate) fn on_go(text: &mut MessageBox, coming: &str) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![format!("Go, {}!", coming)],
         wait: Some(0.5),
         color: MessagePage::WHITE,
@@ -129,7 +129,7 @@ pub(crate) fn on_replace(text: &mut MessageBox, user: &str, coming: Option<&str>
     //     on_leave(text, leaving);
     // }
     if let Some(coming) = coming {
-        text.push(MessagePage {
+        text.pages.push(MessagePage {
             lines: vec![format!("{} sent out {}!", user, coming)],
             wait: Some(0.5),
             color: MessagePage::WHITE,
@@ -138,7 +138,7 @@ pub(crate) fn on_replace(text: &mut MessageBox, user: &str, coming: Option<&str>
 }
 
 pub(crate) fn on_faint(text: &mut MessageBox, is_wild: bool, is_player: bool, pokemon: &str) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![
             match is_player {
                 true => pokemon.to_owned(),
@@ -159,7 +159,7 @@ pub(crate) fn on_faint(text: &mut MessageBox, is_wild: bool, is_player: bool, po
 }
 
 pub(crate) fn on_catch(text: &mut MessageBox, pokemon: &str) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![String::from("Gotcha!"), format!("{} was caught!", pokemon)],
         wait: None,
         color: MessagePage::WHITE,
@@ -172,7 +172,7 @@ pub(crate) fn on_gain_exp(
     experience: Experience,
     level: Level,
 ) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![
             format!("{} gained {} EXP. points", pokemon, experience),
             format!("and {} levels!", level),
@@ -183,7 +183,7 @@ pub(crate) fn on_gain_exp(
 }
 
 // pub(crate) fn on_level_up(text: &mut MessageBox, pokemon: &PokemonInstance, level: Level) {
-//     text.push(MessagePage::new(
+//     text.pages.push(MessagePage::new(
 //         vec![
 //             format!("{} grew to", pokemon.name()),
 //             format!("LV. {}!", level),
@@ -193,7 +193,7 @@ pub(crate) fn on_gain_exp(
 // }
 
 pub(crate) fn on_fail(text: &mut MessageBox, lines: Vec<String>) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines,
         wait: Some(0.5),
         color: MessagePage::WHITE,
@@ -201,7 +201,7 @@ pub(crate) fn on_fail(text: &mut MessageBox, lines: Vec<String>) {
 }
 
 pub(crate) fn on_flinch(text: &mut MessageBox, name: &str) {
-    text.push(MessagePage {
+    text.pages.push(MessagePage {
         lines: vec![format!("{} flinched!", name)],
         wait: Some(0.5),
         color: MessagePage::WHITE,
