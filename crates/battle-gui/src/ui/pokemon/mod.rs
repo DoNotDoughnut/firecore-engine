@@ -46,11 +46,7 @@ pub struct PokemonRenderer {
 }
 
 impl PokemonRenderer {
-    pub fn new(
-        ctx: &BattleGuiData,
-        index: BattleGuiPositionIndex,
-        side: PokemonTexture,
-    ) -> Self {
+    pub fn new(ctx: &BattleGuiData, index: BattleGuiPositionIndex, side: PokemonTexture) -> Self {
         Self {
             // moves: MoveRenderer::new(index.position),
             pokemon: None,

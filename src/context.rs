@@ -30,7 +30,6 @@ impl From<(ScalingMode, Option<f32>)> for Scaling {
     }
 }
 
-
 impl Context {
     pub fn set_debug(&mut self, debug: bool) {
         self.debug = debug;

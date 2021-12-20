@@ -1,11 +1,7 @@
 use battle::pokemon::stat::{BattleStatType, Stage};
 use pokedex::{
     ailment::Ailment,
-    engine::{
-        gui::MessageBox,
-        math::vec2,
-        text::{MessagePage},
-    },
+    engine::{gui::MessageBox, math::vec2, text::MessagePage},
     item::Item,
     moves::Move,
     pokemon::{Experience, Level},

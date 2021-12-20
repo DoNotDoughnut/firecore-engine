@@ -37,7 +37,7 @@ impl Spawner {
         Self {
             spawning: SpawnerState::None,
             x: 0.0,
-            id: id,
+            id,
             texture: ctx.pokeball.clone(),
         }
     }

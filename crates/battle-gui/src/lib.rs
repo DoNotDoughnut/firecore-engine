@@ -7,7 +7,8 @@ use context::BattleGuiData;
 
 use pokedex::{
     engine::log::{self, debug, warn},
-    item::ItemCategory, NpcGroupId,
+    item::ItemCategory,
+    NpcGroupId,
 };
 
 use pokedex::{
@@ -32,7 +33,7 @@ use battle::{
     moves::{damage::ClientDamage, BattleMove, ClientMove, ClientMoveAction},
     party::PlayerParty,
     pokemon::{Indexed, PokemonIdentifier},
-    prelude::{FailedAction, StartableAction},
+    prelude::{ClientPlayerData, FailedAction, StartableAction},
 };
 use ui::view::ActivePlayer;
 use view::GuiPokemonView;
@@ -105,12 +106,7 @@ impl<
         I: Deref<Target = Item> + Clone,
     > BattlePlayerGui<ID, P, M, I>
 {
-    pub fn new(
-        ctx: &mut Context,
-        btl: &BattleGuiData,
-        party: Rc<PartyGui>,
-        bag: Rc<BagGui>,
-    ) -> Self
+    pub fn new(ctx: &mut Context, btl: &BattleGuiData, party: Rc<PartyGui>, bag: Rc<BagGui>) -> Self
     where
         ID: Default,
     {
@@ -166,6 +162,75 @@ impl<
         self.client.send(ClientMessage::Forfeit);
     }
 
+    fn begin_with<'d>(
+        &mut self,
+        client: ClientPlayerData<ID>,
+        dex: &PokedexClientData,
+        btl: &BattleGuiData,
+        random: &mut impl rand::Rng,
+        pokedex: &'d dyn Dex<'d, Pokemon, P>,
+        movedex: &'d dyn Dex<'d, Move, M>,
+        itemdex: &'d dyn Dex<'d, Item, I>,
+    ) {
+        let data = client.data;
+        self.remotes = client
+            .remotes
+            .into_iter()
+            .map(|player| {
+                let player = PlayerParty {
+                    id: player.id,
+                    name: player.name,
+                    active: player.active,
+                    pokemon: player
+                        .pokemon
+                        .into_iter()
+                        .map(|u| u.map(|u| u.init(pokedex).unwrap()))
+                        .collect(),
+                };
+                (
+                    player.id.clone(),
+                    ActivePlayer {
+                        renderer: ActivePlayer::remote(&player, btl, dex),
+                        data,
+                        player,
+                        npc_group: None,
+                    },
+                )
+            })
+            .collect();
+
+        let groups = std::mem::take(&mut self.groups);
+
+        let player = battle::party::PlayerParty {
+            name: client.local.name,
+            id: client.local.id,
+            active: client.local.active,
+            pokemon: client
+                .local
+                .pokemon
+                .into_iter()
+                .flat_map(|p| p.init(random, pokedex, movedex, itemdex))
+                .collect(),
+        };
+
+        let mut local = ActivePlayer {
+            renderer: ActivePlayer::local(&player, btl, dex),
+            data: client.data,
+            npc_group: None,
+            player,
+        };
+
+        for (id, group) in groups.into_iter() {
+            if id == local.player.id {
+                local.npc_group = Some(group);
+            } else if let Some(remote) = self.remotes.get_mut(&id) {
+                remote.npc_group = Some(group);
+            }
+        }
+
+        self.local = Some(local);
+    }
+
     pub fn process<'d>(
         &mut self,
         random: &mut impl rand::Rng,
@@ -178,66 +243,7 @@ impl<
         while let Ok(message) = self.client.receiver.try_recv() {
             match message {
                 ServerMessage::Begin(client) => {
-                    let data = client.data.clone();
-                    self.remotes = client
-                        .remotes
-                        .into_iter()
-                        .map(|player| {
-                            let player = PlayerParty {
-                                id: player.id,
-                                name: player.name,
-                                active: player.active,
-                                pokemon: player
-                                    .pokemon
-                                    .into_iter()
-                                    .flat_map(|u| u.map(|u| u.init(pokedex)))
-                                    .collect(),
-                            };
-                            (
-                                player.id.clone(),
-                                ActivePlayer {
-                                    renderer: ActivePlayer::remote(&player, btl, dex),
-                                    data: data.clone(),
-                                    player,
-                                    npc_group: None,
-                                },
-                            )
-                        })
-                        .collect();
-                    
-                    let groups = std::mem::take(&mut self.groups);
-
-                    let player = battle::party::PlayerParty {
-                        name: client.local.name,
-                        id: client.local.id,
-                        active: client.local.active,
-                        pokemon: client
-                            .local
-                            .pokemon
-                            .into_iter()
-                            .flat_map(|p| p.init(random, pokedex, movedex, itemdex))
-                            .collect(),
-                    };
-
-                    let mut local = ActivePlayer {
-                        renderer: ActivePlayer::local(&player, btl, dex),
-                        data: client.data,
-                        npc_group: None,
-                        player,
-                    };
-
-                    for (id, group) in groups.into_iter() {
-                        
-                        if id == local.player.id {
-                            local.npc_group = Some(group);
-                        } else if let Some(remote) = self.remotes.get_mut(&id) {
-                            remote.npc_group = Some(group);
-                        }
-
-                    }
-
-                    self.local = Some(local);
-
+                    self.begin_with(client, dex, btl, random, pokedex, movedex, itemdex)
                 }
                 message => match self.local.as_mut() {
                     Some(local) => match message {
@@ -365,7 +371,7 @@ impl<
                                 dex,
                                 state,
                                 local.data.type_,
-                                &self.remotes.values().next().unwrap(),
+                                self.remotes.values().next().unwrap(),
                             );
                             if !matches!(local.data.type_, BattleType::Wild) {
                                 self.gui.trainer.spawn(
@@ -389,7 +395,7 @@ impl<
                                 state,
                                 local.data.type_,
                                 local,
-                                &self.remotes.values().next().unwrap(),
+                                self.remotes.values().next().unwrap(),
                                 &mut self.gui.text,
                             );
                             self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
@@ -400,7 +406,7 @@ impl<
                                 ctx,
                                 delta,
                                 local,
-                                &mut self.remotes.values_mut().next().unwrap(),
+                                self.remotes.values_mut().next().unwrap(),
                                 &mut self.gui.text,
                             );
                             self.gui.trainer.update(delta);
@@ -690,7 +696,7 @@ impl<
                                                                                             target.set_level(level);
                                                                                             target.set_exp(experience);
                                                                                             if let Some(user_pokemon) = target.instance() {
-                                                                                                let moves = user_pokemon.on_level_up(movedex, previous).flat_map(|id| movedex.try_get(&id)).collect();
+                                                                                                let moves = user_pokemon.on_level_up(movedex, previous).flat_map(|id| movedex.try_get(id)).collect();
                                                                                                 queue.actions.push_front(Indexed(target_id.clone(), BattleClientGuiAction::SetExp(previous, experience, moves)));
                                                                                             }
                                                                                         }
@@ -1266,7 +1272,7 @@ impl<
                         }
                     }
                     BattlePlayerState::PlayerEnd | BattlePlayerState::GameEnd(..) => (),
-                    BattlePlayerState::Closing(state) => (),
+                    BattlePlayerState::Closing(_state) => (),
                 },
                 None => todo!(),
             },
@@ -1314,9 +1320,9 @@ impl<
                     }
                     BattlePlayerState::Select(index, ..) => {
                         if self.party.alive() {
-                            self.party.draw(ctx, &party);
+                            self.party.draw(ctx, party);
                         } else if self.bag.alive() {
-                            self.bag.draw(ctx, dex, &bag);
+                            self.bag.draw(ctx, dex, bag);
                         } else {
                             for (current, active) in local.renderer.iter().enumerate() {
                                 if &current == index {
@@ -1362,7 +1368,7 @@ impl<
                         self.gui.trainer.draw(ctx);
                         self.gui.draw_panel(ctx);
                         self.gui.text.draw(ctx);
-                    },
+                    }
                 }
             }
         }

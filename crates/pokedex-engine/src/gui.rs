@@ -16,7 +16,8 @@ impl IntegerStr4 {
         Ok(Self(Cell::new(Some(to_ascii4(integer)?))))
     }
     pub fn update(&self, integer: u16) -> Result<(), Error> {
-        Ok(self.0.set(Some(to_ascii4(integer)?)))
+        self.0.set(Some(to_ascii4(integer)?));
+        Ok(())
     }
     pub fn update_or_default(&self, integer: u16) {
         self.0.set(to_ascii4(integer).ok())

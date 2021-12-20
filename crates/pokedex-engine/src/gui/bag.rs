@@ -52,7 +52,10 @@ impl BagGui {
         }
     }
 
-    fn get_item_at_cursor<'a, I: Deref<Target = Item> + 'a>(&self, items: &'a OwnedBag<I>) -> Option<&'a ItemId> {
+    fn get_item_at_cursor<'a, I: Deref<Target = Item> + 'a>(
+        &self,
+        items: &'a OwnedBag<I>,
+    ) -> Option<&'a ItemId> {
         let cursor = self.cursor.get();
         for (index, stack) in items.iter().enumerate() {
             if index == cursor {
@@ -79,9 +82,7 @@ impl BagGui {
                 }
                 if pressed(ctx, Control::A) {
                     match cursor {
-                        0 => {
-                            
-                        }
+                        0 => {}
                         1 => (), // cancel
                         _ => unreachable!("Selected an option that is not use/cancel"),
                     }
@@ -107,10 +108,8 @@ impl BagGui {
                 if pressed(ctx, Control::Up) && cursor > 0 {
                     self.cursor.set(cursor - 1);
                 }
-                if pressed(ctx, Control::Down) {
-                    if cursor < items.len() {
-                        self.cursor.set(cursor + 1);
-                    }
+                if pressed(ctx, Control::Down) && cursor < items.len() {
+                    self.cursor.set(cursor + 1);
                 }
             }
         }
@@ -180,7 +179,7 @@ impl BagGui {
                 146.0,
                 HEIGHT,
                 94.0,
-                &BATTLE_OPTIONS,
+                BATTLE_OPTIONS,
                 self.select_cursor.get(),
                 true,
                 true,
@@ -208,7 +207,7 @@ impl BagGui {
         selected
             .map(|selected| {
                 self.selected.set(None);
-                let item = bag.try_take(&selected, 1).map(|stack| stack.item.clone());
+                let item = bag.try_take(&selected, 1).map(|stack| stack.item);
                 self.despawn();
                 item
             })

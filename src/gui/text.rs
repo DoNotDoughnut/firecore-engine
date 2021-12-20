@@ -47,7 +47,6 @@ impl MessageBox {
         }
     }
 
-
     pub fn page(&self) -> usize {
         self.page
     }

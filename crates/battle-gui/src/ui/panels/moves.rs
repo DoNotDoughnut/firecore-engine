@@ -43,38 +43,36 @@ impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
     }
 
     pub fn input(&mut self, ctx: &Context) -> bool {
-        if {
-            if pressed(ctx, Control::Up) {
-                if self.cursor >= 2 {
-                    self.cursor -= 2;
-                    true
-                } else {
-                    false
-                }
-            } else if pressed(ctx, Control::Down) {
-                if self.cursor <= 2 {
-                    self.cursor += 2;
-                    true
-                } else {
-                    false
-                }
-            } else if pressed(ctx, Control::Left) {
-                if self.cursor > 0 {
-                    self.cursor -= 1;
-                    true
-                } else {
-                    false
-                }
-            } else if pressed(ctx, Control::Right) {
-                if self.cursor < 3 {
-                    self.cursor += 1;
-                    true
-                } else {
-                    false
-                }
+        if if pressed(ctx, Control::Up) {
+            if self.cursor >= 2 {
+                self.cursor -= 2;
+                true
             } else {
                 false
             }
+        } else if pressed(ctx, Control::Down) {
+            if self.cursor <= 2 {
+                self.cursor += 2;
+                true
+            } else {
+                false
+            }
+        } else if pressed(ctx, Control::Left) {
+            if self.cursor > 0 {
+                self.cursor -= 1;
+                true
+            } else {
+                false
+            }
+        } else if pressed(ctx, Control::Right) {
+            if self.cursor < 3 {
+                self.cursor += 1;
+                true
+            } else {
+                false
+            }
+        } else {
+            false
         } {
             if self.cursor >= self.names.len() {
                 self.cursor = self.names.len() - 1;
@@ -96,7 +94,7 @@ impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
                 &pokemon_move.name,
                 16.0 + x_offset,
                 121.0 + y_offset,
-                DrawParams::color((*color).into()),
+                DrawParams::color(*color),
             );
             if index == self.cursor {
                 draw_cursor(ctx, 10.0 + x_offset, 123.0 + y_offset, Default::default());

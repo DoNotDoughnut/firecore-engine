@@ -145,10 +145,8 @@ impl PartyGui {
             if pressed(ctx, Control::Up) && cursor > 1 {
                 self.cursor.set(cursor - 1);
             }
-            if pressed(ctx, Control::Down) {
-                if cursor < party.len() - 1 {
-                    self.cursor.set(cursor + 1);
-                }
+            if pressed(ctx, Control::Down) && cursor < party.len() - 1 {
+                self.cursor.set(cursor + 1);
             }
             if pressed(ctx, Control::Left) && cursor != 0 {
                 self.right_cursor.set(Some(cursor));

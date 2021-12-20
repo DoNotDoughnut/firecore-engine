@@ -260,18 +260,16 @@ impl PokemonStatusGui {
         if self.data.active {
             if self.small {
                 self.exp.update_exp(pokemon.level, pokemon, true)
-            } else {
-                if self.exp.update(delta) {
-                    self.data.level.1 += 1;
-                    self.data.level.0 = Self::level_fmt(self.data.level.1);
-                    let base = Pokemon::base_hp(
-                        pokemon.pokemon.base.hp,
-                        pokemon.ivs.hp,
-                        pokemon.evs.hp,
-                        self.data.level.1,
-                    );
-                    self.data.update_health(pokemon.hp(), base);
-                }
+            } else if self.exp.update(delta) {
+                self.data.level.1 += 1;
+                self.data.level.0 = Self::level_fmt(self.data.level.1);
+                let base = Pokemon::base_hp(
+                    pokemon.pokemon.base.hp,
+                    pokemon.ivs.hp,
+                    pokemon.evs.hp,
+                    self.data.level.1,
+                );
+                self.data.update_health(pokemon.hp(), base);
             }
             self.health.0.resize(pokemon.percent_hp(), false);
             self.health.0.update(delta);
@@ -335,57 +333,55 @@ impl PokemonStatusGui {
     }
 
     pub fn draw(&self, ctx: &mut Context, offset: f32, bounce: f32) {
-        if self.alive {
-            if self.data.active {
-                let should_bounce =
-                    !self.data.health.is_empty() || matches!(self.position, BattleGuiPosition::Top);
-                let pos = vec2(
-                    self.origin.x + offset + if should_bounce { 0.0 } else { bounce },
-                    self.origin.y + if should_bounce { bounce } else { 0.0 },
-                );
+        if self.alive && self.data.active {
+            let should_bounce =
+                !self.data.health.is_empty() || matches!(self.position, BattleGuiPosition::Top);
+            let pos = vec2(
+                self.origin.x + offset + if should_bounce { 0.0 } else { bounce },
+                self.origin.y + if should_bounce { bounce } else { 0.0 },
+            );
 
-                if let Some(background) = self.background.as_ref() {
-                    if let Some(padding) = &background.0 {
-                        padding.draw(ctx, pos.x + 8.0, pos.y + 21.0, Default::default());
-                    }
-                    background.1.draw(ctx, pos.x, pos.y, Default::default());
+            if let Some(background) = self.background.as_ref() {
+                if let Some(padding) = &background.0 {
+                    padding.draw(ctx, pos.x + 8.0, pos.y + 21.0, Default::default());
                 }
+                background.1.draw(ctx, pos.x, pos.y, Default::default());
+            }
 
-                let x2 = pos.x + self.data_pos.level;
-                let y = pos.y + 2.0;
+            let x2 = pos.x + self.data_pos.level;
+            let y = pos.y + 2.0;
 
-                draw_text_left(
-                    ctx,
-                    &0,
-                    &self.data.name,
-                    pos.x + self.data_pos.name,
-                    y,
-                    DrawParams::color(MessagePage::BLACK),
-                );
+            draw_text_left(
+                ctx,
+                &0,
+                &self.data.name,
+                pos.x + self.data_pos.name,
+                y,
+                DrawParams::color(MessagePage::BLACK),
+            );
 
+            draw_text_right(
+                ctx,
+                &0,
+                &self.data.level.0,
+                x2,
+                y,
+                DrawParams::color(MessagePage::BLACK),
+            );
+
+            if !self.small {
+                self.exp.draw(ctx, pos + Self::EXP_OFFSET);
                 draw_text_right(
                     ctx,
                     &0,
-                    &self.data.level.0,
+                    &self.data.health,
                     x2,
-                    y,
+                    y + 18.0,
                     DrawParams::color(MessagePage::BLACK),
                 );
-
-                if !self.small {
-                    self.exp.draw(ctx, pos + Self::EXP_OFFSET);
-                    draw_text_right(
-                        ctx,
-                        &0,
-                        &self.data.health,
-                        x2,
-                        y + 18.0,
-                        DrawParams::color(MessagePage::BLACK),
-                    );
-                }
-
-                self.health.0.draw(ctx, pos + self.health.1);
             }
+
+            self.health.0.draw(ctx, pos + self.health.1);
         }
     }
 }

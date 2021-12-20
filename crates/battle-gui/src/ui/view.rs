@@ -59,45 +59,64 @@ impl ActivePokemonRenderer {
 impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
     ActivePlayer<ID, OwnedPokemon<P, M, I>>
 {
-    pub fn local(player: &PlayerParty<ID, usize, OwnedPokemon<P, M, I>>, ctx: &BattleGuiData, data: &PokedexClientData) -> Vec<ActivePokemonRenderer> {
+    pub fn local(
+        player: &PlayerParty<ID, usize, OwnedPokemon<P, M, I>>,
+        ctx: &BattleGuiData,
+        data: &PokedexClientData,
+    ) -> Vec<ActivePokemonRenderer> {
         let size = player.active.len() as u8;
 
-        player.active.iter().enumerate().map(|(i, index)| {
-            let position = BattleGuiPositionIndex::new(BattleGuiPosition::Bottom, i as u8, size);
-            let pokemon = (*index).map(|index| &player.pokemon[index]);
-            ActivePokemonRenderer {
-                pokemon: PokemonRenderer::with(
-                    ctx,
-                    data,
-                    position,
-                    pokemon.map(|pokemon| *pokemon.pokemon.id()),
-                    PokemonTexture::Back,
-                ),
-                status: PokemonStatusGui::with_known(ctx, data, position, pokemon),
-            }
-        }).collect()
+        player
+            .active
+            .iter()
+            .enumerate()
+            .map(|(i, index)| {
+                let position =
+                    BattleGuiPositionIndex::new(BattleGuiPosition::Bottom, i as u8, size);
+                let pokemon = (*index).map(|index| &player.pokemon[index]);
+                ActivePokemonRenderer {
+                    pokemon: PokemonRenderer::with(
+                        ctx,
+                        data,
+                        position,
+                        pokemon.map(|pokemon| *pokemon.pokemon.id()),
+                        PokemonTexture::Back,
+                    ),
+                    status: PokemonStatusGui::with_known(ctx, data, position, pokemon),
+                }
+            })
+            .collect()
     }
 }
 
 impl<ID, P: Deref<Target = Pokemon>> ActivePlayer<ID, Option<UnknownPokemon<P>>> {
-    pub fn remote(player: &PlayerParty<ID, usize, Option<UnknownPokemon<P>>>, ctx: &BattleGuiData, data: &PokedexClientData) -> Vec<ActivePokemonRenderer> {
+    pub fn remote(
+        player: &PlayerParty<ID, usize, Option<UnknownPokemon<P>>>,
+        ctx: &BattleGuiData,
+        data: &PokedexClientData,
+    ) -> Vec<ActivePokemonRenderer> {
         let size = player.active.len() as u8;
 
-        player.active.iter().enumerate().map(|(i, index)| {
-            let position = BattleGuiPositionIndex::new(BattleGuiPosition::Top, i as u8, size);
-            let pokemon = (*index)
-                .map(|index| player.pokemon[index].as_ref())
-                .flatten();
-            ActivePokemonRenderer {
-                pokemon: PokemonRenderer::with(
-                    ctx,
-                    data,
-                    position,
-                    pokemon.map(|pokemon| *pokemon.pokemon.id()),
-                    PokemonTexture::Front,
-                ),
-                status: PokemonStatusGui::with_unknown(ctx, data, position, pokemon),
-            }
-        }).collect()
+        player
+            .active
+            .iter()
+            .enumerate()
+            .map(|(i, index)| {
+                let position = BattleGuiPositionIndex::new(BattleGuiPosition::Top, i as u8, size);
+                let pokemon = (*index)
+                    .map(|index| player.pokemon[index].as_ref())
+                    .flatten();
+                ActivePokemonRenderer {
+                    pokemon: PokemonRenderer::with(
+                        ctx,
+                        data,
+                        position,
+                        pokemon.map(|pokemon| *pokemon.pokemon.id()),
+                        PokemonTexture::Front,
+                    ),
+                    status: PokemonStatusGui::with_unknown(ctx, data, position, pokemon),
+                }
+            })
+            .collect()
     }
 }

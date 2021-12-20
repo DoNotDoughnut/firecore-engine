@@ -1,5 +1,5 @@
 use core::ops::Deref;
-use pokedex::{item::Item, moves::Move, pokemon::Pokemon, engine::utils::Reset};
+use pokedex::{engine::utils::Reset, item::Item, moves::Move, pokemon::Pokemon};
 
 use pokedex::{
     engine::{
@@ -151,12 +151,7 @@ impl BattleIntroductionManager {
         self.get::<ID, P, M, I>().draw(ctx, player, opponent);
     }
 
-    fn get<
-        ID,
-        P: Deref<Target = Pokemon>,
-        M: Deref<Target = Move>,
-        I: Deref<Target = Item>,
-    >(
+    fn get<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>(
         &self,
     ) -> &dyn BattleIntroduction<ID, P, M, I> {
         match self.current {
@@ -165,12 +160,7 @@ impl BattleIntroductionManager {
         }
     }
 
-    fn get_mut<
-        ID,
-        P: Deref<Target = Pokemon>,
-        M: Deref<Target = Move>,
-        I: Deref<Target = Item>,
-    >(
+    fn get_mut<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>(
         &mut self,
     ) -> &mut dyn BattleIntroduction<ID, P, M, I> {
         match self.current {

@@ -70,7 +70,7 @@ impl BasicBattleIntroduction {
                     string.push_str(" and ");
                 }
             }
-            string.push_str(&instance.name());
+            string.push_str(instance.name());
         }
         string
     }

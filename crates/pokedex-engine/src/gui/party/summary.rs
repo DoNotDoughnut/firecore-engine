@@ -167,7 +167,7 @@ impl SummaryGui {
                         draw_text_center(
                             ctx,
                             &0,
-                            &display.name,
+                            display.name,
                             false,
                             x + 16.0,
                             52.0,
