@@ -6,7 +6,7 @@ use pokedex::{engine::Context, PokedexClientData};
 use battle::data::BattleType;
 
 use crate::{
-    context::BattleGuiContext,
+    context::BattleGuiData,
     transition::TransitionState,
     ui::view::{ActivePokemonRenderer, GuiRemotePlayer},
 };
@@ -21,7 +21,7 @@ pub struct BattleOpenerManager {
 }
 
 impl BattleOpenerManager {
-    pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
+    pub fn new(ctx: &mut Context, gui: &BattleGuiData) -> Self {
         Self {
             current: Openers::default(),
 
@@ -30,7 +30,7 @@ impl BattleOpenerManager {
         }
     }
 
-    pub fn begin<ID: Default, P: Deref<Target = Pokemon>>(
+    pub fn begin<ID, P: Deref<Target = Pokemon>>(
         &mut self,
         ctx: &PokedexClientData,
         state: &mut TransitionState,
@@ -52,7 +52,7 @@ impl BattleOpenerManager {
     //     *state = TransitionState::Begin;
     // }
 
-    pub fn update<ID: Default, P: Deref<Target = Pokemon>>(
+    pub fn update<ID, P: Deref<Target = Pokemon>>(
         &mut self,
         state: &mut TransitionState,
         delta: f32,
@@ -64,7 +64,7 @@ impl BattleOpenerManager {
         }
     }
 
-    pub fn draw_below_panel<ID: Default, P: Deref<Target = Pokemon>>(
+    pub fn draw_below_panel<ID, P: Deref<Target = Pokemon>>(
         &self,
         ctx: &mut Context,
         player: &[ActivePokemonRenderer],
@@ -73,22 +73,22 @@ impl BattleOpenerManager {
         self.get::<ID, P>().draw_below_panel(ctx, player, opponent);
     }
 
-    pub fn draw<ID: Default, P: Deref<Target = Pokemon>>(&self, ctx: &mut Context) {
+    pub fn draw<ID, P: Deref<Target = Pokemon>>(&self, ctx: &mut Context) {
         self.get::<ID, P>().draw(ctx);
     }
 
-    pub fn offset<ID: Default, P: Deref<Target = Pokemon>>(&self) -> f32 {
+    pub fn offset<ID, P: Deref<Target = Pokemon>>(&self) -> f32 {
         self.get::<ID, P>().offset()
     }
 
-    fn get<ID: Default, P: Deref<Target = Pokemon>>(&self) -> &dyn BattleOpener<ID, P> {
+    fn get<ID, P: Deref<Target = Pokemon>>(&self) -> &dyn BattleOpener<ID, P> {
         match self.current {
             Openers::Wild => &self.wild,
             Openers::Trainer => &self.trainer,
         }
     }
 
-    fn get_mut<ID: Default, P: Deref<Target = Pokemon>>(&mut self) -> &mut dyn BattleOpener<ID, P> {
+    fn get_mut<ID, P: Deref<Target = Pokemon>>(&mut self) -> &mut dyn BattleOpener<ID, P> {
         match self.current {
             Openers::Wild => &mut self.wild,
             Openers::Trainer => &mut self.trainer,

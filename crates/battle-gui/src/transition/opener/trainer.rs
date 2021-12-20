@@ -11,7 +11,7 @@ use pokedex::{
 };
 
 use crate::{
-    context::BattleGuiContext,
+    context::BattleGuiData,
     ui::view::{ActivePokemonRenderer, GuiRemotePlayer},
 };
 
@@ -23,7 +23,7 @@ pub struct TrainerBattleOpener {
 }
 
 impl TrainerBattleOpener {
-    pub fn new(ctx: &BattleGuiContext) -> Self {
+    pub fn new(ctx: &BattleGuiData) -> Self {
         Self {
             opener: DefaultBattleOpener::new(ctx),
             trainer: None,
@@ -31,7 +31,7 @@ impl TrainerBattleOpener {
     }
 }
 
-impl<ID: Default, P: Deref<Target = Pokemon>> BattleOpener<ID, P> for TrainerBattleOpener {
+impl<ID, P: Deref<Target = Pokemon>> BattleOpener<ID, P> for TrainerBattleOpener {
     fn spawn(&mut self, ctx: &PokedexClientData, opponent: &GuiRemotePlayer<ID, P>) {
         if let Some(id) = &opponent.npc_group {
             self.trainer = Some(ctx.npc_group_textures.get(id).clone());

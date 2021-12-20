@@ -13,7 +13,7 @@ use pokedex::{
 use battle::data::BattleType;
 
 use crate::{
-    context::BattleGuiContext,
+    context::BattleGuiData,
     ui::view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer},
 };
 
@@ -37,7 +37,7 @@ impl Default for Introductions {
 }
 
 pub(crate) trait BattleIntroduction<
-    ID: Default,
+    ID,
     P: Deref<Target = Pokemon>,
     M: Deref<Target = Move>,
     I: Deref<Target = Item>,
@@ -77,7 +77,7 @@ pub struct BattleIntroductionManager {
 }
 
 impl BattleIntroductionManager {
-    pub fn new(ctx: &BattleGuiContext) -> Self {
+    pub fn new(ctx: &BattleGuiData) -> Self {
         Self {
             current: Introductions::default(),
 
@@ -87,7 +87,7 @@ impl BattleIntroductionManager {
     }
 
     pub fn begin<
-        ID: Default,
+        ID,
         P: Deref<Target = Pokemon>,
         M: Deref<Target = Move>,
         I: Deref<Target = Item>,
@@ -117,7 +117,7 @@ impl BattleIntroductionManager {
     }
 
     pub fn update<
-        ID: Default,
+        ID,
         P: Deref<Target = Pokemon>,
         M: Deref<Target = Move>,
         I: Deref<Target = Item>,
@@ -138,7 +138,7 @@ impl BattleIntroductionManager {
     }
 
     pub fn draw<
-        ID: Default,
+        ID,
         P: Deref<Target = Pokemon>,
         M: Deref<Target = Move>,
         I: Deref<Target = Item>,
@@ -152,7 +152,7 @@ impl BattleIntroductionManager {
     }
 
     fn get<
-        ID: Default,
+        ID,
         P: Deref<Target = Pokemon>,
         M: Deref<Target = Move>,
         I: Deref<Target = Item>,
@@ -166,7 +166,7 @@ impl BattleIntroductionManager {
     }
 
     fn get_mut<
-        ID: Default,
+        ID,
         P: Deref<Target = Pokemon>,
         M: Deref<Target = Move>,
         I: Deref<Target = Item>,

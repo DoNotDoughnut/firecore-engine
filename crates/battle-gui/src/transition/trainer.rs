@@ -5,7 +5,7 @@ use pokedex::engine::{
     Context,
 };
 
-use crate::context::BattleGuiContext;
+use crate::context::BattleGuiData;
 
 use super::TransitionState;
 
@@ -26,7 +26,7 @@ impl BattleTrainerPartyIntro {
     const RIGHT_BALL_POSITION: f32 = 76.0;
     const OPACITY_LEN: f32 = 128.0;
 
-    pub fn new(btl: &BattleGuiContext) -> Self {
+    pub fn new(btl: &BattleGuiData) -> Self {
         Self {
             state: None,
             bar: btl.bar.clone(),

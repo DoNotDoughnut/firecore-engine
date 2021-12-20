@@ -21,7 +21,7 @@ use battle::pokemon::remote::UnknownPokemon;
 use log::warn;
 
 use crate::{
-    context::BattleGuiContext,
+    context::BattleGuiData,
     ui::{exp_bar::ExperienceBar, BattleGuiPosition, BattleGuiPositionIndex},
     view::{BasePokemonView, GuiPokemonView},
 };
@@ -64,7 +64,7 @@ impl PokemonStatusGui {
     const HEALTH_Y: f32 = 15.0;
 
     pub fn new<'d>(
-        ctx: &BattleGuiContext,
+        ctx: &BattleGuiData,
         dex: &PokedexClientData,
         index: BattleGuiPositionIndex,
     ) -> Self {
@@ -87,7 +87,7 @@ impl PokemonStatusGui {
     }
 
     pub fn with_known<P: Deref<Target = Pokemon>, M, I, G>(
-        ctx: &BattleGuiContext,
+        ctx: &BattleGuiData,
         dex: &PokedexClientData,
         index: BattleGuiPositionIndex,
         pokemon: Option<&OwnablePokemon<P, M, I, G, Health>>,
@@ -122,7 +122,7 @@ impl PokemonStatusGui {
     }
 
     pub fn with_unknown<P: Deref<Target = Pokemon>>(
-        ctx: &BattleGuiContext,
+        ctx: &BattleGuiData,
         dex: &PokedexClientData,
         index: BattleGuiPositionIndex,
         pokemon: Option<&UnknownPokemon<P>>,
@@ -170,7 +170,7 @@ impl PokemonStatusGui {
     const EXP_OFFSET: Vec2 = vec2(32.0, 33.0);
 
     fn attributes(
-        ctx: &BattleGuiContext,
+        ctx: &BattleGuiData,
         index: BattleGuiPositionIndex,
     ) -> (
         (

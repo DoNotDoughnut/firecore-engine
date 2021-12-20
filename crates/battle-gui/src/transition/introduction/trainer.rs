@@ -15,7 +15,7 @@ use pokedex::{
 use battle::data::BattleType;
 
 use crate::{
-    context::BattleGuiContext,
+    context::BattleGuiData,
     ui::view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer},
 };
 
@@ -32,7 +32,7 @@ pub struct TrainerBattleIntroduction {
 impl TrainerBattleIntroduction {
     const FINAL_TRAINER_OFFSET: f32 = 126.0;
 
-    pub fn new(ctx: &BattleGuiContext) -> Self {
+    pub fn new(ctx: &BattleGuiData) -> Self {
         Self {
             introduction: BasicBattleIntroduction::new(ctx),
             texture: None,
@@ -42,7 +42,7 @@ impl TrainerBattleIntroduction {
     }
 }
 
-impl<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
+impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
     BattleIntroduction<ID, P, M, I> for TrainerBattleIntroduction
 {
     fn spawn(

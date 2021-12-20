@@ -9,7 +9,7 @@ use pokedex::{
     CRY_ID,
 };
 
-use crate::context::BattleGuiContext;
+use crate::context::BattleGuiData;
 
 #[derive(Clone)]
 pub struct Spawner {
@@ -33,7 +33,7 @@ impl Spawner {
     const OFFSET: f32 = -5.0;
     const PARABOLA_ORIGIN: f32 = (Self::LEN / 3.0);
 
-    pub fn new(ctx: &BattleGuiContext, id: Option<PokemonId>) -> Self {
+    pub fn new(ctx: &BattleGuiData, id: Option<PokemonId>) -> Self {
         Self {
             spawning: SpawnerState::None,
             x: 0.0,

@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 use crate::{error::ImageError, graphics::Color, Context};
 
 pub extern crate firecore_font_builder as font;

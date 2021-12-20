@@ -1,6 +1,6 @@
 use pokedex::engine::{graphics::Texture, Context};
 
-use crate::context::BattleGuiContext;
+use crate::context::BattleGuiData;
 
 pub struct BattleBackground {
     background: Texture,
@@ -9,7 +9,7 @@ pub struct BattleBackground {
 }
 
 impl BattleBackground {
-    pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
+    pub fn new(ctx: &mut Context, gui: &BattleGuiData) -> Self {
         Self {
             background: Texture::new(ctx, include_bytes!("../../assets/background.png")).unwrap(),
             ground: Texture::new(ctx, include_bytes!("../../assets/ground.png")).unwrap(),

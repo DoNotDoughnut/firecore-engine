@@ -14,7 +14,7 @@ use pokedex::{
 };
 
 use crate::{
-    context::BattleGuiContext,
+    context::BattleGuiData,
     ui::view::{ActivePokemonRenderer, GuiRemotePlayer},
 };
 
@@ -31,7 +31,7 @@ impl WildBattleOpener {
     const LIGHTGRAY: Color = Color::rgb(0.78, 0.78, 0.78);
     const GRASS_WIDTH: f32 = 128.0;
     const GRASS_HEIGHT: f32 = 47.0;
-    pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
+    pub fn new(ctx: &mut Context, gui: &BattleGuiData) -> Self {
         Self {
             opener: DefaultBattleOpener::new(gui),
             grass: Texture::new(ctx, include_bytes!("../../../assets/grass.png")).unwrap(),

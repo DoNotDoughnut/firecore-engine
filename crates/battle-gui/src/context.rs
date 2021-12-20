@@ -1,6 +1,6 @@
 use pokedex::engine::{error::ImageError, graphics::Texture, Context};
 
-pub struct BattleGuiContext {
+pub struct BattleGuiData {
     pub panel: Texture,
     pub pokeball: Texture,
     pub smallui: Texture,
@@ -11,7 +11,7 @@ pub struct BattleGuiContext {
     pub ball: Texture,
 }
 
-impl BattleGuiContext {
+impl BattleGuiData {
     pub fn new(ctx: &mut Context) -> Result<Self, ImageError> {
         Ok(Self {
             panel: Texture::new(ctx, include_bytes!("../assets/gui/panel.png"))?,

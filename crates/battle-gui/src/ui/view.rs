@@ -1,17 +1,17 @@
 use core::ops::Deref;
-use pokedex::{item::Item, moves::Move, pokemon::Pokemon, engine::utils::Reset};
+use pokedex::{item::Item, moves::Move, pokemon::Pokemon, NpcGroupId};
 
 use pokedex::{
     engine::{graphics::Color, math::vec2, Context},
     pokemon::owned::OwnedPokemon,
     texture::PokemonTexture,
-    Identifiable, NpcGroupId, PokedexClientData,
+    Identifiable, PokedexClientData,
 };
 
-use battle::{party::PlayerParty, pokemon::remote::UnknownPokemon};
+use battle::{party::PlayerParty, pokemon::remote::UnknownPokemon, prelude::BattleData};
 
 use crate::{
-    context::BattleGuiContext,
+    context::BattleGuiData,
     ui::{
         pokemon::{flicker::Flicker, PokemonRenderer, PokemonStatusGui},
         BattleGuiPosition, BattleGuiPositionIndex,
@@ -28,23 +28,7 @@ pub struct ActivePlayer<ID, P> {
     pub player: PlayerParty<ID, usize, P>,
     pub renderer: Vec<ActivePokemonRenderer>,
     pub npc_group: Option<NpcGroupId>,
-}
-
-impl<ID, P> ActivePlayer<ID, P> {
-    pub fn new(player: PlayerParty<ID, usize, P>) -> Self {
-        Self {
-            player,
-            renderer: Vec::new(),
-            npc_group: None,
-        }
-    }
-}
-
-impl<ID, P> Reset for ActivePlayer<ID, P> {
-    fn reset(&mut self) {
-        self.renderer.clear();
-        self.npc_group = None;
-    }
+    pub data: BattleData,
 }
 
 #[derive(Clone)]
@@ -75,13 +59,13 @@ impl ActivePokemonRenderer {
 impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
     ActivePlayer<ID, OwnedPokemon<P, M, I>>
 {
-    pub fn init(&mut self, ctx: &BattleGuiContext, data: &PokedexClientData) {
-        let size = self.player.active.len() as u8;
+    pub fn local(player: &PlayerParty<ID, usize, OwnedPokemon<P, M, I>>, ctx: &BattleGuiData, data: &PokedexClientData) -> Vec<ActivePokemonRenderer> {
+        let size = player.active.len() as u8;
 
-        for (i, index) in self.player.active.iter().enumerate() {
+        player.active.iter().enumerate().map(|(i, index)| {
             let position = BattleGuiPositionIndex::new(BattleGuiPosition::Bottom, i as u8, size);
-            let pokemon = (*index).map(|index| &self.player.pokemon[index]);
-            let r = ActivePokemonRenderer {
+            let pokemon = (*index).map(|index| &player.pokemon[index]);
+            ActivePokemonRenderer {
                 pokemon: PokemonRenderer::with(
                     ctx,
                     data,
@@ -90,22 +74,21 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
                     PokemonTexture::Back,
                 ),
                 status: PokemonStatusGui::with_known(ctx, data, position, pokemon),
-            };
-            self.renderer.push(r);
-        }
+            }
+        }).collect()
     }
 }
 
 impl<ID, P: Deref<Target = Pokemon>> ActivePlayer<ID, Option<UnknownPokemon<P>>> {
-    pub fn init(&mut self, ctx: &BattleGuiContext, data: &PokedexClientData) {
-        let size = self.player.active.len() as u8;
+    pub fn remote(player: &PlayerParty<ID, usize, Option<UnknownPokemon<P>>>, ctx: &BattleGuiData, data: &PokedexClientData) -> Vec<ActivePokemonRenderer> {
+        let size = player.active.len() as u8;
 
-        for (i, index) in self.player.active.iter().enumerate() {
+        player.active.iter().enumerate().map(|(i, index)| {
             let position = BattleGuiPositionIndex::new(BattleGuiPosition::Top, i as u8, size);
             let pokemon = (*index)
-                .map(|index| self.player.pokemon[index].as_ref())
+                .map(|index| player.pokemon[index].as_ref())
                 .flatten();
-            let r = ActivePokemonRenderer {
+            ActivePokemonRenderer {
                 pokemon: PokemonRenderer::with(
                     ctx,
                     data,
@@ -114,8 +97,7 @@ impl<ID, P: Deref<Target = Pokemon>> ActivePlayer<ID, Option<UnknownPokemon<P>>>
                     PokemonTexture::Front,
                 ),
                 status: PokemonStatusGui::with_unknown(ctx, data, position, pokemon),
-            };
-            self.renderer.push(r);
-        }
+            }
+        }).collect()
     }
 }

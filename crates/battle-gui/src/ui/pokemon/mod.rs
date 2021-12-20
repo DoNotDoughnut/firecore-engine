@@ -11,7 +11,7 @@ use pokedex::{
 };
 
 use crate::{
-    context::BattleGuiContext,
+    context::BattleGuiData,
     ui::{BattleGuiPosition, BattleGuiPositionIndex},
 };
 
@@ -47,7 +47,7 @@ pub struct PokemonRenderer {
 
 impl PokemonRenderer {
     pub fn new(
-        ctx: &BattleGuiContext,
+        ctx: &BattleGuiData,
         index: BattleGuiPositionIndex,
         side: PokemonTexture,
     ) -> Self {
@@ -63,7 +63,7 @@ impl PokemonRenderer {
     }
 
     pub fn with<'d>(
-        ctx: &BattleGuiContext,
+        ctx: &BattleGuiData,
         data: &PokedexClientData,
         index: BattleGuiPositionIndex,
         pokemon: Option<PokemonId>,

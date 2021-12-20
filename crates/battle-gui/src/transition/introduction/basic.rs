@@ -16,7 +16,7 @@ use pokedex::{
 use battle::{data::BattleType, party::PlayerParty};
 
 use crate::{
-    context::BattleGuiContext,
+    context::BattleGuiData,
     ui::{
         pokemon::PokemonStatusGui,
         view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer},
@@ -42,7 +42,7 @@ impl BasicBattleIntroduction {
     const PLAYER_T3: f32 = Self::PLAYER_T2 + 18.0;
     const PLAYER_DESPAWN: f32 = 104.0;
 
-    pub fn new(ctx: &BattleGuiContext) -> Self {
+    pub fn new(ctx: &BattleGuiData) -> Self {
         Self {
             player: ctx.player.clone(),
             counter: 0.0,
@@ -76,7 +76,7 @@ impl BasicBattleIntroduction {
     }
 
     pub(crate) fn common_setup<
-        ID: Default,
+        ID,
         P: Deref<Target = Pokemon>,
         M: Deref<Target = Move>,
         I: Deref<Target = Item>,
@@ -151,7 +151,7 @@ impl BasicBattleIntroduction {
     }
 }
 
-impl<ID: Default, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
+impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
     BattleIntroduction<ID, P, M, I> for BasicBattleIntroduction
 {
     fn spawn(

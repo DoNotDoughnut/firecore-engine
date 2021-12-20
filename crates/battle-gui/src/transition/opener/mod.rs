@@ -12,7 +12,7 @@ use pokedex::{
 };
 
 use crate::{
-    context::BattleGuiContext,
+    context::BattleGuiData,
     ui::view::{ActivePokemonRenderer, GuiRemotePlayer},
 };
 
@@ -71,7 +71,7 @@ impl DefaultBattleOpener {
     const OFFSET: f32 = 153.0 * 2.0;
     const WAIT: f32 = 0.5;
 
-    pub fn new(ctx: &BattleGuiContext) -> Self {
+    pub fn new(ctx: &BattleGuiData) -> Self {
         Self {
             wait: Self::WAIT,
             rect_size: Self::RECT_SIZE,

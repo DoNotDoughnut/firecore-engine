@@ -4,7 +4,7 @@ use pokedex::moves::Move;
 
 use pokedex::engine::{gui::MessageBox, Context};
 
-use crate::context::BattleGuiContext;
+use crate::context::BattleGuiData;
 
 use self::{
     background::BattleBackground,
@@ -73,7 +73,7 @@ pub struct BattleGui<M: Deref<Target = Move> + Clone> {
 }
 
 impl<M: Deref<Target = Move> + Clone> BattleGui<M> {
-    pub fn new(ctx: &mut Context, btl: &BattleGuiContext) -> Self {
+    pub fn new(ctx: &mut Context, btl: &BattleGuiData) -> Self {
         Self {
             background: BattleBackground::new(ctx, btl),
 
