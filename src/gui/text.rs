@@ -129,12 +129,14 @@ impl MessageBox {
             if let Some(page) = self.pages.get(self.page) {
                 if let Some(line) = page.lines.get(self.line) {
                     let len = self.accumulator as usize;
-                    let (string, finished) = if line.len() > len && !self.waiting {
-                        let (len, ..) = line.char_indices().nth(len).unwrap();
-                        (&line[..len], false)
-                    } else {
-                        (line.as_str(), self.line + 1 >= page.lines.len())
-                    };
+
+                    let (string, finished) = line
+                        .char_indices()
+                        .nth(len)
+                        .filter(|_| !self.waiting)
+                        .map(|(len, ..)| line.get(..len).map(|l| (l, false)))
+                        .flatten()
+                        .unwrap_or_else(|| (line.as_str(), self.line + 1 >= page.lines.len()));
 
                     let y = (self.line << 4) as f32;
                     draw_text_left(

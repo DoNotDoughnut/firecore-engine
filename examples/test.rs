@@ -58,8 +58,8 @@ impl State for Game {
         //-> Result {
         let page = MessagePage {
             lines: vec![
-                "Test Page Test Page".to_owned(),
-                "Page Test Page Test".to_owned(),
+                "Test Pagé Test Page".to_owned(),
+                "Pagé Test Page Test".to_owned(),
             ],
             wait: None,
             color: Color::RED,
