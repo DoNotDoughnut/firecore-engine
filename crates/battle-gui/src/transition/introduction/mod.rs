@@ -1,5 +1,10 @@
 use core::ops::Deref;
-use pokedex::{engine::utils::Reset, item::Item, moves::Move, pokemon::Pokemon};
+use pokedex::{
+    engine::utils::{HashMap, Reset},
+    item::Item,
+    moves::Move,
+    pokemon::Pokemon,
+};
 
 use pokedex::{
     engine::{
@@ -46,9 +51,8 @@ pub(crate) trait BattleIntroduction<
     fn spawn(
         &mut self,
         ctx: &PokedexClientData,
-        battle_type: BattleType,
-        player: &GuiLocalPlayer<ID, P, M, I>,
-        opponent: &GuiRemotePlayer<ID, P>,
+        local: &GuiLocalPlayer<ID, P, M, I>,
+        opponents: &HashMap<ID, GuiRemotePlayer<ID, P>>,
         text: &mut MessageBox,
     );
 
@@ -86,6 +90,41 @@ impl BattleIntroductionManager {
         }
     }
 
+    // pub fn update_with_state<ID, P, M, I>(&mut self, dex: &PokedexClientData, text: &mut MessageBox, delta: f32, local: &GuiLocalPlayer<ID, P, M, I>, remotes: &HashMap<ID, GuiRemotePlayer<ID, P>>, state: &TransitionState) {
+    //     match state {
+    //         TransitionState::Begin => {
+    //             self.begin(
+    //                 dex,
+    //                 state,
+    //                 local,
+    //                 self.remotes.values().next().unwrap(),
+    //                 &mut self.gui.text,
+    //             );
+    //             TransitionResult::Rerun
+    //         }
+    //         TransitionState::Run => {
+    //             self.update(
+    //                 state,
+    //                 ctx,
+    //                 delta,
+    //                 local,
+    //                 self.remotes.values_mut().next().unwrap(),
+    //                 &mut self.gui.text,
+    //             );
+    //             if self.gui.text.page() > 0
+    //                 && !self.gui.trainer.ending()
+    //                 && !matches!(local.data.type_, BattleType::Wild)
+    //             {
+    //                 self.gui.trainer.end();
+    //             }
+    //         }
+    //         TransitionState::End => {
+    //             self.end(&mut self.gui.text);
+    //             TransitionResult::Next
+    //         }
+    //     }
+    // }
+
     pub fn begin<
         ID,
         P: Deref<Target = Pokemon>,
@@ -95,19 +134,18 @@ impl BattleIntroductionManager {
         &mut self,
         ctx: &PokedexClientData,
         state: &mut TransitionState,
-        battle_type: BattleType,
-        player: &GuiLocalPlayer<ID, P, M, I>,
-        opponent: &GuiRemotePlayer<ID, P>,
+        local: &GuiLocalPlayer<ID, P, M, I>,
+        opponents: &HashMap<ID, GuiRemotePlayer<ID, P>>,
         text: &mut MessageBox,
     ) {
         *state = TransitionState::Run;
-        match battle_type {
+        match local.data.type_ {
             BattleType::Wild => self.current = Introductions::Basic,
             _ => self.current = Introductions::Trainer,
         }
         let current = self.get_mut();
         current.reset();
-        current.spawn(ctx, battle_type, player, opponent, text);
+        current.spawn(ctx, local, opponents, text);
         text.spawn();
     }
 

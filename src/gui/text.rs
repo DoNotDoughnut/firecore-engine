@@ -130,6 +130,7 @@ impl MessageBox {
                 if let Some(line) = page.lines.get(self.line) {
                     let len = self.accumulator as usize;
                     let (string, finished) = if line.len() > len && !self.waiting {
+                        let (len, ..) = line.char_indices().nth(len).unwrap();
                         (&line[..len], false)
                     } else {
                         (line.as_str(), self.line + 1 >= page.lines.len())

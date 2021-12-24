@@ -11,6 +11,12 @@ pub enum TransitionState {
     End, // spawns next state and goes back to beginning
 }
 
+pub enum TransitionResult {
+    Next,
+    Rerun,
+    None,
+}
+
 impl Default for TransitionState {
     fn default() -> Self {
         Self::Begin

@@ -5,11 +5,9 @@ use pokedex::engine::{
     Context,
 };
 
-use crate::context::BattleGuiData;
+use crate::{context::BattleGuiData, transition::TransitionState};
 
-use super::TransitionState;
-
-pub struct BattleTrainerPartyIntro {
+pub struct PokemonCount {
     state: Option<TransitionState>,
     bar: Texture,
     ball: Texture,
@@ -20,7 +18,7 @@ pub struct BattleTrainerPartyIntro {
     ball_position: f32,
 }
 
-impl BattleTrainerPartyIntro {
+impl PokemonCount {
     const BAR_WIDTH: f32 = 104.0;
     const BAR_HIDDEN: f32 = 48.0;
     const RIGHT_BALL_POSITION: f32 = 76.0;
@@ -219,7 +217,7 @@ impl BattleTrainerPartyIntro {
     }
 }
 
-impl Reset for BattleTrainerPartyIntro {
+impl Reset for PokemonCount {
     fn reset(&mut self) {
         self.counter = 0;
         self.bar_position = -Self::BAR_WIDTH;

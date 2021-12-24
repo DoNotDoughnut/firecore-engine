@@ -1,5 +1,5 @@
 use core::ops::Deref;
-use pokedex::{item::Item, moves::Move, pokemon::Pokemon, NpcGroupId};
+use pokedex::{moves::Move, pokemon::Pokemon, NpcGroupId};
 
 use pokedex::{
     engine::{graphics::Color, math::vec2, Context},
@@ -21,14 +21,16 @@ use crate::{
 pub type InitLocalPlayer<ID, P, M, I> = PlayerParty<ID, usize, OwnedPokemon<P, M, I>>;
 pub type InitRemotePlayer<ID, P> = PlayerParty<ID, usize, Option<UnknownPokemon<P>>>;
 
-pub type GuiLocalPlayer<ID, P, M, I> = ActivePlayer<ID, OwnedPokemon<P, M, I>>;
-pub type GuiRemotePlayer<ID, P> = ActivePlayer<ID, Option<UnknownPokemon<P>>>;
-
-pub struct ActivePlayer<ID, P> {
-    pub player: PlayerParty<ID, usize, P>,
+pub struct GuiLocalPlayer<ID, P, M: Deref<Target = Move>, I> {
+    pub player: PlayerParty<ID, usize, OwnedPokemon<P, M, I>>,
     pub renderer: Vec<ActivePokemonRenderer>,
-    pub npc_group: Option<NpcGroupId>,
     pub data: BattleData,
+}
+
+pub struct GuiRemotePlayer<ID, P> {
+    pub player: PlayerParty<ID, usize, Option<UnknownPokemon<P>>>,
+    pub renderer: Vec<ActivePokemonRenderer>,
+    pub npc: Option<NpcGroupId>,
 }
 
 #[derive(Clone)]
@@ -56,10 +58,8 @@ impl ActivePokemonRenderer {
     }
 }
 
-impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
-    ActivePlayer<ID, OwnedPokemon<P, M, I>>
-{
-    pub fn local(
+impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I> GuiLocalPlayer<ID, P, M, I> {
+    pub fn create(
         player: &PlayerParty<ID, usize, OwnedPokemon<P, M, I>>,
         ctx: &BattleGuiData,
         data: &PokedexClientData,
@@ -89,8 +89,8 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
     }
 }
 
-impl<ID, P: Deref<Target = Pokemon>> ActivePlayer<ID, Option<UnknownPokemon<P>>> {
-    pub fn remote(
+impl<ID, P: Deref<Target = Pokemon>> GuiRemotePlayer<ID, Option<UnknownPokemon<P>>> {
+    pub fn create(
         player: &PlayerParty<ID, usize, Option<UnknownPokemon<P>>>,
         ctx: &BattleGuiData,
         data: &PokedexClientData,

@@ -1,6 +1,10 @@
 use core::ops::Deref;
+use std::rc::Rc;
 
-use pokedex::moves::Move;
+use pokedex::{
+    gui::{bag::BagGui, party::PartyGui},
+    moves::Move,
+};
 
 use pokedex::engine::{gui::MessageBox, Context};
 
@@ -13,8 +17,7 @@ use self::{
 };
 
 use super::transition::{
-    introduction::BattleIntroductionManager, opener::BattleOpenerManager,
-    trainer::BattleTrainerPartyIntro,
+    introduction::BattleIntroductionManager, opener::BattleOpenerManager, trainer::PokemonCount,
 };
 // use self::panels::level_up::LevelUpMovePanel;
 
@@ -60,6 +63,9 @@ impl BattleGuiPositionIndex {
 pub struct BattleGui<M: Deref<Target = Move> + Clone> {
     pub background: BattleBackground,
 
+    pub party: Rc<PartyGui>,
+    pub bag: Rc<BagGui>,
+
     pub panel: BattlePanel<M>,
 
     pub text: MessageBox,
@@ -68,14 +74,21 @@ pub struct BattleGui<M: Deref<Target = Move> + Clone> {
 
     pub opener: BattleOpenerManager,
     pub introduction: BattleIntroductionManager,
-    pub trainer: BattleTrainerPartyIntro,
+    pub trainer: PokemonCount,
     pub level_up: LevelUpMovePanel<M>,
 }
 
 impl<M: Deref<Target = Move> + Clone> BattleGui<M> {
-    pub fn new(ctx: &mut Context, btl: &BattleGuiData) -> Self {
+    pub fn new(
+        ctx: &mut Context,
+        btl: &BattleGuiData,
+        party: Rc<PartyGui>,
+        bag: Rc<BagGui>,
+    ) -> Self {
         Self {
             background: BattleBackground::new(ctx, btl),
+            party,
+            bag,
 
             panel: BattlePanel::new(),
 
@@ -85,7 +98,7 @@ impl<M: Deref<Target = Move> + Clone> BattleGui<M> {
 
             opener: BattleOpenerManager::new(ctx, btl),
             introduction: BattleIntroductionManager::new(btl),
-            trainer: BattleTrainerPartyIntro::new(btl),
+            trainer: PokemonCount::new(btl),
             level_up: LevelUpMovePanel::new(),
         }
     }

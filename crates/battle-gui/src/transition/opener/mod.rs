@@ -1,5 +1,5 @@
 use core::ops::Deref;
-use pokedex::pokemon::Pokemon;
+use pokedex::{engine::utils::HashMap, item::Item, moves::Move, pokemon::Pokemon};
 
 use pokedex::{
     engine::{
@@ -13,7 +13,7 @@ use pokedex::{
 
 use crate::{
     context::BattleGuiData,
-    ui::view::{ActivePokemonRenderer, GuiRemotePlayer},
+    ui::view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer},
 };
 
 mod manager;
@@ -36,10 +36,25 @@ impl Default for Openers {
     }
 }
 
-pub(crate) trait BattleOpener<ID, P: Deref<Target = Pokemon>>: Completable {
-    fn spawn(&mut self, ctx: &PokedexClientData, opponent: &GuiRemotePlayer<ID, P>);
+pub(crate) trait BattleOpener<
+    ID,
+    P: Deref<Target = Pokemon>,
+    M: Deref<Target = Move>,
+    I: Deref<Target = Item>,
+>: Completable
+{
+    #[allow(unused_variables)]
+    fn spawn(
+        &mut self,
+        ctx: &PokedexClientData,
+        local: &GuiLocalPlayer<ID, P, M, I>,
+        opponents: &HashMap<ID, GuiRemotePlayer<ID, P>>,
+    ) {
+    }
 
     fn update(&mut self, delta: f32);
+
+    // fn end(&mut self) {}
 
     fn draw_below_panel(
         &self,

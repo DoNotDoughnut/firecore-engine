@@ -1,5 +1,5 @@
 use core::ops::Deref;
-use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
+use pokedex::{engine::utils::HashMap, item::Item, moves::Move, pokemon::Pokemon};
 
 use pokedex::{
     engine::{
@@ -11,8 +11,6 @@ use pokedex::{
     },
     PokedexClientData,
 };
-
-use battle::data::BattleType;
 
 use crate::{
     context::BattleGuiData,
@@ -48,14 +46,15 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
     fn spawn(
         &mut self,
         ctx: &PokedexClientData,
-        _battle_type: BattleType,
-        player: &GuiLocalPlayer<ID, P, M, I>,
-        opponent: &GuiRemotePlayer<ID, P>,
+        local: &GuiLocalPlayer<ID, P, M, I>,
+        opponents: &HashMap<ID, GuiRemotePlayer<ID, P>>,
         text: &mut MessageBox,
     ) {
         text.pages.clear();
 
-        if let Some(id) = &opponent.npc_group {
+        let opponent = opponents.values().next().unwrap();
+
+        if let Some(id) = &opponent.npc {
             self.texture = Some(ctx.npc_group_textures.get(id).clone());
         }
 
@@ -85,7 +84,7 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
             });
         }
 
-        self.introduction.common_setup(text, player);
+        self.introduction.common_setup(text, local);
     }
 
     fn update(

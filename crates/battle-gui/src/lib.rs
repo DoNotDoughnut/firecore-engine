@@ -1,7 +1,7 @@
 pub extern crate firecore_battle as battle;
 pub extern crate firecore_pokedex_engine as pokedex;
 
-use std::{collections::VecDeque, fmt::Debug, hash::Hash, ops::Deref, rc::Rc};
+use std::{fmt::Debug, hash::Hash, ops::Deref, rc::Rc};
 
 use context::BattleGuiData;
 
@@ -35,7 +35,6 @@ use battle::{
     pokemon::{Indexed, PokemonIdentifier},
     prelude::{ClientPlayerData, FailedAction, StartableAction},
 };
-use ui::view::ActivePlayer;
 use view::GuiPokemonView;
 
 use self::{
@@ -47,15 +46,17 @@ use self::{
     view::PlayerView,
 };
 
-pub mod action;
 pub mod context;
-pub mod transition;
 pub mod ui;
 pub mod view;
 
+mod action;
+mod state;
+mod transition;
+
 use action::*;
 
-use self::transition::TransitionState;
+use self::{state::BattlePlayerState, transition::TransitionState};
 
 pub struct BattlePlayerGui<
     ID: Eq + Hash,
@@ -63,8 +64,6 @@ pub struct BattlePlayerGui<
     M: Deref<Target = Move> + Clone,
     I: Deref<Target = Item> + Clone,
 > {
-    party: Rc<PartyGui>,
-    bag: Rc<BagGui>,
     pub gui: BattleGui<M>,
 
     state: BattlePlayerState<ID, M>,
@@ -77,26 +76,6 @@ pub struct BattlePlayerGui<
 
     client: MpscClient<ID>,
     endpoint: MpscEndpoint<ID>,
-}
-
-#[derive(Debug)]
-struct MoveQueue<ID, M: Deref<Target = Move>> {
-    actions: VecDeque<Indexed<ID, BattleClientGuiAction<ID, M>>>,
-    current: Option<Indexed<ID, BattleClientGuiCurrent<ID>>>,
-}
-
-#[derive(Debug)]
-enum BattlePlayerState<ID, M: Deref<Target = Move>> {
-    WaitToStart,
-    Opening(TransitionState),
-    Introduction(TransitionState),
-    WaitToSelect,
-    /// Current, Max
-    Select(usize, usize),
-    Moving(MoveQueue<ID, M>),
-    PlayerEnd,
-    GameEnd(Option<ID>),
-    Closing(TransitionState),
 }
 
 impl<
@@ -113,9 +92,7 @@ impl<
         let (client, endpoint) = battle::endpoint::create();
 
         Self {
-            party,
-            bag,
-            gui: BattleGui::new(ctx, btl),
+            gui: BattleGui::new(ctx, btl, party, bag),
             state: BattlePlayerState::WaitToStart,
             should_select: false,
             local: None,
@@ -172,7 +149,6 @@ impl<
         movedex: &'d dyn Dex<'d, Move, M>,
         itemdex: &'d dyn Dex<'d, Item, I>,
     ) {
-        let data = client.data;
         self.remotes = client
             .remotes
             .into_iter()
@@ -189,11 +165,10 @@ impl<
                 };
                 (
                     player.id.clone(),
-                    ActivePlayer {
-                        renderer: ActivePlayer::remote(&player, btl, dex),
-                        data,
+                    GuiRemotePlayer {
+                        renderer: GuiRemotePlayer::create(&player, btl, dex),
                         player,
-                        npc_group: None,
+                        npc: None,
                     },
                 )
             })
@@ -213,18 +188,15 @@ impl<
                 .collect(),
         };
 
-        let mut local = ActivePlayer {
-            renderer: ActivePlayer::local(&player, btl, dex),
+        let local = GuiLocalPlayer {
+            renderer: GuiLocalPlayer::create(&player, btl, dex),
             data: client.data,
-            npc_group: None,
             player,
         };
 
         for (id, group) in groups.into_iter() {
-            if id == local.player.id {
-                local.npc_group = Some(group);
-            } else if let Some(remote) = self.remotes.get_mut(&id) {
-                remote.npc_group = Some(group);
+            if let Some(remote) = self.remotes.get_mut(&id) {
+                remote.npc = Some(group);
             }
         }
 
@@ -367,12 +339,7 @@ impl<
                     BattlePlayerState::WaitToStart => unreachable!(),
                     BattlePlayerState::Opening(state) => match state {
                         TransitionState::Begin => {
-                            self.gui.opener.begin(
-                                dex,
-                                state,
-                                local.data.type_,
-                                self.remotes.values().next().unwrap(),
-                            );
+                            self.gui.opener.begin(dex, state, local, &self.remotes);
                             if !matches!(local.data.type_, BattleType::Wild) {
                                 self.gui.trainer.spawn(
                                     local.player.pokemon.len(),
@@ -381,7 +348,7 @@ impl<
                             }
                             self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
                         }
-                        TransitionState::Run => self.gui.opener.update::<ID, P>(state, delta),
+                        TransitionState::Run => self.gui.opener.update::<ID, P, M, I>(state, delta),
                         TransitionState::End => {
                             self.state =
                                 BattlePlayerState::Introduction(TransitionState::default());
@@ -393,9 +360,8 @@ impl<
                             self.gui.introduction.begin(
                                 dex,
                                 state,
-                                local.data.type_,
                                 local,
-                                self.remotes.values().next().unwrap(),
+                                &self.remotes,
                                 &mut self.gui.text,
                             );
                             self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
@@ -441,10 +407,10 @@ impl<
                                             true => {
                                                 // Checks if a move is queued from an action done in the GUI
 
-                                                if self.bag.alive() {
-                                                    self.bag.input(ctx, bag);
+                                                if self.gui.bag.alive() {
+                                                    self.gui.bag.input(ctx, bag);
                                                     if let Some(item) =
-                                                        self.bag.take_selected_despawn(bag)
+                                                        self.gui.bag.take_selected_despawn(bag)
                                                     {
                                                         match item.category {
                                                             pokedex::item::ItemCategory::Pokeballs => {
@@ -468,17 +434,17 @@ impl<
                                                             },
                                                         }
                                                     }
-                                                } else if self.party.alive() {
-                                                    self.party.input(
+                                                } else if self.gui.party.alive() {
+                                                    self.gui.party.input(
                                                         ctx,
                                                         dex,
                                                         local.player.pokemon.as_mut_slice(),
                                                     );
-                                                    self.party.update(delta);
+                                                    self.gui.party.update(delta);
                                                     if let Some(selected) =
-                                                        self.party.take_selected()
+                                                        self.gui.party.take_selected()
                                                     {
-                                                        self.party.despawn();
+                                                        self.gui.party.despawn();
                                                         self.client.send(ClientMessage::Move(
                                                             *current,
                                                             BattleMove::Switch(selected),
@@ -493,8 +459,8 @@ impl<
                                                         BattlePanels::Main => {
                                                             match self.gui.panel.battle.cursor {
                                                                 0 => self.gui.panel.active = BattlePanels::Fight,
-                                                                1 => self.bag.spawn(),
-                                                                2 => self.party.spawn(dex, &local.player.pokemon, Some(false), true),
+                                                                1 => self.gui.bag.spawn(),
+                                                                2 => self.gui.party.spawn(dex, &local.player.pokemon, Some(false), true),
                                                                 3 => if matches!(local.data.type_, BattleType::Wild) {
                                                                     self.client.send(ClientMessage::Forfeit);
                                                                 },
@@ -1096,22 +1062,22 @@ impl<
                                                 match user_id.team() == local.player.id()
                                                     && local.player.any_inactive()
                                                 {
-                                                    true => match self.party.alive() {
+                                                    true => match self.gui.party.alive() {
                                                         true => {
-                                                            self.party.input(
+                                                            self.gui.party.input(
                                                                 ctx,
                                                                 dex,
                                                                 local.player.pokemon.as_mut_slice(),
                                                             );
-                                                            self.party.update(delta);
+                                                            self.gui.party.update(delta);
                                                             if let Some(selected) =
-                                                                self.party.take_selected()
+                                                                self.gui.party.take_selected()
                                                             {
                                                                 if !local.player.pokemon[selected]
                                                                     .fainted()
                                                                 {
                                                                     // user.queue_replace(index, selected);
-                                                                    self.party.despawn();
+                                                                    self.gui.party.despawn();
                                                                     self.client.send(
                                                                         ClientMessage::ReplaceFaint(
                                                                             user_id.index(),
@@ -1137,7 +1103,7 @@ impl<
                                                                 }
                                                             }
                                                         }
-                                                        false => self.party.spawn(
+                                                        false => self.gui.party.spawn(
                                                             dex,
                                                             &local.player.pokemon,
                                                             Some(false),
@@ -1297,15 +1263,15 @@ impl<
                     BattlePlayerState::Opening(..) => {
                         self.gui
                             .background
-                            .draw(ctx, self.gui.opener.offset::<ID, P>());
-                        self.gui.opener.draw_below_panel::<ID, P>(
+                            .draw(ctx, self.gui.opener.offset::<ID, P, M, I>());
+                        self.gui.opener.draw_below_panel::<ID, P, M, I>(
                             ctx,
                             &local.renderer,
                             &self.remotes.values().next().unwrap().renderer,
                         );
                         self.gui.trainer.draw(ctx);
                         self.gui.draw_panel(ctx);
-                        self.gui.opener.draw::<ID, P>(ctx);
+                        self.gui.opener.draw::<ID, P, M, I>(ctx);
                     }
                     BattlePlayerState::Introduction(..) => {
                         self.gui.background.draw(ctx, 0.0);
@@ -1319,10 +1285,10 @@ impl<
                         self.gui.text.draw(ctx);
                     }
                     BattlePlayerState::Select(index, ..) => {
-                        if self.party.alive() {
-                            self.party.draw(ctx, party);
-                        } else if self.bag.alive() {
-                            self.bag.draw(ctx, dex, bag);
+                        if self.gui.party.alive() {
+                            self.gui.party.draw(ctx, party);
+                        } else if self.gui.bag.alive() {
+                            self.gui.bag.draw(ctx, dex, bag);
                         } else {
                             for (current, active) in local.renderer.iter().enumerate() {
                                 if &current == index {
@@ -1341,16 +1307,16 @@ impl<
                             self.gui.panel.draw(ctx);
                         }
                     }
-                    // BattlePlayerState::Faint(..) => if self.party.alive() {
-                    //     self.party.draw(ctx)
+                    // BattlePlayerState::Faint(..) => if self.gui.party.alive() {
+                    //     self.gui.party.draw(ctx)
                     // },
                     BattlePlayerState::WaitToSelect | BattlePlayerState::Moving(..) => {
                         local.renderer.iter().for_each(|active| active.draw(ctx));
                         self.gui.draw_panel(ctx);
                         self.gui.text.draw(ctx);
                         self.gui.level_up.draw(ctx);
-                        if self.party.alive() {
-                            self.party.draw(ctx, party)
+                        if self.gui.party.alive() {
+                            self.gui.party.draw(ctx, party)
                         }
                     }
                     BattlePlayerState::GameEnd(..) | BattlePlayerState::PlayerEnd => {

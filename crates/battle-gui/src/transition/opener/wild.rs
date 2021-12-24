@@ -1,22 +1,16 @@
 use core::ops::Deref;
-use pokedex::pokemon::Pokemon;
+use pokedex::{item::Item, moves::Move, pokemon::Pokemon};
 
-use pokedex::{
-    engine::{
-        utils::{Completable, Reset},
-        Context,
-        {
-            graphics::{Color, Texture},
-            math::Vec2,
-        },
+use pokedex::engine::{
+    utils::{Completable, Reset},
+    Context,
+    {
+        graphics::{Color, Texture},
+        math::Vec2,
     },
-    PokedexClientData,
 };
 
-use crate::{
-    context::BattleGuiData,
-    ui::view::{ActivePokemonRenderer, GuiRemotePlayer},
-};
+use crate::{context::BattleGuiData, ui::view::ActivePokemonRenderer};
 
 use super::{BattleOpener, DefaultBattleOpener};
 
@@ -40,9 +34,9 @@ impl WildBattleOpener {
     }
 }
 
-impl<ID, P: Deref<Target = Pokemon>> BattleOpener<ID, P> for WildBattleOpener {
-    fn spawn(&mut self, _: &PokedexClientData, _: &GuiRemotePlayer<ID, P>) {}
-
+impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
+    BattleOpener<ID, P, M, I> for WildBattleOpener
+{
     fn update(&mut self, delta: f32) {
         self.opener.update(delta);
         if self.offset.y > 0.0 {

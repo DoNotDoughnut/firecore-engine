@@ -1,5 +1,5 @@
 use core::ops::Deref;
-use pokedex::pokemon::Pokemon;
+use pokedex::{engine::utils::HashMap, item::Item, moves::Move, pokemon::Pokemon};
 
 use pokedex::{
     engine::{
@@ -12,7 +12,7 @@ use pokedex::{
 
 use crate::{
     context::BattleGuiData,
-    ui::view::{ActivePokemonRenderer, GuiRemotePlayer},
+    ui::view::{ActivePokemonRenderer, GuiLocalPlayer, GuiRemotePlayer},
 };
 
 use super::{BattleOpener, DefaultBattleOpener};
@@ -31,9 +31,16 @@ impl TrainerBattleOpener {
     }
 }
 
-impl<ID, P: Deref<Target = Pokemon>> BattleOpener<ID, P> for TrainerBattleOpener {
-    fn spawn(&mut self, ctx: &PokedexClientData, opponent: &GuiRemotePlayer<ID, P>) {
-        if let Some(id) = &opponent.npc_group {
+impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
+    BattleOpener<ID, P, M, I> for TrainerBattleOpener
+{
+    fn spawn(
+        &mut self,
+        ctx: &PokedexClientData,
+        _local: &GuiLocalPlayer<ID, P, M, I>,
+        opponents: &HashMap<ID, GuiRemotePlayer<ID, P>>,
+    ) {
+        if let Some(id) = &opponents.values().next().unwrap().npc {
             self.trainer = Some(ctx.npc_group_textures.get(id).clone());
         }
     }
