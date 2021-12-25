@@ -66,7 +66,10 @@ impl PokemonRenderer {
         side: PokemonTexture,
     ) -> Self {
         Self {
-            pokemon: pokemon.map(|pokemon| data.pokemon_textures.get(&pokemon, side)).flatten().cloned(),
+            pokemon: pokemon
+                .map(|pokemon| data.pokemon_textures.get(&pokemon, side))
+                .flatten()
+                .cloned(),
             spawner: Spawner::new(ctx, pokemon),
             ..Self::new(ctx, index, side)
         }
@@ -82,8 +85,10 @@ impl PokemonRenderer {
 
     pub fn new_pokemon<'d>(&mut self, data: &PokedexClientData, pokemon: Option<PokemonId>) {
         self.spawner.id = pokemon;
-        self.pokemon =
-            pokemon.map(|pokemon| data.pokemon_textures.get(&pokemon, self.side)).flatten().cloned();
+        self.pokemon = pokemon
+            .map(|pokemon| data.pokemon_textures.get(&pokemon, self.side))
+            .flatten()
+            .cloned();
         self.reset();
     }
 

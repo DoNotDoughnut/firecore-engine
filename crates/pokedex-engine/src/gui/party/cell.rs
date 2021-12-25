@@ -1,7 +1,7 @@
 use core::ops::Deref;
 use engine::graphics::Texture;
 
-use pokedex::{
+use crate::pokedex::{
     pokemon::{stat::StatType, Pokemon},
     Dex,
 };

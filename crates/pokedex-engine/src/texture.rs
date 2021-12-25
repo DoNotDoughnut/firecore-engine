@@ -1,6 +1,6 @@
 use enum_map::{enum_map, EnumMap};
 
-use pokedex::{item::ItemId, pokemon::PokemonId};
+use crate::pokedex::{item::ItemId, pokemon::PokemonId};
 
 use engine::{
     error::ImageError,
@@ -39,8 +39,6 @@ impl PokemonTextures {
     }
 
     pub fn get(&self, id: &PokemonId, side: PokemonTexture) -> Option<&Texture> {
-        self.0
-            .get(id)
-            .map(|m| &m[side])
+        self.0.get(id).map(|m| &m[side])
     }
 }

@@ -19,7 +19,7 @@ use engine::{
     Context,
 };
 
-use pokedex::{pokemon::Pokemon, Dex};
+use crate::pokedex::{pokemon::Pokemon, Dex};
 
 use super::PartyError;
 
@@ -262,9 +262,7 @@ impl SummaryPokemon {
             .ok_or(PartyError::MissingTexture)?;
         Ok(Self {
             id: SizedStr::new(pokemon.id)?,
-            name: SizedStr::new(instance
-                .name()
-                .unwrap_or_else(|| pokemon.name.as_ref()))?,
+            name: SizedStr::new(instance.name().unwrap_or_else(|| pokemon.name.as_ref()))?,
             front: texture.clone(),
             types: [
                 Some(PokemonTypeDisplay::new(pokemon.primary_type)),

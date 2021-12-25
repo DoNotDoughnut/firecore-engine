@@ -1107,15 +1107,20 @@ impl<
                                                                 }
                                                             }
                                                         }
-                                                        false => if let Err(err) = self.gui.party.spawn(
-                                                            dex,
-                                                            pokedex,
-                                                            &local.player.pokemon,
-                                                            Some(false),
-                                                            false,
-                                                        ) {
-                                                            warn!("Error opening party gui: {}", err);
-                                                        },
+                                                        false => {
+                                                            if let Err(err) = self.gui.party.spawn(
+                                                                dex,
+                                                                pokedex,
+                                                                &local.player.pokemon,
+                                                                Some(false),
+                                                                false,
+                                                            ) {
+                                                                warn!(
+                                                                    "Error opening party gui: {}",
+                                                                    err
+                                                                );
+                                                            }
+                                                        }
                                                     },
                                                     false => {
                                                         let remote = self
@@ -1252,12 +1257,7 @@ impl<
         }
     }
 
-    pub fn draw(
-        &self,
-        ctx: &mut Context,
-        dex: &PokedexClientData,
-        bag: &OwnedBag<I>,
-    ) {
+    pub fn draw(&self, ctx: &mut Context, dex: &PokedexClientData, bag: &OwnedBag<I>) {
         if !matches!(self.state, BattlePlayerState::WaitToStart) {
             self.gui.background.draw(ctx, 0.0);
             self.remotes

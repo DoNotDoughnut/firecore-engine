@@ -9,8 +9,7 @@ use engine::{
     Context,
 };
 
-use firecore_pokedex::item::{bag::OwnedBag, ItemId};
-use pokedex::item::Item;
+use crate::pokedex::item::{bag::OwnedBag, Item, ItemId};
 
 use crate::data::PokedexClientData;
 

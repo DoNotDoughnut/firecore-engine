@@ -12,7 +12,6 @@ pub const LEVEL_PREFIX: &str = "Lv";
 pub struct SizedStr<const S: usize>([u8; S]);
 
 impl<const S: usize> SizedStr<S> {
-
     pub fn new(text: impl std::fmt::Display) -> std::io::Result<Self> {
         let mut this = Self([0u8; S]);
         this.replace(text)?;
@@ -23,7 +22,6 @@ impl<const S: usize> SizedStr<S> {
         use std::io::Write;
         write!(&mut self.0 as &mut [u8], "{}", text)
     }
-
 }
 
 impl<const S: usize> Deref for SizedStr<S> {

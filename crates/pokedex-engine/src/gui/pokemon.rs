@@ -1,4 +1,4 @@
-use pokedex::types::PokemonType;
+use crate::pokedex::types::PokemonType;
 
 use engine::graphics::Color;
 

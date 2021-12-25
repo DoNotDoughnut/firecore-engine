@@ -1,12 +1,12 @@
 use core::{cell::Cell, ops::Deref};
 
-use pokedex::{
+use crate::pokedex::{
     pokemon::{party::PARTY_SIZE, Pokemon},
     Dex,
 };
 
 use engine::{
-    graphics::{draw_rectangle, draw_line, draw_text_left, draw_text_right},
+    graphics::{draw_line, draw_rectangle, draw_text_left, draw_text_right},
     graphics::{Color, DrawParams, Texture},
     input::controls::{pressed, Control},
     math::{Rectangle, Vec2},
@@ -488,7 +488,11 @@ impl std::error::Error for PartyError {}
 impl std::fmt::Display for PartyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PartyError::TinyStr(field, err) => write!(f, "Cannot create tinystr for field {} with error {}", field, err),
+            PartyError::TinyStr(field, err) => write!(
+                f,
+                "Cannot create tinystr for field {} with error {}",
+                field, err
+            ),
             PartyError::Io(err) => std::fmt::Display::fmt(err, f),
             _ => std::fmt::Debug::fmt(self, f),
         }

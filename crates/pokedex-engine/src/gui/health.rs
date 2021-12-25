@@ -8,7 +8,7 @@ use engine::{
 
 use crate::data::PokedexClientData;
 
-use pokedex::pokemon::Health;
+use crate::pokedex::pokemon::Health;
 
 #[derive(Default, Clone)]
 pub struct HealthBar {

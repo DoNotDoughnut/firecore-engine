@@ -1,5 +1,5 @@
 pub extern crate firecore_engine as engine;
-pub extern crate firecore_pokedex as pokedex;
+pub use firecore_pokedex_engine_builder::pokedex;
 // pub use battle::pokedex;
 pub use pokedex::*;
 
@@ -19,7 +19,11 @@ pub use firecore_pokedex_engine_builder::{npc_group::NpcGroupId, SerializedPoked
 mod get {
     use std::ops::Deref;
 
-    use firecore_pokedex::pokemon::{owned::OwnablePokemon, Pokemon, PokemonId, Level, stat::{StatSet, Stat}, Health};
+    use crate::pokedex::pokemon::{
+        owned::OwnablePokemon,
+        stat::{Stat, StatSet},
+        Health, Level, Pokemon, PokemonId,
+    };
 
     pub trait GetPokemonData {
         fn pokemon_id(&self) -> &PokemonId;
@@ -33,7 +37,6 @@ mod get {
         fn evs(&self) -> &StatSet<Stat>;
 
         fn hp(&self) -> Option<Health>;
-
     }
 
     impl<M, I, G> GetPokemonData for OwnablePokemon<PokemonId, M, I, G, Option<Health>> {
@@ -60,7 +63,6 @@ mod get {
         fn hp(&self) -> Option<Health> {
             self.hp
         }
-
     }
 
     impl<P: Deref<Target = Pokemon>, M, I, G> GetPokemonData for OwnablePokemon<P, M, I, G, Health> {
@@ -87,6 +89,5 @@ mod get {
         fn hp(&self) -> Option<Health> {
             Some(self.hp)
         }
-
     }
 }
