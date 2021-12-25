@@ -1,5 +1,3 @@
-use quad_gamepad::ControllerContext;
-
 use crate::EngineError;
 
 pub mod gamepad;
@@ -9,14 +7,16 @@ pub mod mouse;
 pub mod controls;
 
 pub(crate) struct InputContext {
-    gamepad: ControllerContext,
+    #[cfg(not(target_arch = "wasm32"))]
+    gamepad: quad_gamepad::ControllerContext,
     controls: controls::ControlsContext,
 }
 
 impl InputContext {
     pub fn new() -> Result<Self, EngineError> {
         Ok(Self {
-            gamepad: ControllerContext::new().ok_or(EngineError::GamepadContext)?,
+            #[cfg(not(target_arch = "wasm32"))]
+            gamepad: quad_gamepad::ControllerContext::new().ok_or(EngineError::GamepadContext)?,
             controls: Default::default(),
         })
     }
