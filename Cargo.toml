@@ -44,4 +44,4 @@ bincode = "1.3"
 
 [workspace]
 members = ["crates/*", "crates/pokedex-engine/builder"]
-default-members = ["crates/*"]
+default-members = ["crates/*", "crates/pokedex-engine/builder"]
