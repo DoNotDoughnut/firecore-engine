@@ -14,7 +14,7 @@ audio = ["firecore-engine/audio"]
 
 [dependencies]
 firecore-engine = { path = "../../", default-features = false }
-firecore-pokedex = { git = "https://github.com/fiirecore/pokedex", rev = "0efc1ce", default-features = false }
+firecore-pokedex = { git = "https://github.com/fiirecore/pokedex", rev = "fdf002b", default-features = false }
 firecore-pokedex-engine-builder = { git = "https://github.com/DoNotDoughnut/firecore-pokedex-engine-builder", rev = "396e79e", default-features = false }
 tinystr = { version = "0.4", features = ["serde"], default-features = false }
 enum-map = { version = "1", features = ["serde"] }

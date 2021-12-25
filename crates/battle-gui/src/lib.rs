@@ -438,6 +438,7 @@ impl<
                                                     self.gui.party.input(
                                                         ctx,
                                                         dex,
+                                                        pokedex,
                                                         local.player.pokemon.as_mut_slice(),
                                                     );
                                                     self.gui.party.update(delta);
@@ -460,7 +461,9 @@ impl<
                                                             match self.gui.panel.battle.cursor {
                                                                 0 => self.gui.panel.active = BattlePanels::Fight,
                                                                 1 => self.gui.bag.spawn(),
-                                                                2 => self.gui.party.spawn(dex, &local.player.pokemon, Some(false), true),
+                                                                2 => if let Err(err) = self.gui.party.spawn(dex, pokedex, &local.player.pokemon, Some(false), true) {
+                                                                    warn!("Error opening party gui: {}", err);
+                                                                },
                                                                 3 => if matches!(local.data.type_, BattleType::Wild) {
                                                                     self.client.send(ClientMessage::Forfeit);
                                                                 },
@@ -1067,6 +1070,7 @@ impl<
                                                             self.gui.party.input(
                                                                 ctx,
                                                                 dex,
+                                                                pokedex,
                                                                 local.player.pokemon.as_mut_slice(),
                                                             );
                                                             self.gui.party.update(delta);
@@ -1103,12 +1107,15 @@ impl<
                                                                 }
                                                             }
                                                         }
-                                                        false => self.gui.party.spawn(
+                                                        false => if let Err(err) = self.gui.party.spawn(
                                                             dex,
+                                                            pokedex,
                                                             &local.player.pokemon,
                                                             Some(false),
                                                             false,
-                                                        ),
+                                                        ) {
+                                                            warn!("Error opening party gui: {}", err);
+                                                        },
                                                     },
                                                     false => {
                                                         let remote = self
@@ -1249,7 +1256,6 @@ impl<
         &self,
         ctx: &mut Context,
         dex: &PokedexClientData,
-        party: &Party<OwnedPokemon<P, M, I>>,
         bag: &OwnedBag<I>,
     ) {
         if !matches!(self.state, BattlePlayerState::WaitToStart) {
@@ -1286,7 +1292,7 @@ impl<
                     }
                     BattlePlayerState::Select(index, ..) => {
                         if self.gui.party.alive() {
-                            self.gui.party.draw(ctx, party);
+                            self.gui.party.draw(ctx);
                         } else if self.gui.bag.alive() {
                             self.gui.bag.draw(ctx, dex, bag);
                         } else {
@@ -1316,7 +1322,7 @@ impl<
                         self.gui.text.draw(ctx);
                         self.gui.level_up.draw(ctx);
                         if self.gui.party.alive() {
-                            self.gui.party.draw(ctx, party)
+                            self.gui.party.draw(ctx)
                         }
                     }
                     BattlePlayerState::GameEnd(..) | BattlePlayerState::PlayerEnd => {

@@ -1,67 +1,80 @@
-use core::{cell::Cell, ops::Deref};
+use core::ops::Deref;
 use engine::graphics::Texture;
 
 use pokedex::{
-    pokemon::{owned::OwnablePokemon, Health, Pokemon},
-    Identifiable,
+    pokemon::{stat::StatType, Pokemon},
+    Dex,
 };
+use tinystr::TinyStr16;
 
 use crate::{
-    gui::{health::HealthBar, IntegerStr4},
+    get::GetPokemonData,
+    gui::{health::HealthBar, SizedStr},
     texture::PokemonTexture,
     PokedexClientData,
 };
 
-#[derive(Default)]
+use super::PartyError;
+
 pub struct PartyCell {
-    pub icon: Cell<Option<Texture>>,
-    pub level: IntegerStr4,
+    pub icon: Texture,
+    pub name: TinyStr16,
+    pub level: SizedStr<4>,
     pub health: CellHealth,
 }
 
 impl PartyCell {
     pub const ICON_TICK: f32 = 0.15;
 
-    pub fn init<P: Deref<Target = Pokemon>, M, I, G>(
-        &self,
+    pub fn new<'d, P: Deref<Target = Pokemon>, I: GetPokemonData>(
         ctx: &PokedexClientData,
-        pokemon: &OwnablePokemon<P, M, I, G, Health>,
-    ) {
-        self.level.update_or_default(pokemon.level as _);
-        self.health.update_or_default(pokemon);
-        self.icon.set(Some(
-            ctx.pokemon_textures
-                .get(pokemon.pokemon.id(), PokemonTexture::Icon)
-                .clone(),
-        ));
-    }
-
-    pub fn clear(&self) {
-        self.icon.set(Default::default());
-        self.level.clear();
-        self.health.clear();
+        pokedex: &'d dyn Dex<'d, Pokemon, P>,
+        instance: &I,
+    ) -> Result<Self, PartyError> {
+        let pokemon = pokedex
+            .try_get(instance.pokemon_id())
+            .ok_or(PartyError::MissingPokemon)?;
+        Ok(Self {
+            icon: ctx
+                .pokemon_textures
+                .get(&pokemon.id, PokemonTexture::Icon)
+                .cloned()
+                .ok_or(PartyError::MissingTexture)?,
+            name: instance
+                .name()
+                .unwrap_or_else(|| pokemon.name.as_str())
+                .parse()
+                .map_err(|err| PartyError::TinyStr("PartyCell.name", err))?,
+            level: SizedStr::new(instance.level() as u16)?,
+            health: CellHealth::new(&pokemon, instance)?,
+        })
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct CellHealth {
-    pub current: IntegerStr4,
-    pub maximum: IntegerStr4,
-    pub percent: Cell<f32>,
+    pub current: SizedStr<4>,
+    pub maximum: SizedStr<4>,
+    pub percent: f32,
 }
 
 impl CellHealth {
-    pub fn clear(&self) {
-        self.current.clear();
-        self.maximum.clear();
-        self.percent.set(0.0);
-    }
-    pub fn update_or_default<P: Deref<Target = Pokemon>, M, I, G>(
-        &self,
-        pokemon: &OwnablePokemon<P, M, I, G, Health>,
-    ) {
-        self.current.update_or_default(pokemon.hp());
-        self.maximum.update_or_default(pokemon.max_hp());
-        self.percent.set(pokemon.percent_hp() * HealthBar::WIDTH);
+    pub fn new<I: GetPokemonData>(
+        pokemon: &impl Deref<Target = Pokemon>,
+        instance: &I,
+    ) -> Result<Self, PartyError> {
+        let max = pokemon.stat(
+            instance.ivs(),
+            instance.evs(),
+            instance.level(),
+            StatType::Health,
+        );
+        let hp = instance.hp().unwrap_or(max);
+        Ok(Self {
+            current: SizedStr::new(hp)?,
+            maximum: SizedStr::new(max)?,
+            percent: (hp as f32 / max as f32) * HealthBar::WIDTH,
+        })
+        // instance
     }
 }

@@ -1,5 +1,5 @@
 use core::cell::Cell;
-use tinystr::{Error, TinyStr4};
+use std::ops::Deref;
 
 pub mod bag;
 pub mod health;
@@ -8,45 +8,30 @@ pub mod pokemon;
 
 pub const LEVEL_PREFIX: &str = "Lv";
 
-#[derive(Debug, Default, Clone)]
-pub struct IntegerStr4(Cell<Option<TinyStr4>>);
+#[derive(Debug, Clone, Copy)]
+pub struct SizedStr<const S: usize>([u8; S]);
 
-impl IntegerStr4 {
-    pub fn new(integer: u16) -> Result<Self, Error> {
-        Ok(Self(Cell::new(Some(to_ascii4(integer)?))))
+impl<const S: usize> SizedStr<S> {
+
+    pub fn new(text: impl std::fmt::Display) -> std::io::Result<Self> {
+        let mut this = Self([0u8; S]);
+        this.replace(text)?;
+        Ok(this)
     }
-    pub fn update(&self, integer: u16) -> Result<(), Error> {
-        self.0.set(Some(to_ascii4(integer)?));
-        Ok(())
+
+    pub fn replace(&mut self, text: impl std::fmt::Display) -> std::io::Result<()> {
+        use std::io::Write;
+        write!(&mut self.0 as &mut [u8], "{}", text)
     }
-    pub fn update_or_default(&self, integer: u16) {
-        self.0.set(to_ascii4(integer).ok())
-    }
-    pub fn clear(&self) {
-        self.0.set(None)
-    }
-    pub fn get(&self) -> &str {
-        cellref(&self.0).as_deref().unwrap_or("0")
-    }
+
 }
 
-/// maximum 4 digits
-fn to_ascii4(num: u16) -> Result<TinyStr4, Error> {
-    const SIZE: usize = 4;
-    let mut num = num;
-    let mut string = [0u8; SIZE];
-    let mut place = 0;
-    while num > 0 && place < SIZE - 1 {
-        let digit = num % 10;
-        num /= 10;
-        string[3 - place] = digit as u8 + 48;
-        place += 1;
+impl<const S: usize> Deref for SizedStr<S> {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
-    let mut start = 0;
-    while string.get(start) == Some(&0) {
-        start += 1;
-    }
-    TinyStr4::from_bytes(&string[start..])
 }
 
 fn cellref<'a, T>(cell: &'a Cell<T>) -> &'a T {

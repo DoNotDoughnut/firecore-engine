@@ -1,11 +1,8 @@
 use core::{cell::Cell, ops::Deref};
-use tinystr::TinyStr4;
 
 use crate::{
-    gui::{
-        cellref, party::PartyCell, pokemon::PokemonTypeDisplay, to_ascii4, IntegerStr4,
-        LEVEL_PREFIX,
-    },
+    get::GetPokemonData,
+    gui::{cellref, party::PartyCell, pokemon::PokemonTypeDisplay, SizedStr, LEVEL_PREFIX},
     texture::PokemonTexture::Front,
     PokedexClientData,
 };
@@ -22,7 +19,9 @@ use engine::{
     Context,
 };
 
-use pokedex::pokemon::{owned::OwnablePokemon, Health, Pokemon};
+use pokedex::{pokemon::Pokemon, Dex};
+
+use super::PartyError;
 
 pub struct SummaryGui {
     pub alive: Cell<bool>,
@@ -77,11 +76,7 @@ impl SummaryGui {
         }
     }
 
-    pub fn draw<P: Deref<Target = Pokemon>, M, I, G>(
-        &self,
-        ctx: &mut Context,
-        pokemon: &OwnablePokemon<P, M, I, G, Health>,
-    ) {
+    pub fn draw(&self, ctx: &mut Context) {
         let current_page = self.page.get();
         let w = 114.0 + (current_page << 4) as f32;
         let rw = WIDTH - w;
@@ -126,7 +121,7 @@ impl SummaryGui {
             draw_text_left(
                 ctx,
                 &1,
-                summary.level.get(),
+                &summary.level,
                 15.0,
                 19.0,
                 DrawParams::color(MessagePage::WHITE),
@@ -134,7 +129,7 @@ impl SummaryGui {
             draw_text_left(
                 ctx,
                 &1,
-                pokemon.name(),
+                &summary.name,
                 41.0,
                 19.0,
                 DrawParams::color(MessagePage::WHITE),
@@ -154,7 +149,7 @@ impl SummaryGui {
                     draw_text_left(
                         ctx,
                         &1,
-                        pokemon.name(),
+                        &summary.name,
                         168.0,
                         36.0,
                         DrawParams::color(MessagePage::BLACK),
@@ -210,13 +205,14 @@ impl SummaryGui {
         }
     }
 
-    pub fn spawn<P: Deref<Target = Pokemon>, M, I, G>(
+    pub fn spawn<'d, P: Deref<Target = Pokemon>, I: GetPokemonData>(
         &self,
         ctx: &PokedexClientData,
-        pokemon: &OwnablePokemon<P, M, I, G, Health>,
+        pokedex: &'d dyn Dex<'d, Pokemon, P>,
+        pokemon: &I,
         cell: &PartyCell,
     ) {
-        match SummaryPokemon::new(ctx, pokemon, cell) {
+        match SummaryPokemon::new(ctx, pokedex, pokemon, cell) {
             Ok(pokemon) => {
                 self.alive.set(true);
                 self.offset.int.set(Default::default());
@@ -240,28 +236,39 @@ impl SummaryGui {
 }
 
 struct SummaryPokemon {
-    id: TinyStr4, // id and name
+    id: SizedStr<4>, // id and name
+    name: SizedStr<20>,
     front: Texture,
     pos: f32, // texture and pos
     types: [Option<PokemonTypeDisplay>; 2],
-    level: IntegerStr4,
+    level: SizedStr<4>,
     // health: CellHealth,
     // item: String,
 }
 
 impl SummaryPokemon {
-    pub fn new<P: Deref<Target = Pokemon>, M, I, G>(
+    pub fn new<'d, P: Deref<Target = Pokemon>, I: GetPokemonData>(
         ctx: &PokedexClientData,
-        pokemon: &OwnablePokemon<P, M, I, G, Health>,
+        pokedex: &'d dyn Dex<'d, Pokemon, P>,
+        instance: &I,
         cell: &PartyCell,
-    ) -> Result<Self, tinystr::Error> {
-        let texture = ctx.pokemon_textures.get(&pokemon.pokemon.id, Front);
+    ) -> Result<Self, PartyError> {
+        let pokemon = pokedex
+            .try_get(instance.pokemon_id())
+            .ok_or(PartyError::MissingPokemon)?;
+        let texture = ctx
+            .pokemon_textures
+            .get(&pokemon.id, Front)
+            .ok_or(PartyError::MissingTexture)?;
         Ok(Self {
-            id: to_ascii4(pokemon.pokemon.id)?,
+            id: SizedStr::new(pokemon.id)?,
+            name: SizedStr::new(instance
+                .name()
+                .unwrap_or_else(|| pokemon.name.as_ref()))?,
             front: texture.clone(),
             types: [
-                Some(PokemonTypeDisplay::new(pokemon.pokemon.primary_type)),
-                pokemon.pokemon.secondary_type.map(PokemonTypeDisplay::new),
+                Some(PokemonTypeDisplay::new(pokemon.primary_type)),
+                pokemon.secondary_type.map(PokemonTypeDisplay::new),
             ],
             pos: 34.0 + (64.0 - texture.height() as f32) / 2.0,
             level: cell.level.clone(),

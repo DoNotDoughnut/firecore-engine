@@ -38,10 +38,9 @@ impl PokemonTextures {
         Ok(())
     }
 
-    pub fn get(&self, id: &PokemonId, side: PokemonTexture) -> &Texture {
+    pub fn get(&self, id: &PokemonId, side: PokemonTexture) -> Option<&Texture> {
         self.0
             .get(id)
             .map(|m| &m[side])
-            .unwrap_or_else(|| panic!("Could not get texture for pokemon with ID {}", id))
     }
 }

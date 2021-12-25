@@ -1,13 +1,12 @@
 use core::{cell::Cell, ops::Deref};
 
-use pokedex::pokemon::{
-    owned::OwnablePokemon,
-    party::{Party, PARTY_SIZE},
-    Health, Pokemon,
+use pokedex::{
+    pokemon::{party::PARTY_SIZE, Pokemon},
+    Dex,
 };
 
 use engine::{
-    graphics::{draw_rectangle, draw_straight_line, draw_text_left, draw_text_right},
+    graphics::{draw_rectangle, draw_line, draw_text_left, draw_text_right},
     graphics::{Color, DrawParams, Texture},
     input::controls::{pressed, Control},
     math::{Rectangle, Vec2},
@@ -15,7 +14,7 @@ use engine::{
     Context,
 };
 
-use crate::{data::PokedexClientData, gui::cellref};
+use crate::{data::PokedexClientData, get::GetPokemonData};
 
 use self::select::PartySelectMenu;
 use self::summary::SummaryGui;
@@ -38,7 +37,7 @@ pub struct PartyGui {
     ball: Texture,
     health: HealthBar,
 
-    pokemon: [PartyCell; PARTY_SIZE],
+    pokemon: [Cell<Option<PartyCell>>; PARTY_SIZE],
 
     selected: Cell<Option<usize>>,
 
@@ -89,25 +88,31 @@ impl PartyGui {
         self.select.is_world.set(world);
     }
 
-    pub fn spawn<P: Deref<Target = Pokemon>, M, I, G>(
+    pub fn spawn<'d, P: Deref<Target = Pokemon>, I: GetPokemonData>(
         &self,
         ctx: &PokedexClientData,
-        party: &Party<OwnablePokemon<P, M, I, G, Health>>,
+        pokedex: &'d dyn Dex<'d, Pokemon, P>,
+        party: &[I],
         is_world: Option<bool>,
         exitable: bool,
-    ) {
+    ) -> Result<(), PartyError> {
         self.on_spawn(is_world);
         self.exitable.set(exitable);
-        for (index, pokemon) in party.iter().enumerate() {
-            self.pokemon[index].init(ctx, pokemon);
+        for (index, cell) in self.pokemon.iter().enumerate() {
+            cell.set(match party.get(index) {
+                Some(instance) => Some(PartyCell::new(ctx, pokedex, instance)?),
+                None => None,
+            });
         }
+        Ok(())
     }
 
-    pub fn input<P: Deref<Target = Pokemon>, M, I, G>(
+    pub fn input<'d, P: Deref<Target = Pokemon>, I: GetPokemonData>(
         &self,
         ctx: &Context,
         dex: &PokedexClientData,
-        party: &mut [OwnablePokemon<P, M, I, G, Health>],
+        pokedex: &'d dyn Dex<'d, Pokemon, P>,
+        party: &mut [I],
     ) {
         if self.summary.alive() {
             self.summary.input(ctx);
@@ -120,9 +125,15 @@ impl PartyGui {
                         self.select.alive.set(false);
                     }
                     select::PartySelectAction::Summary => {
-                        self.summary
-                            .spawn(dex, &party[cursor], &self.pokemon[cursor]);
-                        self.select.alive.set(false);
+                        if let Some(cell) = self
+                            .pokemon
+                            .get(cursor)
+                            .map(|c| super::cellref(c).as_ref())
+                            .flatten()
+                        {
+                            self.summary.spawn(dex, pokedex, &party[cursor], cell);
+                            self.select.alive.set(false);
+                        }
                     }
                 }
             }
@@ -177,50 +188,42 @@ impl PartyGui {
         }
     }
 
-    pub fn draw<P: Deref<Target = Pokemon>, M, I, G>(
-        &self,
-        ctx: &mut Context,
-        party: &[OwnablePokemon<P, M, I, G, Health>],
-    ) {
+    pub fn draw(&self, ctx: &mut Context) {
         // deps::log::debug!("to - do: /party brings up party gui");
         if self.summary.alive() {
             match self.selected.get() {
-                Some(selected) => self.summary.draw(ctx, &party[selected]),
+                Some(selected) => self.summary.draw(ctx),
                 None => self.summary.despawn(),
             }
         } else {
             self.background.draw(ctx, 0.0, 0.0, Default::default());
-            party.iter().enumerate().for_each(|(index, pokemon)| {
-                let cell = &self.pokemon[index];
-                if index == 0 {
-                    self.draw_primary(ctx, pokemon, cell);
-                } else {
-                    self.draw_cell(ctx, index, pokemon, cell, self.cursor.get() == index);
+            for (index, cell) in self.pokemon.iter().enumerate() {
+                if let Some(cell) = super::cellref(cell) {
+                    match index == 0 {
+                        true => self.draw_primary(ctx, cell),
+                        false => self.draw_cell(ctx, index, cell, self.cursor.get() == index),
+                    }
                 }
-            });
+            }
             if self.select.is_world.get().is_some() {
                 self.select.draw(ctx);
             }
         }
     }
 
-    fn draw_primary<P: Deref<Target = Pokemon>, M, I, G>(
-        &self,
-        ctx: &mut Context,
-        pokemon: &OwnablePokemon<P, M, I, G, Health>,
-        cell: &PartyCell,
-    ) {
+    fn draw_primary(&self, ctx: &mut Context, cell: &PartyCell) {
         let selected = self.cursor.get() == 0;
         let mut skip = false;
         if self.select.is_world.get().is_some() {
             if let Some(selected_index) = self.selected.get() {
                 let selected_index = selected_index == 0;
                 if selected_index || selected {
-                    draw_straight_line(ctx, 10.5, 28.0, 45.0, false, 2.0, Self::SELECT_LIGHT);
-                    draw_straight_line(ctx, 10.0, 28.5, 74.0, true, 2.0, Self::SELECT_LIGHT);
+                    draw_line(ctx, 10.5, 28.0, 10.6, 73.0, 2.0, Self::SELECT_LIGHT);
+                    draw_line(ctx, 10.0, 28.5, 84.0, 28.5, 2.0, Self::SELECT_LIGHT);
 
-                    draw_straight_line(ctx, 83.5, 28.0, 45.0, false, 1.0, Self::SELECT_CORNER);
-                    draw_straight_line(ctx, 10.0, 72.5, 74.0, true, 1.0, Self::SELECT_CORNER);
+                    draw_line(ctx, 83.5, 28.0, 83.5, 73.0, 1.0, Self::SELECT_CORNER);
+                    draw_line(ctx, 10.0, 72.5, 84.0, 72.5, 1.0, Self::SELECT_CORNER);
+
                     self.draw_primary_color(
                         ctx,
                         Self::SELECT_LIGHT,
@@ -248,13 +251,11 @@ impl PartyGui {
             }
         }
         self.draw_ball(ctx, 3.0, 20.0, selected);
-        if let Some(icon) = cellref(&cell.icon) {
-            self.draw_pokemon(ctx, icon, 0.0, 20.0, selected);
-        }
+        self.draw_pokemon(ctx, &cell.icon, 0.0, 20.0, selected);
         draw_text_left(
             ctx,
             &0,
-            pokemon.name(),
+            &cell.name,
             33.0,
             36.0,
             DrawParams::color(MessagePage::WHITE),
@@ -270,7 +271,7 @@ impl PartyGui {
         draw_text_left(
             ctx,
             &0,
-            cell.level.get(),
+            &cell.level,
             51.0,
             45.0,
             DrawParams::color(MessagePage::WHITE),
@@ -286,25 +287,18 @@ impl PartyGui {
         border: Option<Color>,
     ) {
         draw_rectangle(ctx, 11.0, 29.0, 72.0, 27.0, dark);
-        draw_straight_line(ctx, 11.0, 56.5, 72.0, true, 1.0, light);
-        draw_straight_line(ctx, 11.0, 57.5, 72.0, true, 1.0, dark);
+        draw_line(ctx, 11.0, 56.5, 83.0, 56.5, 1.0, light);
+        draw_line(ctx, 11.0, 57.5, 83.0, 57.5, 1.0, dark);
         draw_rectangle(ctx, 11.0, 58.0, 72.0, 14.0, light);
         if let Some(border) = border {
-            draw_straight_line(ctx, 9.0, 27.0, 76.0, true, 2.0, border);
-            draw_straight_line(ctx, 9.0, 27.0, 47.0, false, 2.0, border);
-            draw_straight_line(ctx, 9.0, 74.0, 75.0, true, 2.0, border);
-            draw_straight_line(ctx, 85.0, 27.0, 47.0, false, 2.0, border);
+            draw_line(ctx, 9.0, 27.0, 85.0, 27.0, 2.0, border);
+            draw_line(ctx, 9.0, 27.0, 9.0, 74.0, 2.0, border);
+            draw_line(ctx, 9.0, 74.0, 85.0, 74.0, 2.0, border);
+            draw_line(ctx, 85.0, 27.0, 85.0, 74.0, 2.0, border);
         }
     }
 
-    fn draw_cell<P: Deref<Target = Pokemon>, M, I, G>(
-        &self,
-        ctx: &mut Context,
-        index: usize,
-        pokemon: &OwnablePokemon<P, M, I, G, Health>,
-        cell: &PartyCell,
-        selected: bool,
-    ) {
+    fn draw_cell(&self, ctx: &mut Context, index: usize, cell: &PartyCell, selected: bool) {
         let offset = -14.0 + (24.0 * index as f32);
         let mut skip = false;
         if self.select.is_world.get().is_some() {
@@ -340,13 +334,11 @@ impl PartyGui {
             }
         }
         self.draw_ball(ctx, 88.0, offset - 1.0, selected);
-        if let Some(icon) = cellref(&cell.icon) {
-            self.draw_pokemon(ctx, icon, 87.0, offset - 8.0, selected);
-        }
+        self.draw_pokemon(ctx, &cell.icon, 87.0, offset - 8.0, selected);
         draw_text_left(
             ctx,
             &0,
-            pokemon.name(),
+            &cell.name,
             119.0,
             offset,
             DrawParams::color(MessagePage::WHITE),
@@ -362,7 +354,7 @@ impl PartyGui {
         draw_text_left(
             ctx,
             &0,
-            cell.level.get(),
+            &cell.level,
             139.0,
             offset + 9.0,
             DrawParams::color(MessagePage::WHITE),
@@ -381,17 +373,17 @@ impl PartyGui {
         // 89 + 11
         draw_rectangle(ctx, 98.0, y + 2.0, 138.0, 12.0, dark);
         let y1 = y + 14.5;
-        draw_straight_line(ctx, 98.0, y1, 138.0, true, 1.0, light);
+        draw_line(ctx, 98.0, y1, 236.0, y1, 1.0, light);
         let y1 = y1 + 1.0;
-        draw_straight_line(ctx, 98.0, y1, 138.0, true, 1.0, dark);
+        draw_line(ctx, 98.0, y1, 236.0, y1, 1.0, dark);
         draw_rectangle(ctx, 98.0, y + 16.0, 138.0, 4.0, light);
         if let Some(border) = border {
             let y1 = y + 1.0;
-            const XLEN: f32 = 140.0;
             const YLEN: f32 = 20.0;
-            draw_straight_line(ctx, 97.0, y1, XLEN, true, 2.0, border);
-            draw_straight_line(ctx, 97.0, y1 + YLEN, XLEN, true, 2.0, border);
-            draw_straight_line(ctx, 237.0, y1, YLEN, false, 2.0, border);
+            draw_line(ctx, 97.0, y1, 237.0, y1, 2.0, border);
+            let y2 = y1 + YLEN;
+            draw_line(ctx, 97.0, y2, 237.0, y2, 2.0, border);
+            draw_line(ctx, 237.0, y1, 237.0, y2, 2.0, border);
         }
     }
 
@@ -429,11 +421,11 @@ impl PartyGui {
 
     fn draw_health(&self, ctx: &mut Context, cell: &PartyCell, x: f32, y: f32) {
         self.health
-            .draw_width(ctx, Vec2::new(x, y), cell.health.percent.get());
+            .draw_width(ctx, Vec2::new(x, y), cell.health.percent);
         draw_text_right(
             ctx,
             &0,
-            cell.health.current.get(),
+            &cell.health.current,
             x + 25.0,
             y + 5.0,
             DrawParams::color(MessagePage::WHITE),
@@ -449,7 +441,7 @@ impl PartyGui {
         draw_text_left(
             ctx,
             &0,
-            cell.health.maximum.get(),
+            &cell.health.maximum,
             x + 40.0,
             y + 5.0,
             DrawParams::color(MessagePage::WHITE),
@@ -480,6 +472,31 @@ impl PartyGui {
         self.right_cursor.set(None);
         self.accumulator.set(0.0);
         self.selected.set(None);
-        self.pokemon.iter().for_each(PartyCell::clear);
+    }
+}
+
+#[derive(Debug)]
+pub enum PartyError {
+    MissingPokemon,
+    MissingTexture,
+    TinyStr(&'static str, tinystr::Error),
+    Io(std::io::Error),
+}
+
+impl std::error::Error for PartyError {}
+
+impl std::fmt::Display for PartyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PartyError::TinyStr(field, err) => write!(f, "Cannot create tinystr for field {} with error {}", field, err),
+            PartyError::Io(err) => std::fmt::Display::fmt(err, f),
+            _ => std::fmt::Debug::fmt(self, f),
+        }
+    }
+}
+
+impl From<std::io::Error> for PartyError {
+    fn from(err: std::io::Error) -> Self {
+        Self::Io(err)
     }
 }
