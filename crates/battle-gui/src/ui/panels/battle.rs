@@ -26,9 +26,9 @@ impl BattleOptions {
         }
     }
 
-    pub fn setup<P: Deref<Target = Pokemon>, M, I, G, H>(
+    pub fn setup<P: Deref<Target = Pokemon>, M, I, G, N, H>(
         &mut self,
-        instance: &OwnablePokemon<P, M, I, G, H>,
+        instance: &OwnablePokemon<P, M, I, G, N, H>,
     ) {
         self.pokemon_do = format!("{} do?", instance.name());
     }

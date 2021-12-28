@@ -37,9 +37,9 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
         }
     }
 
-    pub fn spawn<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, H>(
+    pub fn spawn<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, N, H>(
         &mut self,
-        instance: &OwnablePokemon<P, MSET, I, G, H>,
+        instance: &OwnablePokemon<P, MSET, I, G, N, H>,
         text: &mut MessageBox,
         moves: Vec<M>,
     ) {
@@ -49,12 +49,12 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
         text.despawn();
     }
 
-    pub fn update<P: Deref<Target = Pokemon>, I, G, H>(
+    pub fn update<P: Deref<Target = Pokemon>, I, G, N, H>(
         &mut self,
         ctx: &Context,
         text: &mut MessageBox,
         delta: f32,
-        pokemon: &mut OwnablePokemon<P, OwnedMoveSet<M>, I, G, H>,
+        pokemon: &mut OwnablePokemon<P, OwnedMoveSet<M>, I, G, N, H>,
     ) -> Option<(usize, M)> {
         match self.state {
             LevelUpState::Text => match text.alive() {

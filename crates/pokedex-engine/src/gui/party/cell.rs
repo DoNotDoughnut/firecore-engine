@@ -2,7 +2,7 @@ use core::ops::Deref;
 use engine::graphics::Texture;
 
 use crate::pokedex::{
-    pokemon::{stat::StatType, Pokemon},
+    pokemon::{nature::Nature, stat::StatType, Pokemon},
     Dex,
 };
 use tinystr::TinyStr16;
@@ -67,6 +67,7 @@ impl CellHealth {
             instance.ivs(),
             instance.evs(),
             instance.level(),
+            instance.nature().unwrap_or(Nature::Hardy),
             StatType::Health,
         );
         let hp = instance.hp().unwrap_or(max);

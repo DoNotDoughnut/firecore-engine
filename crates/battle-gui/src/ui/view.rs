@@ -1,5 +1,10 @@
 use core::ops::Deref;
-use pokedex::{moves::Move, pokemon::Pokemon, NpcGroupId};
+use pokedex::{
+    item::{bag::Bag, Item},
+    moves::Move,
+    pokemon::Pokemon,
+    NpcGroupId,
+};
 
 use pokedex::{
     engine::{graphics::Color, math::vec2, Context},
@@ -21,8 +26,9 @@ use crate::{
 pub type InitLocalPlayer<ID, P, M, I> = PlayerParty<ID, usize, OwnedPokemon<P, M, I>>;
 pub type InitRemotePlayer<ID, P> = PlayerParty<ID, usize, Option<UnknownPokemon<P>>>;
 
-pub struct GuiLocalPlayer<ID, P, M: Deref<Target = Move>, I> {
+pub struct GuiLocalPlayer<ID, P, M: Deref<Target = Move>, I: Deref<Target = Item>> {
     pub player: PlayerParty<ID, usize, OwnedPokemon<P, M, I>>,
+    pub bag: Bag<I>,
     pub renderer: Vec<ActivePokemonRenderer>,
     pub data: BattleData,
 }
@@ -58,7 +64,9 @@ impl ActivePokemonRenderer {
     }
 }
 
-impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I> GuiLocalPlayer<ID, P, M, I> {
+impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
+    GuiLocalPlayer<ID, P, M, I>
+{
     pub fn create(
         player: &PlayerParty<ID, usize, OwnedPokemon<P, M, I>>,
         ctx: &BattleGuiData,

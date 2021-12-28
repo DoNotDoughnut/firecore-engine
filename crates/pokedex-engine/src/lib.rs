@@ -20,6 +20,7 @@ mod get {
     use std::ops::Deref;
 
     use crate::pokedex::pokemon::{
+        nature::Nature,
         owned::OwnablePokemon,
         stat::{Stat, StatSet},
         Health, Level, Pokemon, PokemonId,
@@ -37,9 +38,13 @@ mod get {
         fn evs(&self) -> &StatSet<Stat>;
 
         fn hp(&self) -> Option<Health>;
+
+        fn nature(&self) -> Option<Nature>;
     }
 
-    impl<M, I, G> GetPokemonData for OwnablePokemon<PokemonId, M, I, G, Option<Health>> {
+    impl<M, I, G> GetPokemonData
+        for OwnablePokemon<PokemonId, M, I, G, Option<Nature>, Option<Health>>
+    {
         fn pokemon_id(&self) -> &PokemonId {
             &self.pokemon
         }
@@ -63,15 +68,21 @@ mod get {
         fn hp(&self) -> Option<Health> {
             self.hp
         }
+
+        fn nature(&self) -> Option<Nature> {
+            self.nature
+        }
     }
 
-    impl<P: Deref<Target = Pokemon>, M, I, G> GetPokemonData for OwnablePokemon<P, M, I, G, Health> {
+    impl<P: Deref<Target = Pokemon>, M, I, G> GetPokemonData
+        for OwnablePokemon<P, M, I, G, Nature, Health>
+    {
         fn pokemon_id(&self) -> &PokemonId {
             &self.pokemon.id
         }
 
         fn name(&self) -> Option<&str> {
-            Some(OwnablePokemon::<P, M, I, G, Health>::name(self))
+            Some(OwnablePokemon::<P, M, I, G, Nature, Health>::name(self))
         }
 
         fn level(&self) -> Level {
@@ -88,6 +99,10 @@ mod get {
 
         fn hp(&self) -> Option<Health> {
             Some(self.hp)
+        }
+
+        fn nature(&self) -> Option<Nature> {
+            Some(self.nature)
         }
     }
 }

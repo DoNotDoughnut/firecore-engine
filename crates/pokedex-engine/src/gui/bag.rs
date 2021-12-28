@@ -9,9 +9,14 @@ use engine::{
     Context,
 };
 
-use crate::pokedex::item::{bag::OwnedBag, Item, ItemId};
+use crate::pokedex::{
+    item::{bag::Bag, Item, ItemId, ItemStack},
+    Dex,
+};
 
 use crate::data::PokedexClientData;
+
+use super::{cellref, SizedStr};
 
 // const WORLD_OPTIONS: &[&'static str] = &[
 //     "Use",
@@ -25,46 +30,62 @@ const BATTLE_OPTIONS: TextOption = &["Use"];
 
 pub struct BagGui {
     alive: Cell<bool>,
-    background: Texture,
 
-    // offset: Cell<usize>,
+    background: Texture,
+    cells: [Cell<Option<BagCell>>; 8],
+    hover: Cell<Option<HoverCell>>,
+
+    offset: Cell<usize>,
     cursor: Cell<usize>,
 
     selecting: Cell<bool>,
+
+    /// select menu cursor
     select_cursor: Cell<usize>,
-    // select_text: Cell<Option<TextOption>>,
-    // items: [Cell<Option<TinyStr4>>; 12],
+
+    update: Cell<bool>,
+
     selected: Cell<Option<ItemId>>,
 }
 
+struct BagCell {
+    name: SizedStr<20>,
+    count: SizedStr<4>,
+}
+
+struct HoverCell {
+    descripton: String,
+    texture: Texture,
+}
+
 impl BagGui {
+    pub const SIZE: usize = 8;
+
     pub fn new(ctx: &PokedexClientData) -> Self {
         Self {
             alive: Default::default(),
             background: ctx.bag_background.clone(),
-            // offset: Default::default(),
+            cells: Default::default(),
+            hover: Default::default(),
             cursor: Default::default(),
+            offset: Default::default(),
             selecting: Default::default(),
             select_cursor: Default::default(),
+            update: Default::default(),
             // items: Default::default(),
             selected: Default::default(),
         }
     }
 
-    fn get_item_at_cursor<'a, I: Deref<Target = Item> + 'a>(
-        &self,
-        items: &'a OwnedBag<I>,
-    ) -> Option<&'a ItemId> {
-        let cursor = self.cursor.get();
-        for (index, stack) in items.iter().enumerate() {
-            if index == cursor {
-                return Some(&stack.item.id);
-            }
-        }
-        None
-    }
+    // fn update_cells<I>(&self, bag: &Bag<I>) {
+    //     for cell in self.cells.iter() {}
+    //     bag.iter()
+    //         .skip(self.offset.get())
+    //         .take(Self::SIZE)
+    //         .enumerate()
+    // }
 
-    pub fn input<I: Deref<Target = Item>>(&self, ctx: &Context, items: &OwnedBag<I>) {
+    pub fn input<I>(&self, ctx: &Context, items: &mut Bag<I>) {
         match self.selecting.get() {
             true => {
                 // match self.select_text {
@@ -114,62 +135,90 @@ impl BagGui {
         }
     }
 
-    pub fn draw<I: Deref<Target = Item>>(
+    pub fn update_cells_uninit<'d, I: Deref<Target = Item>>(
         &self,
-        ctx: &mut Context,
-        dex: &PokedexClientData,
-        bag: &OwnedBag<I>,
+        ctx: &PokedexClientData,
+        dex: &'d dyn Dex<'d, Item, I>,
+        bag: &Bag<ItemId>,
     ) {
+    }
+
+    pub fn update_cells_init<I: Deref<Target = Item>>(
+        &self,
+        ctx: &PokedexClientData,
+        bag: &Bag<I>,
+    ) {
+        fn create<I: Deref<Target = Item>>(
+            ctx: &PokedexClientData,
+            bag: &Bag<I>,
+            cursor: usize,
+        ) -> Option<HoverCell> {
+            let (.., item) = bag.iter().enumerate().find(|(i, ..)| i == &cursor)?;
+            Some(HoverCell {
+                descripton: item.item.description.clone(),
+                texture: ctx.item_textures.try_get(&item.item.id)?.clone(),
+            })
+        }
+
+        let cursor = self.cursor.get();
+
+        if self
+            .cells
+            .get(cursor - self.offset.get())
+            .map(cellref)
+            .map(Option::as_ref)
+            .flatten()
+            .is_some()
+        {
+            self.hover.set(create(ctx, bag, cursor));
+        } else {
+            self.hover.set(None);
+        }
+    }
+
+    pub fn draw(&self, ctx: &mut Context) {
         self.background.draw(ctx, 0.0, 0.0, Default::default());
         let cursor = self.cursor.get();
-        for (index, stack) in bag.iter().enumerate() {
-            let y = 11.0 + (index << 4) as f32;
-            draw_text_left(
-                ctx,
-                &1,
-                &stack.item.name,
-                98.0,
-                y,
-                DrawParams::color(MessagePage::BLACK),
-            );
-            draw_text_left(
-                ctx,
-                &1,
-                "x",
-                200.0,
-                y,
-                DrawParams::color(MessagePage::BLACK),
-            );
-            // if let Some(ref count) = self.items.get(index - self.offset.get()).map(|cell| cell.get()).flatten() {
-            //     draw_text_left(ctx, &1, &count, MessagePage::BLACK, 208.0, y);
-            // }
+        for (index, cell) in self.cells.iter().enumerate() {
+            if let Some(cell) = super::cellref(cell).as_ref() {
+                let y = 11.0 + (index << 4) as f32;
+                let color = DrawParams::color(MessagePage::BLACK);
+                draw_text_left(ctx, &1, &cell.name, 98.0, y, color);
+                draw_text_left(ctx, &1, "x", 200.0, y, color);
+                draw_text_left(ctx, &1, &cell.count, 208.0, y, color);
+            }
         }
         draw_text_left(
             ctx,
             &1,
             "Cancel",
             98.0,
-            11.0 + (bag.len() << 4) as f32,
+            11.0 + (self
+                .cells
+                .iter()
+                .filter(|c| super::cellref(c).is_some())
+                .count()
+                << 4) as f32,
             DrawParams::color(MessagePage::BLACK),
         );
-        if let Some(stack) = self.get_item_at_cursor(bag).map(|id| bag.get(id)).flatten() {
-            if let Some(texture) = dex.item_textures.try_get(&stack.item.id) {
-                texture.draw(ctx, 8.0, 125.0, Default::default());
-            }
-            for (index, line) in stack.item.description.lines().enumerate() {
-                draw_text_left(
-                    ctx,
-                    &1,
-                    line,
-                    41.0,
-                    117.0 + (index * 14) as f32,
-                    DrawParams {
-                        color: MessagePage::WHITE,
-                        ..Default::default()
-                    },
-                );
-            }
-        }
+        // if let Some(stack) = self.get_item_at_cursor(bag).map(|id| bag.get(id)).flatten() {
+        //     if let Some(texture) = dex.item_textures.try_get(&stack.item.id) {
+        //         texture.draw(ctx, 8.0, 125.0, Default::default());
+        //     }
+        //     for (index, line) in stack.item.description.lines().enumerate() {
+        //         draw_text_left(
+        //             ctx,
+        //             &1,
+        //             line,
+        //             41.0,
+        //             117.0 + (index * 14) as f32,
+        //             DrawParams {
+        //                 color: MessagePage::WHITE,
+        //                 ..Default::default()
+        //             },
+        //         );
+        //     }
+        // }
         draw_cursor(ctx, 91.0, 13.0 + (cursor << 4) as f32, Default::default());
         if self.selecting.get() {
             // if let Some(text) = self.select_text {
@@ -198,10 +247,7 @@ impl BagGui {
     //     }
     // }
 
-    pub fn take_selected_despawn<I: Deref<Target = Item> + Clone>(
-        &self,
-        bag: &mut OwnedBag<I>,
-    ) -> Option<I> {
+    pub fn take_selected_despawn<I: Clone>(&self, bag: &mut Bag<I>) -> Option<I> {
         let selected = self.selected.get();
         selected
             .map(|selected| {

@@ -10,6 +10,7 @@ use pokedex::{
     },
     gui::health::HealthBar,
     pokemon::{
+        nature::Nature,
         owned::{OwnablePokemon, OwnedPokemon},
         Health, Level, Pokemon,
     },
@@ -90,7 +91,7 @@ impl PokemonStatusGui {
         ctx: &BattleGuiData,
         dex: &PokedexClientData,
         index: BattleGuiPositionIndex,
-        pokemon: Option<&OwnablePokemon<P, M, I, G, Health>>,
+        pokemon: Option<&OwnablePokemon<P, M, I, G, Nature, Health>>,
     ) -> Self {
         let (((background, origin, small), data_pos, hb), position) = Self::attributes(ctx, index);
         Self {
@@ -255,7 +256,7 @@ impl PokemonStatusGui {
     pub fn update_exp<P: Deref<Target = Pokemon>, M, I, G>(
         &mut self,
         delta: f32,
-        pokemon: &OwnablePokemon<P, M, I, G, Health>,
+        pokemon: &OwnablePokemon<P, M, I, G, Nature, Health>,
     ) {
         if self.data.active {
             if self.small {

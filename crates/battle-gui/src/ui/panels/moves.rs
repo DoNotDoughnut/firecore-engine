@@ -26,9 +26,9 @@ impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
         }
     }
 
-    pub fn update_names<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, H>(
+    pub fn update_names<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, N, H>(
         &mut self,
-        instance: &OwnablePokemon<P, MSET, I, G, H>,
+        instance: &OwnablePokemon<P, MSET, I, G, N, H>,
     ) {
         for (index, instance) in instance.moves.iter().enumerate() {
             self.names[index] = Some((

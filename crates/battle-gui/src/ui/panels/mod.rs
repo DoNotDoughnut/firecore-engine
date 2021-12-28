@@ -58,9 +58,9 @@ impl<M: Deref<Target = Move> + Clone> BattlePanel<M> {
         }
     }
 
-    pub fn user<P: Deref<Target = Pokemon>, MSET: Deref<Target = [OwnedMove<M>]>, I, G, H>(
+    pub fn user<P: Deref<Target = Pokemon>, MSET: Deref<Target = [OwnedMove<M>]>, I, G, N, H>(
         &mut self,
-        instance: &OwnablePokemon<P, MSET, I, G, H>,
+        instance: &OwnablePokemon<P, MSET, I, G, N, H>,
     ) {
         self.battle.setup(instance);
         self.fight.user(instance);
@@ -77,10 +77,10 @@ impl<M: Deref<Target = Move> + Clone> BattlePanel<M> {
         self.targets.update_names(targets);
     }
 
-    pub fn input<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, H>(
+    pub fn input<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, N, H>(
         &mut self,
         ctx: &Context,
-        pokemon: &OwnablePokemon<P, MSET, I, G, H>,
+        pokemon: &OwnablePokemon<P, MSET, I, G, N, H>,
     ) -> Option<BattlePanels> {
         if self.alive {
             match self.active {

@@ -3,11 +3,8 @@ use core::ops::Deref;
 use pokedex::{
     ailment::LiveAilment,
     item::Item,
-    moves::{set::OwnedMoveSet, Move, PP},
-    pokemon::{
-        owned::{OwnablePokemon, OwnedPokemon},
-        Experience, Health, Level, Pokemon,
-    },
+    moves::{Move, PP},
+    pokemon::{owned::OwnedPokemon, Experience, Health, Level, Pokemon},
 };
 
 use battle::{
@@ -129,15 +126,15 @@ pub trait BasePokemonView<P: Deref<Target = Pokemon>>: PokemonView {
     fn decrement_pp(&mut self, pokemon_move: &Move, pp: PP);
 }
 
-impl<P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>, G>
-    BasePokemonView<P> for OwnablePokemon<P, OwnedMoveSet<M>, I, G, Health>
+impl<P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>
+    BasePokemonView<P> for OwnedPokemon<P, M, I>
 {
     fn pokemon(&self) -> &P {
         &self.pokemon
     }
 
     fn name(&self) -> &str {
-        OwnablePokemon::name(self)
+        OwnedPokemon::name(self)
     }
 
     fn set_level(&mut self, level: Level) {
@@ -153,7 +150,7 @@ impl<P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item
     }
 
     fn percent_hp(&self) -> f32 {
-        OwnablePokemon::percent_hp(self)
+        OwnedPokemon::percent_hp(self)
     }
 
     fn set_ailment(&mut self, ailment: LiveAilment) {

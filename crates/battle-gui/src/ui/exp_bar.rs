@@ -34,10 +34,10 @@ impl ExperienceBar {
         (current as f32 * Self::WIDTH / max as f32).clamp(0.0, Self::WIDTH)
     }
 
-    pub fn update_exp<P: Deref<Target = Pokemon>, M, I, G, H>(
+    pub fn update_exp<P: Deref<Target = Pokemon>, M, I, G, N, H>(
         &mut self,
         previous: Level,
-        pokemon: &OwnablePokemon<P, M, I, G, H>,
+        pokemon: &OwnablePokemon<P, M, I, G, N, H>,
         reset: bool,
     ) {
         let width = Self::width(

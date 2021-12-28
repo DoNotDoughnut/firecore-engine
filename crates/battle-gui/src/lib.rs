@@ -19,9 +19,9 @@ use pokedex::{
         Context,
     },
     gui::{bag::BagGui, party::PartyGui},
-    item::{bag::OwnedBag, usage::ItemExecution, Item},
+    item::{usage::ItemExecution, Item},
     moves::{Move, MoveTarget},
-    pokemon::{owned::OwnedPokemon, party::Party, Pokemon},
+    pokemon::Pokemon,
     types::Effective,
     Dex, Initializable, PokedexClientData,
 };
@@ -190,6 +190,7 @@ impl<
 
         let local = GuiLocalPlayer {
             renderer: GuiLocalPlayer::create(&player, btl, dex),
+            bag: client.bag.init(itemdex).unwrap_or_default(),
             data: client.data,
             player,
         };
@@ -330,7 +331,6 @@ impl<
         movedex: &'d dyn Dex<'d, Move, M>,
         itemdex: &'d dyn Dex<'d, Item, I>,
         delta: f32,
-        bag: &mut OwnedBag<I>,
     ) {
         match &mut self.state {
             BattlePlayerState::WaitToStart => (),
@@ -346,13 +346,13 @@ impl<
                                     self.remotes.values().next().unwrap().player.pokemon.len(),
                                 );
                             }
-                            self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
+                            self.update(ctx, dex, pokedex, movedex, itemdex, delta);
                         }
                         TransitionState::Run => self.gui.opener.update::<ID, P, M, I>(state, delta),
                         TransitionState::End => {
                             self.state =
                                 BattlePlayerState::Introduction(TransitionState::default());
-                            self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
+                            self.update(ctx, dex, pokedex, movedex, itemdex, delta);
                         }
                     },
                     BattlePlayerState::Introduction(state) => match state {
@@ -364,7 +364,7 @@ impl<
                                 &self.remotes,
                                 &mut self.gui.text,
                             );
-                            self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
+                            self.update(ctx, dex, pokedex, movedex, itemdex, delta);
                         }
                         TransitionState::Run => {
                             self.gui.introduction.update(
@@ -387,7 +387,7 @@ impl<
                             self.gui.introduction.end(&mut self.gui.text);
                             self.gui.trainer.despawn();
                             self.state = BattlePlayerState::WaitToSelect;
-                            self.update(ctx, dex, pokedex, movedex, itemdex, delta, bag);
+                            self.update(ctx, dex, pokedex, movedex, itemdex, delta);
                         }
                     },
                     BattlePlayerState::WaitToSelect => {
@@ -408,9 +408,11 @@ impl<
                                                 // Checks if a move is queued from an action done in the GUI
 
                                                 if self.gui.bag.alive() {
-                                                    self.gui.bag.input(ctx, bag);
-                                                    if let Some(item) =
-                                                        self.gui.bag.take_selected_despawn(bag)
+                                                    self.gui.bag.input(ctx, &mut local.bag);
+                                                    if let Some(item) = self
+                                                        .gui
+                                                        .bag
+                                                        .take_selected_despawn(&mut local.bag)
                                                     {
                                                         match item.category {
                                                             pokedex::item::ItemCategory::Pokeballs => {
@@ -915,7 +917,7 @@ impl<
                                                     } else {
                                                         self.update(
                                                             ctx, dex, pokedex, movedex, itemdex,
-                                                            delta, bag,
+                                                            delta,
                                                         );
                                                     }
                                                 }
@@ -1257,7 +1259,7 @@ impl<
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context, dex: &PokedexClientData, bag: &OwnedBag<I>) {
+    pub fn draw(&self, ctx: &mut Context, dex: &PokedexClientData) {
         if !matches!(self.state, BattlePlayerState::WaitToStart) {
             self.gui.background.draw(ctx, 0.0);
             self.remotes
@@ -1294,7 +1296,7 @@ impl<
                         if self.gui.party.alive() {
                             self.gui.party.draw(ctx);
                         } else if self.gui.bag.alive() {
-                            self.gui.bag.draw(ctx, dex, bag);
+                            self.gui.bag.draw(ctx);
                         } else {
                             for (current, active) in local.renderer.iter().enumerate() {
                                 if &current == index {

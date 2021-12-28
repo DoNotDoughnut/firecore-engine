@@ -9,7 +9,8 @@ compile = []
 audio = ["compile"]
 
 [dependencies]
-firecore-pokedex = { git = "https://github.com/fiirecore/pokedex", rev = "fdf002b" }
+firecore-pokedex = { git = "https://github.com/fiirecore/pokedex", rev = "b5279db" }
+# firecore-pokedex = { path = "../../../../pokedex" }
 
 serde = { version = "1", features = ["derive"] }
 enum-map = { version = "1", features = ["serde"] }
