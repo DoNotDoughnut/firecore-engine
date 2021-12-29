@@ -55,7 +55,7 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
         let opponent = opponents.values().next().unwrap();
 
         if let Some(id) = &opponent.npc {
-            self.texture = Some(ctx.npc_group_textures.get(id).clone());
+            self.texture = ctx.npc_group_textures.get(id).cloned();
         }
 
         if let Some(name) = &opponent.player.name {

@@ -156,7 +156,7 @@ impl BagGui {
             let (.., item) = bag.iter().enumerate().find(|(i, ..)| i == &cursor)?;
             Some(HoverCell {
                 descripton: item.item.description.clone(),
-                texture: ctx.item_textures.try_get(&item.item.id)?.clone(),
+                texture: ctx.item_textures.get(&item.item.id)?.clone(),
             })
         }
 

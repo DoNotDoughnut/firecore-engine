@@ -41,7 +41,7 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
         opponents: &HashMap<ID, GuiRemotePlayer<ID, P>>,
     ) {
         if let Some(id) = &opponents.values().next().unwrap().npc {
-            self.trainer = Some(ctx.npc_group_textures.get(id).clone());
+            self.trainer = ctx.npc_group_textures.get(id).cloned();
         }
     }
 

@@ -1125,19 +1125,19 @@ impl<
                                                         }
                                                     },
                                                     false => {
-                                                        let remote = self
-                                                            .remotes
-                                                            .get_mut(user_id.team())
-                                                            .unwrap();
-                                                        remote
-                                                            .player
-                                                            .replace(user_id.index(), None);
-                                                        let ui =
-                                                            &mut remote.renderer[user_id.index()];
-                                                        ui.status.update_gui::<P, M, I>(
-                                                            None, None, true,
-                                                        );
-                                                        ui.pokemon.new_pokemon(dex, None);
+                                                        if let Some(remote) =
+                                                            self.remotes.get_mut(user_id.team())
+                                                        {
+                                                            remote
+                                                                .player
+                                                                .replace(user_id.index(), None);
+                                                            let ui = &mut remote.renderer
+                                                                [user_id.index()];
+                                                            ui.status.update_gui::<P, M, I>(
+                                                                None, None, true,
+                                                            );
+                                                            ui.pokemon.new_pokemon(dex, None);
+                                                        }
                                                         queue.current = None;
                                                     }
                                                 }

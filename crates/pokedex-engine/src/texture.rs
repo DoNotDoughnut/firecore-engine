@@ -4,13 +4,13 @@ use crate::pokedex::{item::ItemId, pokemon::PokemonId};
 
 use engine::{
     error::ImageError,
-    graphics::{Texture, TextureManager},
+    graphics::Texture,
     utils::HashMap,
     Context,
 };
 
-pub type NpcGroupTextures = TextureManager<crate::NpcGroupId>;
-pub type ItemTextures = TextureManager<ItemId>;
+pub type NpcGroupTextures = HashMap<crate::NpcGroupId, Texture>;
+pub type ItemTextures = HashMap<ItemId, Texture>;
 
 pub use firecore_pokedex_engine_builder::pokemon::PokemonTexture;
 
