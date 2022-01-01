@@ -1,4 +1,4 @@
-pub use macroquad::prelude::{HashMap, HashSet};
+pub use fiirengine::utils::*;
 
 /// deprecated
 pub const WIDTH: f32 = 240.0;
@@ -19,10 +19,6 @@ pub trait Reset {
 
 pub trait Completable: Reset {
     fn finished(&self) -> bool;
-}
-
-pub fn seed() -> u64 {
-    (macroquad::miniquad::date::now() * 10000000.0) as u64
 }
 
 pub fn type_name<T: ?Sized>() -> &'static str {

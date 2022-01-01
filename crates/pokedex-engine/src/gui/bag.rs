@@ -1,16 +1,17 @@
 use core::{cell::Cell, ops::Deref};
 
 use engine::{
+    controls::{pressed, Control},
     graphics::{draw_cursor, draw_text_left, DrawParams, Texture},
     gui::Panel,
-    input::controls::{pressed, Control},
     text::MessagePage,
     utils::HEIGHT,
     Context,
 };
+use firecore_engine::EngineContext;
 
 use crate::pokedex::{
-    item::{bag::Bag, Item, ItemId, ItemStack},
+    item::{bag::Bag, Item, ItemId},
     Dex,
 };
 
@@ -85,22 +86,22 @@ impl BagGui {
     //         .enumerate()
     // }
 
-    pub fn input<I>(&self, ctx: &Context, items: &mut Bag<I>) {
+    pub fn input<I>(&self, ctx: &Context, eng: &EngineContext, items: &mut Bag<I>) {
         match self.selecting.get() {
             true => {
                 // match self.select_text {
                 // Some(text) => {
                 let cursor = self.cursor.get();
-                if pressed(ctx, Control::B) {
+                if pressed(ctx, eng, Control::B) {
                     self.selecting.set(false);
                 }
-                if pressed(ctx, Control::Up) && cursor > 0 {
+                if pressed(ctx, eng, Control::Up) && cursor > 0 {
                     self.select_cursor.set(self.select_cursor.get() - 1);
                 }
-                if pressed(ctx, Control::Down) && cursor < BATTLE_OPTIONS.len() {
+                if pressed(ctx, eng, Control::Down) && cursor < BATTLE_OPTIONS.len() {
                     self.select_cursor.set(self.select_cursor.get() + 1);
                 }
-                if pressed(ctx, Control::A) {
+                if pressed(ctx, eng, Control::A) {
                     match cursor {
                         0 => {}
                         1 => (), // cancel
@@ -114,21 +115,21 @@ impl BagGui {
                 // }
             }
             false => {
-                if pressed(ctx, Control::B) {
+                if pressed(ctx, eng, Control::B) {
                     self.despawn();
                 }
                 let cursor = self.cursor.get();
-                if pressed(ctx, Control::A) {
+                if pressed(ctx, eng, Control::A) {
                     if cursor < items.len() {
                         self.spawn_select();
                     } else {
                         self.despawn();
                     }
                 }
-                if pressed(ctx, Control::Up) && cursor > 0 {
+                if pressed(ctx, eng, Control::Up) && cursor > 0 {
                     self.cursor.set(cursor - 1);
                 }
-                if pressed(ctx, Control::Down) && cursor < items.len() {
+                if pressed(ctx, eng, Control::Down) && cursor < items.len() {
                     self.cursor.set(cursor + 1);
                 }
             }
@@ -176,20 +177,21 @@ impl BagGui {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
         self.background.draw(ctx, 0.0, 0.0, Default::default());
         let cursor = self.cursor.get();
         for (index, cell) in self.cells.iter().enumerate() {
             if let Some(cell) = super::cellref(cell).as_ref() {
                 let y = 11.0 + (index << 4) as f32;
                 let color = DrawParams::color(MessagePage::BLACK);
-                draw_text_left(ctx, &1, &cell.name, 98.0, y, color);
-                draw_text_left(ctx, &1, "x", 200.0, y, color);
-                draw_text_left(ctx, &1, &cell.count, 208.0, y, color);
+                draw_text_left(ctx, eng, &1, &cell.name, 98.0, y, color);
+                draw_text_left(ctx, eng, &1, "x", 200.0, y, color);
+                draw_text_left(ctx, eng, &1, &cell.count, 208.0, y, color);
             }
         }
         draw_text_left(
             ctx,
+            eng,
             &1,
             "Cancel",
             98.0,
@@ -219,11 +221,12 @@ impl BagGui {
         //         );
         //     }
         // }
-        draw_cursor(ctx, 91.0, 13.0 + (cursor << 4) as f32, Default::default());
+        draw_cursor(ctx, eng, 91.0, 13.0 + (cursor << 4) as f32, Default::default());
         if self.selecting.get() {
             // if let Some(text) = self.select_text {
             Panel::draw_text(
                 ctx,
+                eng, 
                 146.0,
                 HEIGHT,
                 94.0,

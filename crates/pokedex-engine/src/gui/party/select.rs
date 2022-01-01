@@ -2,10 +2,11 @@ use core::cell::Cell;
 
 use engine::{
     graphics::{draw_cursor, draw_text_left, DrawParams, Texture},
-    input::controls::{pressed, Control},
+    controls::{pressed, Control},
     text::MessagePage,
     Context,
 };
+use firecore_engine::EngineContext;
 
 use crate::data::PokedexClientData;
 
@@ -40,13 +41,13 @@ impl PartySelectMenu {
         }
     }
 
-    pub fn input(&self, ctx: &Context) -> Option<PartySelectAction> {
+    pub fn input(&self, ctx: &Context, eng: &EngineContext) -> Option<PartySelectAction> {
         if let Some(is_world) = self.is_world.get() {
             let cursor = self.cursor.get();
-            if pressed(ctx, Control::Up) && cursor > 0 {
+            if pressed(ctx, eng, Control::Up) && cursor > 0 {
                 self.cursor.set(cursor - 1);
             }
-            if pressed(ctx, Control::Down)
+            if pressed(ctx, eng, Control::Down)
                 && cursor
                     < if is_world {
                         self.world.len()
@@ -56,10 +57,10 @@ impl PartySelectMenu {
             {
                 self.cursor.set(cursor + 1);
             }
-            if pressed(ctx, Control::B) {
+            if pressed(ctx, eng, Control::B) {
                 self.alive.set(false);
             }
-            if pressed(ctx, Control::A) {
+            if pressed(ctx, eng, Control::A) {
                 let cursor = self.cursor.get();
                 match is_world {
                     true => match cursor {
@@ -90,12 +91,13 @@ impl PartySelectMenu {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
         if self.alive.get() {
             if let Some(is_world) = self.is_world.get() {
                 self.background.draw(ctx, 146.0, 83.0, Default::default());
                 draw_cursor(
                     ctx,
+                    eng,
                     154.0,
                     94.0 + (self.cursor.get() << 4) as f32,
                     Default::default(),
@@ -109,6 +111,7 @@ impl PartySelectMenu {
                 .for_each(|(index, line)| {
                     draw_text_left(
                         ctx,
+                        eng,
                         &1,
                         line,
                         161.0,

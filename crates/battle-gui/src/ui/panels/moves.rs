@@ -4,10 +4,10 @@ use pokedex::{
     engine::{
         graphics::{draw_cursor, draw_text_left, Color, DrawParams},
         gui::Panel,
-        input::controls::{pressed, Control},
+        controls::{pressed, Control},
         text::MessagePage,
         utils::Reset,
-        Context,
+        Context, EngineContext,
     },
     moves::{owned::OwnedMove, Move},
     pokemon::owned::OwnablePokemon,
@@ -42,29 +42,29 @@ impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
         }
     }
 
-    pub fn input(&mut self, ctx: &Context) -> bool {
-        if if pressed(ctx, Control::Up) {
+    pub fn input(&mut self, ctx: &Context, eng: &EngineContext) -> bool {
+        if if pressed(ctx, eng, Control::Up) {
             if self.cursor >= 2 {
                 self.cursor -= 2;
                 true
             } else {
                 false
             }
-        } else if pressed(ctx, Control::Down) {
+        } else if pressed(ctx, eng, Control::Down) {
             if self.cursor <= 2 {
                 self.cursor += 2;
                 true
             } else {
                 false
             }
-        } else if pressed(ctx, Control::Left) {
+        } else if pressed(ctx, eng, Control::Left) {
             if self.cursor > 0 {
                 self.cursor -= 1;
                 true
             } else {
                 false
             }
-        } else if pressed(ctx, Control::Right) {
+        } else if pressed(ctx, eng, Control::Right) {
             if self.cursor < 3 {
                 self.cursor += 1;
                 true
@@ -83,13 +83,14 @@ impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
-        Panel::draw(ctx, 0.0, 113.0, 160.0, 47.0);
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
+        Panel::draw(ctx, eng, 0.0, 113.0, 160.0, 47.0);
         for (index, (pokemon_move, color)) in self.names.iter().flatten().enumerate() {
             let x_offset = if index % 2 == 1 { 72.0 } else { 0.0 };
             let y_offset = if index >> 1 == 1 { 17.0 } else { 0.0 };
             draw_text_left(
                 ctx,
+                eng,
                 &0,
                 &pokemon_move.name,
                 16.0 + x_offset,
@@ -97,7 +98,7 @@ impl<M: Deref<Target = Move> + Clone> MovePanel<M> {
                 DrawParams::color(*color),
             );
             if index == self.cursor {
-                draw_cursor(ctx, 10.0 + x_offset, 123.0 + y_offset, Default::default());
+                draw_cursor(ctx, eng, 10.0 + x_offset, 123.0 + y_offset, Default::default());
             }
         }
     }

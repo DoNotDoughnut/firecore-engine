@@ -1,10 +1,12 @@
+use fiirengine::{error::FileError, audio::{self, PlaySoundParams}};
+
 use crate::{
     audio::{
         backend::{add, GameAudioMap},
         error::PlayAudioError,
         SoundId, SoundVariant,
     },
-    Context,
+    Context, EngineContext,
 };
 
 pub fn add_sound(
@@ -12,18 +14,22 @@ pub fn add_sound(
     id: SoundId,
     variant: SoundVariant,
     data: Vec<u8>,
-) -> Result<(), macroquad::prelude::FileError> {
+) -> Result<(), FileError> {
     add(sounds, (id, variant), &data)
 }
 
 pub fn play_sound(
-    ctx: &Context,
+    ctx: &mut Context,
+    eng: &EngineContext,
     sound: &SoundId,
     variant: Option<u16>,
 ) -> Result<(), PlayAudioError> {
-    match ctx.audio.sounds.get(&(*sound, variant)) {
+    match eng.audio.sounds.get(&(*sound, variant)) {
         Some(handle) => {
-            macroquad::audio::play_sound_once(*handle);
+            audio::play_sound(ctx, handle, PlaySoundParams {
+                looped: false,
+                volume: 1.0,
+            });
             Ok(())
             // match  handle.play(ctx) {
             //     Ok(instance) => {

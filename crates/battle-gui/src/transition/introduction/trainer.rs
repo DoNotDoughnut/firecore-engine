@@ -1,5 +1,10 @@
 use core::ops::Deref;
-use pokedex::{engine::utils::HashMap, item::Item, moves::Move, pokemon::Pokemon};
+use pokedex::{
+    engine::{utils::HashMap, EngineContext},
+    item::Item,
+    moves::Move,
+    pokemon::Pokemon,
+};
 
 use pokedex::{
     engine::{
@@ -89,13 +94,15 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
 
     fn update(
         &mut self,
-        ctx: &Context,
+        ctx: &mut Context,
+        eng: &mut EngineContext,
         delta: f32,
         player: &mut GuiLocalPlayer<ID, P, M, I>,
         opponent: &mut GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
-        self.introduction.update(ctx, delta, player, opponent, text);
+        self.introduction
+            .update(ctx, eng, delta, player, opponent, text);
         if text.waiting() && text.page() == text.pages() - 2 {
             self.leaving = true;
         }
@@ -107,6 +114,7 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
     fn draw(
         &self,
         ctx: &mut Context,
+        eng: &EngineContext,
         player: &[ActivePokemonRenderer],
         opponent: &[ActivePokemonRenderer],
     ) {
@@ -120,7 +128,7 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
                 );
             }
         } else {
-            self.introduction.draw_opponent(ctx, opponent);
+            self.introduction.draw_opponent(ctx, eng, opponent);
         }
         self.introduction.draw_player(ctx, player);
     }

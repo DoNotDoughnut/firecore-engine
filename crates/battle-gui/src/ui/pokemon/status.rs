@@ -6,7 +6,7 @@ use pokedex::{
         math::{vec2, Vec2},
         text::MessagePage,
         utils::Entity,
-        Context,
+        Context, EngineContext,
     },
     gui::health::HealthBar,
     pokemon::{
@@ -333,7 +333,7 @@ impl PokemonStatusGui {
         };
     }
 
-    pub fn draw(&self, ctx: &mut Context, offset: f32, bounce: f32) {
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext, offset: f32, bounce: f32) {
         if self.alive && self.data.active {
             let should_bounce =
                 !self.data.health.is_empty() || matches!(self.position, BattleGuiPosition::Top);
@@ -354,6 +354,7 @@ impl PokemonStatusGui {
 
             draw_text_left(
                 ctx,
+                eng,
                 &0,
                 &self.data.name,
                 pos.x + self.data_pos.name,
@@ -363,6 +364,7 @@ impl PokemonStatusGui {
 
             draw_text_right(
                 ctx,
+                eng,
                 &0,
                 &self.data.level.0,
                 x2,
@@ -374,6 +376,7 @@ impl PokemonStatusGui {
                 self.exp.draw(ctx, pos + Self::EXP_OFFSET);
                 draw_text_right(
                     ctx,
+                    eng,
                     &0,
                     &self.data.health,
                     x2,

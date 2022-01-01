@@ -2,11 +2,11 @@ use core::ops::Deref;
 
 use pokedex::{
     engine::{
+        controls::{pressed, Control},
         gui::MessageBox,
-        input::controls::{pressed, Control},
         text::MessagePage,
         utils::{Completable, Entity},
-        Context,
+        Context, EngineContext,
     },
     moves::{owned::OwnedMove, set::OwnedMoveSet, Move},
     pokemon::{owned::OwnablePokemon, Pokemon},
@@ -52,6 +52,7 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
     pub fn update<P: Deref<Target = Pokemon>, I, G, N, H>(
         &mut self,
         ctx: &Context,
+        eng: &EngineContext,
         text: &mut MessageBox,
         delta: f32,
         pokemon: &mut OwnablePokemon<P, OwnedMoveSet<M>, I, G, N, H>,
@@ -59,7 +60,7 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
         match self.state {
             LevelUpState::Text => match text.alive() {
                 true => {
-                    text.update(ctx, delta);
+                    text.update(ctx, eng, delta);
                     if text.finished() {
                         self.state = LevelUpState::Moves;
                         text.despawn();
@@ -77,7 +78,7 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
                             wait: None,
                             color: MessagePage::BLACK,
                         });
-                        self.update(ctx, text, delta, pokemon)
+                        self.update(ctx, eng, text, delta, pokemon)
                     }
                     None => {
                         self.state = LevelUpState::NotAlive;
@@ -86,9 +87,9 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
                 },
             },
             LevelUpState::Moves => {
-                self.move_panel.input(ctx);
-                let a = pressed(ctx, Control::A);
-                if pressed(ctx, Control::B) || a {
+                self.move_panel.input(ctx, eng);
+                let a = pressed(ctx, eng, Control::A);
+                if pressed(ctx, eng, Control::B) || a {
                     self.state = LevelUpState::Text;
                     let pokemon_move = self.moves.remove(0);
                     if a {
@@ -106,9 +107,9 @@ impl<M: Deref<Target = Move> + Clone> LevelUpMovePanel<M> {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
         match self.state {
-            LevelUpState::Moves => self.move_panel.draw(ctx),
+            LevelUpState::Moves => self.move_panel.draw(ctx, eng),
             LevelUpState::Text | LevelUpState::NotAlive => (),
         }
     }

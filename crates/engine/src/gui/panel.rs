@@ -1,7 +1,12 @@
-use crate::{
-    graphics::{draw_cursor, draw_text_left, Color, DrawParams},
+use fiirengine::{
+    graphics::{Color, DrawParams},
     math::{vec2, Rectangle},
     Context,
+};
+
+use crate::{
+    graphics::{draw_cursor, draw_text_left},
+    EngineContext,
 };
 
 pub struct Panel;
@@ -9,18 +14,27 @@ pub struct Panel;
 impl Panel {
     pub const BACKGROUND: Color = Color::rgb(248.0 / 255.0, 248.0 / 255.0, 248.0 / 255.0);
 
-    pub fn draw(ctx: &mut Context, x: f32, y: f32, w: f32, h: f32) {
-        Self::draw_color(ctx, x, y, w, h, Color::WHITE)
+    pub fn draw(ctx: &mut Context, eng: &EngineContext, x: f32, y: f32, w: f32, h: f32) {
+        Self::draw_color(ctx, eng, x, y, w, h, Color::WHITE)
     }
 
-    pub fn draw_color(ctx: &mut Context, x: f32, y: f32, w: f32, h: f32, color: Color) {
+    pub fn draw_color(
+        ctx: &mut Context,
+        eng: &EngineContext,
+        x: f32,
+        y: f32,
+        w: f32,
+        h: f32,
+        color: Color,
+    ) {
         const TEXTURE_SIZE: f32 = 7.0;
 
-        let panel = &ctx.panel;
+        let panel = &eng.panel;
 
-        panel.crate_draw(x, y, DrawParams::color(color));
+        panel.draw(ctx, x, y, DrawParams::color(color));
         let x1 = x + w - TEXTURE_SIZE;
-        panel.crate_draw(
+        panel.draw(
+            ctx,
             x1,
             y,
             DrawParams {
@@ -31,7 +45,7 @@ impl Panel {
         );
 
         let y1 = y + h - TEXTURE_SIZE;
-        panel.crate_draw(
+        panel.draw(ctx, 
             x,
             y1,
             DrawParams {
@@ -41,7 +55,7 @@ impl Panel {
             },
         );
 
-        panel.crate_draw(
+        panel.draw(ctx, 
             x1,
             y1,
             DrawParams {
@@ -55,11 +69,9 @@ impl Panel {
         let w = w - 14.0;
         let h = h - 14.0;
 
-        crate::graphics::draw_rectangle(ctx, x + TEXTURE_SIZE, y + TEXTURE_SIZE, w, h, color);
+        fiirengine::graphics::draw_rectangle(ctx, x + TEXTURE_SIZE, y + TEXTURE_SIZE, w, h, color);
 
-        let panel = &ctx.panel;
-
-        panel.crate_draw(
+        panel.draw(ctx, 
             x + TEXTURE_SIZE,
             y,
             DrawParams {
@@ -69,7 +81,7 @@ impl Panel {
                 ..DrawParams::default()
             },
         );
-        panel.crate_draw(
+        panel.draw(ctx, 
             x + TEXTURE_SIZE,
             y1,
             DrawParams {
@@ -81,7 +93,7 @@ impl Panel {
             },
         );
 
-        panel.crate_draw(
+        panel.draw(ctx, 
             x,
             y + TEXTURE_SIZE,
             DrawParams {
@@ -92,7 +104,7 @@ impl Panel {
             },
         );
 
-        panel.crate_draw(
+        panel.draw(ctx, 
             x1,
             y + TEXTURE_SIZE,
             DrawParams {
@@ -107,6 +119,7 @@ impl Panel {
 
     pub fn draw_text(
         ctx: &mut Context,
+        eng: &EngineContext,
         x: f32,
         y: f32,
         w: f32,
@@ -117,12 +130,13 @@ impl Panel {
     ) {
         let h = 22.0 + ((text.len() + if add_cancel { 1 } else { 0 }) << 4) as f32;
         let y = if from_bottom { y - h } else { y };
-        Self::draw(ctx, x, y, w, h);
+        Self::draw(ctx, eng, x, y, w, h);
         let tx = x + 15.0;
         let ty = y + 11.0;
         for (index, text) in text.iter().enumerate() {
             draw_text_left(
                 ctx,
+                eng,
                 &1,
                 text,
                 tx,
@@ -133,6 +147,7 @@ impl Panel {
         if add_cancel {
             draw_text_left(
                 ctx,
+                eng,
                 &1,
                 "Cancel",
                 tx,
@@ -142,6 +157,7 @@ impl Panel {
         }
         draw_cursor(
             ctx,
+            eng,
             x + 8.0,
             y + 13.0 + (cursor << 4) as f32,
             Default::default(),

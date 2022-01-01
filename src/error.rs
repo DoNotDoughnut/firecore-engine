@@ -36,6 +36,12 @@ impl std::fmt::Display for FileError {
     }
 }
 
+impl From<macroquad::prelude::FileError> for FileError {
+    fn from(err: macroquad::prelude::FileError) -> Self {
+        Self::Engine(err)
+    }
+}
+
 impl From<image::ImageError> for EngineError {
     fn from(e: image::ImageError) -> Self {
         Self::Image(e)

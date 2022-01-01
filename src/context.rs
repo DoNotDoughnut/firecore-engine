@@ -1,33 +1,9 @@
-use crate::{
-    graphics::{text::renderer::TextRenderer, ScalingMode, Texture},
-    input::InputContext,
-    EngineError,
-};
-
+use crate::{graphics::ScalingMode, input::InputContext, EngineError};
 pub struct Context {
     pub(crate) running: bool,
     pub(crate) debug: bool,
-
     pub(crate) input: InputContext,
-
-    #[cfg(feature = "audio")]
-    pub(crate) audio: crate::audio::backend::AudioContext,
-
-    #[deprecated]
-    pub(crate) text: TextRenderer,
-
     pub(crate) scaling: Scaling,
-
-    pub(crate) panel: Texture,
-}
-
-#[derive(Default)]
-pub struct Scaling(ScalingMode, Option<f32>);
-
-impl From<(ScalingMode, Option<f32>)> for Scaling {
-    fn from(s: (ScalingMode, Option<f32>)) -> Self {
-        Self(s.0, s.1)
-    }
 }
 
 impl Context {
@@ -52,36 +28,35 @@ impl Context {
     // }
 }
 
-#[allow(unused_variables)]
-pub trait State {
-    fn start(&mut self, ctx: &mut Context) {}
-
-    fn update(&mut self, ctx: &mut Context, delta: f32) {}
-
-    fn draw(&mut self, ctx: &mut Context) {}
-
-    fn end(&mut self, ctx: &mut Context) {}
-}
-
 impl Context {
     pub(crate) fn new() -> Result<Self, EngineError> {
         Ok(Self {
-            text: TextRenderer::new()?,
-            input: InputContext::new()?,
-            panel: Texture::crate_new(include_bytes!("../assets/panel.png"))?,
-            #[cfg(feature = "audio")]
-            audio: Default::default(),
             running: true,
             debug: cfg!(debug_assertions),
+            input: InputContext::new()?,
             scaling: Default::default(),
         })
     }
+}
+
+pub trait UserContext: Sized {
+    fn new(ctx: &mut Context) -> Result<Self, EngineError>;
 }
 
 pub struct ContextBuilder<T: Into<String>> {
     pub title: T,
     pub width: i32,
     pub height: i32,
+}
+
+#[derive(Default)]
+pub(crate) struct Scaling(ScalingMode, Option<f32>);
+
+impl UserContext for () {
+    #[allow(unused_variables)]
+    fn new(ctx: &mut Context) -> Result<Self, EngineError> {
+        Ok(())
+    }
 }
 
 impl<T: Into<String>> ContextBuilder<T> {
@@ -105,18 +80,8 @@ impl<T: Into<String>> From<ContextBuilder<T>> for macroquad::prelude::Conf {
     }
 }
 
-// pub struct DefaultContext(pub Context);
-
-// impl Deref for DefaultContext {
-//     type Target = Context;
-
-//     fn deref(&self) -> &Self::Target {
-//         &self.0
-//     }
-// }
-
-// impl DerefMut for DefaultContext {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.0
-//     }
-// }
+impl From<(ScalingMode, Option<f32>)> for Scaling {
+    fn from(s: (ScalingMode, Option<f32>)) -> Self {
+        Self(s.0, s.1)
+    }
+}

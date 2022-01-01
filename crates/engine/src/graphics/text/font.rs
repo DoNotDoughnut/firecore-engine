@@ -1,9 +1,9 @@
-use crate::utils::HashMap;
-
-use crate::{
+use fiirengine::{
     graphics::{DrawParams, Texture},
-    text::FontId,
+    Context,
 };
+
+use crate::{text::FontId, utils::HashMap};
 
 pub type Fonts = HashMap<FontId, Font>;
 pub type FontDimensions = u8;
@@ -17,11 +17,18 @@ pub struct Font {
 }
 
 impl Font {
-    pub fn draw_text_left(&self, text: &str, x: f32, y: f32, params: DrawParams) {
+    pub fn draw_text_left(
+        &self,
+        ctx: &mut Context,
+        text: &str,
+        x: f32,
+        y: f32,
+        params: DrawParams,
+    ) {
         let mut len = 0.0;
         for character in text.chars() {
             len += if let Some(texture) = self.chars.get(&character) {
-                texture.crate_draw(x + len, y, params);
+                texture.draw(ctx, x + len, y, params);
                 texture.width()
             } else {
                 self.width as _
@@ -29,12 +36,19 @@ impl Font {
         }
     }
 
-    pub fn draw_text_right(&self, text: &str, x: f32, y: f32, params: DrawParams) {
+    pub fn draw_text_right(
+        &self,
+        ctx: &mut Context,
+        text: &str,
+        x: f32,
+        y: f32,
+        params: DrawParams,
+    ) {
         let mut len = 0.0;
         let x = x - self.text_pixel_length(text);
         for character in text.chars() {
             len += if let Some(texture) = self.chars.get(&character) {
-                texture.crate_draw(x + len, y, params);
+                texture.draw(ctx, x + len, y, params);
                 texture.width()
             } else {
                 self.width as _
@@ -44,6 +58,7 @@ impl Font {
 
     pub fn draw_text_center(
         &self,
+        ctx: &mut Context,
         text: &str,
         center_vertical: bool,
         x: f32,
@@ -70,7 +85,7 @@ impl Font {
         for character in text.chars() {
             len += match self.chars.get(&character) {
                 Some(texture) => {
-                    texture.crate_draw(x - x_offset + len, y - y_offset, params);
+                    texture.draw(ctx, x - x_offset + len, y - y_offset, params);
                     texture.width() as f32
                 }
                 None => self.width as f32,

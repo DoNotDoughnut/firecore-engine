@@ -3,7 +3,7 @@ use pokedex::{
     item::{bag::Bag, Item},
     moves::Move,
     pokemon::Pokemon,
-    NpcGroupId,
+    NpcGroupId, engine::EngineContext,
 };
 
 use pokedex::{
@@ -47,10 +47,11 @@ pub struct ActivePokemonRenderer {
 }
 
 impl ActivePokemonRenderer {
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
         self.pokemon.draw(ctx, vec2(0.0, 0.0), Color::WHITE);
         self.status.draw(
             ctx,
+            eng,
             0.0,
             if self.pokemon.flicker.accumulator % Flicker::HALF > Flicker::HALF / 8.0
                 && self.pokemon.flicker.remaining > (Flicker::TIMES >> 1)

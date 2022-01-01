@@ -9,7 +9,7 @@ use crate::{
 use super::{Color, Image};
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Texture(Rc<TextureInner>);
+pub struct Texture(Rc<TextureData>);
 
 impl Texture {
     pub(crate) fn crate_new(data: &[u8]) -> Result<Self, image::ImageError> {
@@ -20,7 +20,7 @@ impl Texture {
     pub(crate) fn crate_from_image(image: &image::RgbaImage) -> Self {
         let tex = Texture2D::from_rgba8(image.width() as _, image.height() as _, image.as_raw());
         tex.set_filter(FilterMode::Nearest);
-        Self(Rc::new(TextureInner(tex)))
+        Self(Rc::new(TextureData(tex)))
     }
 
     #[allow(unused_variables)]
@@ -55,13 +55,17 @@ impl Texture {
         self.0.set_filter(filter)
     }
 
+    pub fn data(&self) -> &TextureData {
+        &self.0
+    }
+
     // pub fn try_draw(self: Option<&Self>, ctx: &mut Context, x: f32, y: f32, params: DrawParams) {}
 }
 
-#[derive(Debug, Clone, PartialEq)]
-struct TextureInner(Texture2D);
+#[derive(Debug, PartialEq)]
+pub struct TextureData(Texture2D);
 
-impl core::ops::Deref for TextureInner {
+impl core::ops::Deref for TextureData {
     type Target = Texture2D;
 
     fn deref(&self) -> &Self::Target {
@@ -69,13 +73,13 @@ impl core::ops::Deref for TextureInner {
     }
 }
 
-impl core::ops::DerefMut for TextureInner {
+impl core::ops::DerefMut for TextureData {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl Drop for TextureInner {
+impl Drop for TextureData {
     fn drop(&mut self) {
         self.0.delete()
     }

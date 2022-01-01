@@ -1,8 +1,10 @@
-use macroquad::audio::PlaySoundParams;
+use fiirengine::error::FileError;
+
+use fiirengine::audio::{self, PlaySoundParams};
 
 use crate::{
     audio::{error::PlayAudioError, MusicId},
-    Context,
+    Context, EngineContext,
 };
 
 use super::{add, GameAudioMap};
@@ -11,23 +13,23 @@ pub fn add_music(
     music: &mut GameAudioMap<MusicId>,
     id: MusicId,
     data: Vec<u8>,
-) -> Result<(), macroquad::prelude::FileError> {
+) -> Result<(), FileError> {
     add(music, id, &data)
 }
 
-pub fn play_music(ctx: &mut Context, music: &MusicId) -> Result<(), PlayAudioError> {
-    stop_music(ctx);
-    match ctx.audio.music.get_mut(music) {
+pub fn play_music(ctx: &mut Context, eng: &mut EngineContext, music: &MusicId) -> Result<(), PlayAudioError> {
+    stop_music(ctx, eng);
+    match eng.audio.music.get(music) {
         Some(audio) => {
-            let audio = *audio;
-            macroquad::audio::play_sound(
+            let handle = audio::play_sound(
+                ctx,
                 audio,
                 PlaySoundParams {
                     looped: true,
                     volume: 0.5,
                 },
             );
-            ctx.audio.current_music = Some((*music, audio));
+            eng.audio.current_music = Some((*music, handle));
             Ok(())
             // match audio.play(ctx) {
             // Ok(instance) => {
@@ -42,8 +44,8 @@ pub fn play_music(ctx: &mut Context, music: &MusicId) -> Result<(), PlayAudioErr
     }
 }
 
-pub fn stop_music(ctx: &mut Context) {
-    if let Some((_, instance)) = ctx.audio.current_music.take() {
-        macroquad::audio::stop_sound(instance);
+pub fn stop_music(ctx: &mut Context, eng: &mut EngineContext) {
+    if let Some((_, instance)) = eng.audio.current_music.take() {
+        audio::stop_sound(ctx, instance);
     }
 }

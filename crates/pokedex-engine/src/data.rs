@@ -1,5 +1,6 @@
 use engine::{error::ImageError, graphics::Texture, Context};
 
+use firecore_engine::EngineContext;
 use firecore_pokedex_engine_builder::SerializedPokedexEngine;
 
 use crate::texture::{ItemTextures, NpcGroupTextures, PokemonTextures};
@@ -26,29 +27,29 @@ pub struct PokedexSummaryData {
 }
 
 impl PokedexClientData {
-    pub fn new(ctx: &mut Context, engine: SerializedPokedexEngine) -> Result<Self, ImageError> {
-        let mut pokemon_textures = PokemonTextures::with_capacity(engine.pokemon.len());
+    pub fn new(ctx: &mut Context, eng: &mut EngineContext, data: SerializedPokedexEngine) -> Result<Self, ImageError> {
+        let mut pokemon_textures = PokemonTextures::with_capacity(data.pokemon.len());
 
-        for (id, (textures, cry)) in engine.pokemon {
+        for (id, (textures, cry)) in data.pokemon {
             if let Err(err) = pokemon_textures.insert(ctx, id, textures) {
                 engine::log::warn!("Cannot add pokemon texture for {} with error {}", id, err);
             }
 
             #[cfg(feature = "audio")]
             if !cry.is_empty() {
-                engine::audio::add_sound(ctx, crate::CRY_ID, Some(id), cry);
+                engine::audio::add_sound(ctx, eng, crate::CRY_ID, Some(id), cry);
             }
         }
 
-        let mut item_textures = ItemTextures::with_capacity(engine.items.len());
+        let mut item_textures = ItemTextures::with_capacity(data.items.len());
 
-        for (id, texture) in engine.items.into_iter() {
+        for (id, texture) in data.items.into_iter() {
             item_textures.insert(id, Texture::new(ctx, &texture)?);
         }
 
-        let mut npc_group_textures = NpcGroupTextures::with_capacity(engine.npc_groups.len());
+        let mut npc_group_textures = NpcGroupTextures::with_capacity(data.npc_groups.len());
 
-        for (id, texture) in engine.npc_groups {
+        for (id, texture) in data.npc_groups {
             npc_group_textures.insert(id, Texture::new(ctx, &texture)?);
         }
 

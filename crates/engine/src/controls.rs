@@ -1,6 +1,8 @@
-use crate::Context;
+use fiirengine::Context;
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
+
+use crate::EngineContext;
 
 pub mod gamepad;
 pub mod keyboard;
@@ -33,11 +35,11 @@ impl Default for ControlsContext {
     }
 }
 
-pub fn pressed(ctx: &Context, control: Control) -> bool {
-    if keyboard::pressed(ctx, control) {
+pub fn pressed(ctx: &Context, eng: &EngineContext, control: Control) -> bool {
+    if keyboard::pressed(ctx, eng, control) {
         return true;
     }
-    if gamepad::pressed(ctx, control) {
+    if gamepad::pressed(ctx, eng, control) {
         return true;
     }
     // if let Some(controls) = unsafe{touchscreen::TOUCHSCREEN.as_ref()} {
@@ -48,11 +50,11 @@ pub fn pressed(ctx: &Context, control: Control) -> bool {
     false
 }
 
-pub fn down(ctx: &Context, control: Control) -> bool {
-    if keyboard::down(ctx, control) {
+pub fn down(ctx: &Context, eng: &EngineContext, control: Control) -> bool {
+    if keyboard::down(ctx, eng, control) {
         return true;
     }
-    if gamepad::down(ctx, control) {
+    if gamepad::down(ctx, eng, control) {
         return true;
     }
     // if let Some(controls) = unsafe{touchscreen::TOUCHSCREEN.as_ref()} {

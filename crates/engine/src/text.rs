@@ -1,14 +1,17 @@
-use crate::{error::ImageError, graphics::Color, Context};
+use fiirengine::{error::ImageError, graphics::Color, Context};
 
 pub extern crate firecore_font_builder as font;
 
 pub use font::FontId;
 
+use crate::EngineContext;
+
 pub fn insert_font(
-    ctx: &mut Context,
+    ctx: &mut Context, 
+    eng: &mut EngineContext,
     font_sheet: &font::FontSheet<Vec<u8>>,
 ) -> Result<(), ImageError> {
-    ctx.text.add_font_sheet(font_sheet)
+    eng.text.add_font_sheet(ctx, font_sheet)
 }
 
 impl MessagePage {

@@ -6,6 +6,7 @@ use firecore_battle_gui::pokedex::engine::{
     utils::{Completable, Entity},
     Context, ContextBuilder, State,
 };
+use firecore_pokedex_engine::engine::EngineContext;
 
 const SCALE: f32 = 2.0;
 
@@ -17,8 +18,8 @@ fn main() {
             (SCALE * engine::utils::HEIGHT) as _,
         ),
         async {},
-        move |_, _| {},
-        |_, _| Game::new(),
+        move |_, _, _| {},
+        |_, _, _| Game::new(),
     )
 }
 
@@ -34,8 +35,8 @@ impl Game {
     }
 }
 
-impl State for Game {
-    fn start(&mut self, ctx: &mut Context) {
+impl State<EngineContext> for Game {
+    fn start(&mut self, ctx: &mut Context, _: &mut EngineContext) {
         graphics::set_scaling_mode(ctx, ScalingMode::Stretch, Some(SCALE));
 
         //-> Result {
@@ -57,12 +58,12 @@ impl State for Game {
         // Ok(())
     }
 
-    fn update(&mut self, ctx: &mut Context, delta: f32) {
+    fn update(&mut self, ctx: &mut Context, eng: &mut EngineContext, delta: f32) {
         //-> Result {
         if !self.messagebox.alive() {
             ctx.quit();
         } else {
-            self.messagebox.update(ctx, delta);
+            self.messagebox.update(ctx, eng, delta);
             if self.messagebox.finished() {
                 self.messagebox.despawn();
             }
@@ -70,17 +71,18 @@ impl State for Game {
         // Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut Context) {
+    fn draw(&mut self, ctx: &mut Context, eng: &mut EngineContext) {
         //-> Result<(), ()> {
         graphics::clear(ctx, Color::rgb(0.1, 0.2, 0.56));
         Panel::draw(
             ctx,
+            eng,
             10.0,
             10.0,
             engine::utils::WIDTH - 20.0,
             engine::utils::HEIGHT - 20.0,
         );
-        self.messagebox.draw(ctx);
+        self.messagebox.draw(ctx, eng);
         // Ok(())
     }
 }

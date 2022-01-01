@@ -1,9 +1,9 @@
 [package]
-name = "firecore-engine"
+name = "fiirengine"
 description = "Base engine for my games"
 version = "0.0.3"
 authors = ["Rhys H <donotdoughnut99@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 repository = "https://github.com/fiirecore/engine"
 readme = "README.md"
@@ -19,28 +19,10 @@ audio = ["macroquad/audio"]
 macroquad = { version = "0.3", git = "https://github.com/DoNotDoughnut/macroquad", rev = "236d84b", default-features = false }
 quad-gamepad = "0.2.0-alpha"
 
-#
-
-image = { version = "0.23.14", default-features = false, features = [
+image = { version = "0.23", default-features = false, features = [
     "png",
     "tga",
 ] }
-
-# Controls 
-
-enum-map = { version = "1", features = ["serde"] }
-serde = { version = "1", features = ["derive"] }
-
-# Audio utils
-
-tinystr = { version = "0.4", features = ["serde"], default-features = false }
-
-# Text rendering
-
-firecore-font-builder = { git = "https://github.com/fiirecore-game/firecore-font-builder", rev = "057373a", default-features = false }
-
-[dev-dependencies]
-bincode = "1.3"
 
 [workspace]
 members = ["crates/*", "crates/pokedex-engine/builder"]

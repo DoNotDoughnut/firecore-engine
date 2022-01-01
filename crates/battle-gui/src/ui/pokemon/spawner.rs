@@ -3,7 +3,7 @@ use pokedex::{
         audio::play_sound,
         graphics::{DrawParams, Texture},
         math::Vec2,
-        Context,
+        Context, EngineContext,
     },
     pokemon::PokemonId,
     CRY_ID,
@@ -46,18 +46,18 @@ impl Spawner {
         0.5 * (x - Self::PARABOLA_ORIGIN).powi(2) - 50.0
     }
 
-    pub fn update(&mut self, ctx: &Context, delta: f32) {
+    pub fn update(&mut self, ctx: &mut Context, eng: &mut EngineContext, delta: f32) {
         match self.spawning {
             SpawnerState::Start => {
                 self.x = Self::ORIGIN;
                 self.spawning = SpawnerState::Throwing;
-                self.update(ctx, delta);
+                self.update(ctx, eng, delta);
             }
             SpawnerState::Throwing => {
                 self.x += delta * 20.0;
                 if self.x > Self::LEN {
                     if let Some(id) = self.id {
-                        play_sound(ctx, &CRY_ID, Some(id));
+                        play_sound(ctx, eng, &CRY_ID, Some(id));
                     }
                     self.spawning = SpawnerState::Spawning;
                     self.x = 0.0;

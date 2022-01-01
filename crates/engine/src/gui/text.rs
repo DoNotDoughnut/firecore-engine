@@ -1,10 +1,10 @@
+use fiirengine::{graphics::DrawParams, math::Vec2, Context};
+
 use crate::{
-    graphics::{draw_button_for_text, draw_text_left, DrawParams},
-    input::controls::{pressed, Control},
-    math::Vec2,
+    controls::{pressed, Control},
+    graphics::{draw_button_for_text, draw_text_left},
     text::{FontId, MessagePage},
-    utils::{Completable, Entity, Reset},
-    Context,
+    utils::{Completable, Entity, Reset}, EngineContext,
 };
 
 #[derive(Default, Clone)]
@@ -64,7 +64,7 @@ impl MessageBox {
         self.accumulator = 0.0;
     }
 
-    pub fn update(&mut self, ctx: &Context, delta: f32) {
+    pub fn update(&mut self, ctx: &Context, eng: &EngineContext, delta: f32) {
         if self.alive {
             match self.pages.get(self.page) {
                 Some(page) => match self.waiting {
@@ -93,7 +93,7 @@ impl MessageBox {
                                 self.finish_waiting();
                             }
                         }
-                        None => match pressed(ctx, Control::A) {
+                        None => match pressed(ctx, eng, Control::A) {
                             true => self.finish_waiting(),
                             false => {
                                 self.button.position += match self.button.direction {
@@ -124,7 +124,7 @@ impl MessageBox {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
         if self.alive {
             if let Some(page) = self.pages.get(self.page) {
                 if let Some(line) = page.lines.get(self.line) {
@@ -141,6 +141,7 @@ impl MessageBox {
                     let y = (self.line << 4) as f32;
                     draw_text_left(
                         ctx,
+                        eng,
                         &self.font,
                         string,
                         self.origin.x,
@@ -151,6 +152,7 @@ impl MessageBox {
                     for index in 0..self.line {
                         draw_text_left(
                             ctx,
+                            eng,
                             &self.font,
                             &page.lines[index],
                             self.origin.x,
@@ -162,6 +164,7 @@ impl MessageBox {
                     if finished && page.wait.is_none() {
                         draw_button_for_text(
                             ctx,
+                            eng,
                             &self.font,
                             line,
                             self.origin.x,

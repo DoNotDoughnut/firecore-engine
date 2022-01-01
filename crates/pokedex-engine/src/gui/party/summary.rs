@@ -13,11 +13,12 @@ use engine::{
         DrawParams, Texture,
     },
     gui::Panel,
-    input::controls::{pressed, Control},
+    controls::{pressed, Control},
     text::MessagePage,
     utils::WIDTH,
     Context,
 };
+use firecore_engine::EngineContext;
 
 use crate::pokedex::{pokemon::Pokemon, Dex};
 
@@ -63,20 +64,20 @@ impl SummaryGui {
         }
     }
 
-    pub fn input(&self, ctx: &Context) {
+    pub fn input(&self, ctx: &Context, eng: &EngineContext) {
         let page = self.page.get();
-        if pressed(ctx, Control::Left) && page > 0 {
+        if pressed(ctx, eng, Control::Left) && page > 0 {
             self.page.set(page - 1);
         }
-        if pressed(ctx, Control::Right) && page < Self::PAGES - 1 {
+        if pressed(ctx, eng, Control::Right) && page < Self::PAGES - 1 {
             self.page.set(page + 1);
         }
-        if pressed(ctx, Control::B) {
+        if pressed(ctx, eng, Control::B) {
             self.despawn();
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
         let current_page = self.page.get();
         let w = 114.0 + (current_page << 4) as f32;
         let rw = WIDTH - w;
@@ -85,6 +86,7 @@ impl SummaryGui {
         draw_straight_line(ctx, 0.0, 16.5, w, true, 1.0, Self::HEADER_LEFT_DARK);
         draw_text_left(
             ctx,
+            eng,
             &1,
             self.headers[current_page],
             5.0,
@@ -112,6 +114,7 @@ impl SummaryGui {
             );
             draw_text_left(
                 ctx,
+                eng,
                 &1,
                 LEVEL_PREFIX,
                 5.0,
@@ -120,6 +123,7 @@ impl SummaryGui {
             );
             draw_text_left(
                 ctx,
+                eng,
                 &1,
                 &summary.level,
                 15.0,
@@ -128,6 +132,7 @@ impl SummaryGui {
             );
             draw_text_left(
                 ctx,
+                eng,
                 &1,
                 &summary.name,
                 41.0,
@@ -140,6 +145,7 @@ impl SummaryGui {
                     self.pages[0].draw(ctx, 0.0, TOP, Default::default());
                     draw_text_left(
                         ctx,
+                        eng,
                         &1,
                         &summary.id,
                         168.0,
@@ -148,6 +154,7 @@ impl SummaryGui {
                     );
                     draw_text_left(
                         ctx,
+                        eng,
                         &1,
                         &summary.name,
                         168.0,
@@ -161,6 +168,7 @@ impl SummaryGui {
                         draw_rectangle(ctx, x, 58.0, 32.0, 6.0, display.lower);
                         draw_text_center(
                             ctx,
+                            eng,
                             &0,
                             display.name,
                             false,

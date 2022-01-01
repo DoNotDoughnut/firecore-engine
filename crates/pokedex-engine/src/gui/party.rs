@@ -6,13 +6,15 @@ use crate::pokedex::{
 };
 
 use engine::{
-    graphics::{draw_line, draw_rectangle, draw_text_left, draw_text_right},
-    graphics::{Color, DrawParams, Texture},
-    input::controls::{pressed, Control},
+    controls::{pressed, Control},
+    graphics::{
+        draw_line, draw_rectangle, draw_text_left, draw_text_right, Color, DrawParams, Texture,
+    },
     math::{Rectangle, Vec2},
     text::MessagePage,
     Context,
 };
+use firecore_engine::EngineContext;
 
 use crate::{data::PokedexClientData, get::GetPokemonData};
 
@@ -110,14 +112,15 @@ impl PartyGui {
     pub fn input<'d, P: Deref<Target = Pokemon>, I: GetPokemonData>(
         &self,
         ctx: &Context,
+        eng: &EngineContext,
         dex: &PokedexClientData,
         pokedex: &'d dyn Dex<'d, Pokemon, P>,
         party: &mut [I],
     ) {
         if self.summary.alive() {
-            self.summary.input(ctx);
+            self.summary.input(ctx, eng);
         } else if self.select.alive.get() {
-            if let Some(action) = self.select.input(ctx) {
+            if let Some(action) = self.select.input(ctx, eng) {
                 let cursor = self.cursor.get();
                 match action {
                     select::PartySelectAction::Select => {
@@ -137,7 +140,7 @@ impl PartyGui {
                     }
                 }
             }
-        } else if pressed(ctx, Control::A) {
+        } else if pressed(ctx, eng, Control::A) {
             let is_world = self.select.is_world.get();
             if let Some(selected) = self.take_selected() {
                 if let Some(is_world) = is_world {
@@ -153,20 +156,22 @@ impl PartyGui {
             }
         } else {
             let cursor = self.cursor.get();
-            if pressed(ctx, Control::Up) && cursor > 1 {
+            if pressed(ctx, eng, Control::Up) && cursor > 1 {
                 self.cursor.set(cursor - 1);
             }
-            if pressed(ctx, Control::Down) && cursor < party.len() - 1 {
+            if pressed(ctx, eng, Control::Down) && cursor < party.len() - 1 {
                 self.cursor.set(cursor + 1);
             }
-            if pressed(ctx, Control::Left) && cursor != 0 {
+            if pressed(ctx, eng, Control::Left) && cursor != 0 {
                 self.right_cursor.set(Some(cursor));
                 self.cursor.set(0);
             }
-            if pressed(ctx, Control::Right) && cursor == 0 {
+            if pressed(ctx, eng, Control::Right) && cursor == 0 {
                 self.cursor.set(self.right_cursor.get().unwrap_or(1));
             }
-            if (pressed(ctx, Control::B) || pressed(ctx, Control::Start)) && self.exitable.get() {
+            if (pressed(ctx, eng, Control::B) || pressed(ctx, eng, Control::Start))
+                && self.exitable.get()
+            {
                 self.despawn();
             }
         }
@@ -188,11 +193,11 @@ impl PartyGui {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
         // deps::log::debug!("to - do: /party brings up party gui");
         if self.summary.alive() {
             match self.selected.get() {
-                Some(selected) => self.summary.draw(ctx),
+                Some(selected) => self.summary.draw(ctx, eng),
                 None => self.summary.despawn(),
             }
         } else {
@@ -200,18 +205,18 @@ impl PartyGui {
             for (index, cell) in self.pokemon.iter().enumerate() {
                 if let Some(cell) = super::cellref(cell) {
                     match index == 0 {
-                        true => self.draw_primary(ctx, cell),
-                        false => self.draw_cell(ctx, index, cell, self.cursor.get() == index),
+                        true => self.draw_primary(ctx, eng, cell),
+                        false => self.draw_cell(ctx, eng, index, cell, self.cursor.get() == index),
                     }
                 }
             }
             if self.select.is_world.get().is_some() {
-                self.select.draw(ctx);
+                self.select.draw(ctx, eng);
             }
         }
     }
 
-    fn draw_primary(&self, ctx: &mut Context, cell: &PartyCell) {
+    fn draw_primary(&self, ctx: &mut Context, eng: &EngineContext, cell: &PartyCell) {
         let selected = self.cursor.get() == 0;
         let mut skip = false;
         if self.select.is_world.get().is_some() {
@@ -254,6 +259,7 @@ impl PartyGui {
         self.draw_pokemon(ctx, &cell.icon, 0.0, 20.0, selected);
         draw_text_left(
             ctx,
+            eng,
             &0,
             &cell.name,
             33.0,
@@ -262,6 +268,7 @@ impl PartyGui {
         );
         draw_text_left(
             ctx,
+            eng,
             &0,
             LEVEL_PREFIX,
             41.0,
@@ -270,13 +277,14 @@ impl PartyGui {
         );
         draw_text_left(
             ctx,
+            eng,
             &0,
             &cell.level,
             51.0,
             45.0,
             DrawParams::color(MessagePage::WHITE),
         );
-        self.draw_health(ctx, cell, 17.0, 57.0);
+        self.draw_health(ctx, eng, cell, 17.0, 57.0);
     }
 
     fn draw_primary_color(
@@ -298,7 +306,14 @@ impl PartyGui {
         }
     }
 
-    fn draw_cell(&self, ctx: &mut Context, index: usize, cell: &PartyCell, selected: bool) {
+    fn draw_cell(
+        &self,
+        ctx: &mut Context,
+        eng: &EngineContext,
+        index: usize,
+        cell: &PartyCell,
+        selected: bool,
+    ) {
         let offset = -14.0 + (24.0 * index as f32);
         let mut skip = false;
         if self.select.is_world.get().is_some() {
@@ -337,6 +352,7 @@ impl PartyGui {
         self.draw_pokemon(ctx, &cell.icon, 87.0, offset - 8.0, selected);
         draw_text_left(
             ctx,
+            eng,
             &0,
             &cell.name,
             119.0,
@@ -345,6 +361,7 @@ impl PartyGui {
         );
         draw_text_left(
             ctx,
+            eng,
             &0,
             LEVEL_PREFIX,
             129.0,
@@ -353,13 +370,14 @@ impl PartyGui {
         );
         draw_text_left(
             ctx,
+            eng,
             &0,
             &cell.level,
             139.0,
             offset + 9.0,
             DrawParams::color(MessagePage::WHITE),
         );
-        self.draw_health(ctx, cell, 170.0, offset + 6.0);
+        self.draw_health(ctx, eng, cell, 170.0, offset + 6.0);
     }
 
     fn draw_cell_color(
@@ -419,11 +437,12 @@ impl PartyGui {
         );
     }
 
-    fn draw_health(&self, ctx: &mut Context, cell: &PartyCell, x: f32, y: f32) {
+    fn draw_health(&self, ctx: &mut Context, eng: &EngineContext, cell: &PartyCell, x: f32, y: f32) {
         self.health
             .draw_width(ctx, Vec2::new(x, y), cell.health.percent);
         draw_text_right(
             ctx,
+            eng,
             &0,
             &cell.health.current,
             x + 25.0,
@@ -432,6 +451,7 @@ impl PartyGui {
         );
         draw_text_left(
             ctx,
+            eng,
             &0,
             "/",
             x + 35.0,
@@ -440,6 +460,7 @@ impl PartyGui {
         );
         draw_text_left(
             ctx,
+            eng,
             &0,
             &cell.health.maximum,
             x + 40.0,

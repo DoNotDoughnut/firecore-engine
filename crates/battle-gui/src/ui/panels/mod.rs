@@ -1,9 +1,9 @@
 use core::ops::Deref;
-use pokedex::{item::Item, pokemon::Pokemon};
+use pokedex::{item::Item, pokemon::Pokemon, engine::EngineContext};
 
 use pokedex::{
     engine::{
-        input::controls::{pressed, Control},
+        controls::{pressed, Control},
         utils::{Entity, Reset},
         Context,
     },
@@ -80,27 +80,28 @@ impl<M: Deref<Target = Move> + Clone> BattlePanel<M> {
     pub fn input<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, N, H>(
         &mut self,
         ctx: &Context,
+        eng: &EngineContext,
         pokemon: &OwnablePokemon<P, MSET, I, G, N, H>,
     ) -> Option<BattlePanels> {
         if self.alive {
             match self.active {
                 BattlePanels::Main => {
-                    self.battle.input(ctx);
-                    pressed(ctx, Control::A).then(|| BattlePanels::Main)
+                    self.battle.input(ctx, eng);
+                    pressed(ctx, eng, Control::A).then(|| BattlePanels::Main)
                 }
                 BattlePanels::Fight => {
-                    if pressed(ctx, Control::B) {
+                    if pressed(ctx, eng, Control::B) {
                         self.active = BattlePanels::Main;
                     }
-                    self.fight.input(ctx, pokemon);
-                    pressed(ctx, Control::A).then(|| BattlePanels::Fight)
+                    self.fight.input(ctx, eng, pokemon);
+                    pressed(ctx, eng, Control::A).then(|| BattlePanels::Fight)
                 }
                 BattlePanels::Target(..) => {
-                    if pressed(ctx, Control::B) {
+                    if pressed(ctx, eng, Control::B) {
                         self.active = BattlePanels::Fight;
                     }
-                    self.targets.input(ctx);
-                    pressed(ctx, Control::A).then(|| std::mem::take(&mut self.active))
+                    self.targets.input(ctx, eng);
+                    pressed(ctx, eng, Control::A).then(|| std::mem::take(&mut self.active))
                 }
             }
         } else {
@@ -108,12 +109,12 @@ impl<M: Deref<Target = Move> + Clone> BattlePanel<M> {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
         if self.alive {
             match self.active {
-                BattlePanels::Main => self.battle.draw(ctx),
-                BattlePanels::Fight => self.fight.draw(ctx),
-                BattlePanels::Target(..) => self.targets.draw(ctx),
+                BattlePanels::Main => self.battle.draw(ctx, eng),
+                BattlePanels::Fight => self.fight.draw(ctx, eng),
+                BattlePanels::Target(..) => self.targets.draw(ctx, eng),
             }
         }
     }

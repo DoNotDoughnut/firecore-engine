@@ -1,7 +1,7 @@
 use core::ops::Deref;
 
 use pokedex::{
-    engine::{utils::Reset, Context},
+    engine::{utils::Reset, Context, EngineContext},
     moves::{owned::OwnedMove, Move},
     pokemon::owned::OwnablePokemon,
 };
@@ -38,17 +38,18 @@ impl<M: Deref<Target = Move> + Clone> FightPanel<M> {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
-        self.moves.draw(ctx);
-        self.info.draw(ctx);
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
+        self.moves.draw(ctx, eng);
+        self.info.draw(ctx, eng);
     }
 
     pub fn input<P, MSET: Deref<Target = [OwnedMove<M>]>, I, G, N, H>(
         &mut self,
         ctx: &Context,
+        eng: &EngineContext,
         pokemon: &OwnablePokemon<P, MSET, I, G, N, H>,
     ) {
-        if self.moves.input(ctx) {
+        if self.moves.input(ctx, eng) {
             self.update_move(pokemon);
         }
     }

@@ -1,6 +1,9 @@
 use core::ops::Deref;
 use pokedex::{
-    engine::utils::{HashMap, Reset},
+    engine::{
+        utils::{HashMap, Reset},
+        EngineContext,
+    },
     item::Item,
     moves::Move,
     pokemon::Pokemon,
@@ -58,7 +61,8 @@ pub(crate) trait BattleIntroduction<
 
     fn update(
         &mut self,
-        ctx: &Context,
+        ctx: &mut Context,
+        eng: &mut EngineContext,
         delta: f32,
         player: &mut GuiLocalPlayer<ID, P, M, I>,
         opponent: &mut GuiRemotePlayer<ID, P>,
@@ -68,6 +72,7 @@ pub(crate) trait BattleIntroduction<
     fn draw(
         &self,
         ctx: &mut Context,
+        eng: &EngineContext,
         player: &[ActivePokemonRenderer],
         opponent: &[ActivePokemonRenderer],
     );
@@ -162,14 +167,15 @@ impl BattleIntroductionManager {
     >(
         &mut self,
         state: &mut TransitionState,
-        ctx: &Context,
+        ctx: &mut Context,
+        eng: &mut EngineContext,
         delta: f32,
         player: &mut GuiLocalPlayer<ID, P, M, I>,
         opponent: &mut GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
         let current = self.get_mut::<ID, P, M, I>();
-        current.update(ctx, delta, player, opponent, text);
+        current.update(ctx, eng, delta, player, opponent, text);
         if current.finished() {
             *state = TransitionState::End;
         }
@@ -183,10 +189,11 @@ impl BattleIntroductionManager {
     >(
         &self,
         ctx: &mut Context,
+        eng: &EngineContext,
         player: &[ActivePokemonRenderer],
         opponent: &[ActivePokemonRenderer],
     ) {
-        self.get::<ID, P, M, I>().draw(ctx, player, opponent);
+        self.get::<ID, P, M, I>().draw(ctx, eng, player, opponent);
     }
 
     fn get<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = Item>>(

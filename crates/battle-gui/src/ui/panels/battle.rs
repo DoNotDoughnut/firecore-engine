@@ -4,9 +4,9 @@ use pokedex::{
     engine::{
         graphics::{draw_cursor, draw_text_left, DrawParams},
         gui::Panel,
-        input::controls::{pressed, Control},
+        controls::{pressed, Control},
         text::MessagePage,
-        Context,
+        Context, EngineContext,
     },
     pokemon::{owned::OwnablePokemon, Pokemon},
 };
@@ -33,23 +33,24 @@ impl BattleOptions {
         self.pokemon_do = format!("{} do?", instance.name());
     }
 
-    pub fn input(&mut self, ctx: &Context) {
-        if pressed(ctx, Control::Up) && self.cursor >= 2 {
+    pub fn input(&mut self, ctx: &Context, eng: &EngineContext) {
+        if pressed(ctx, eng, Control::Up) && self.cursor >= 2 {
             self.cursor -= 2;
-        } else if pressed(ctx, Control::Down) && self.cursor <= 2 {
+        } else if pressed(ctx, eng, Control::Down) && self.cursor <= 2 {
             self.cursor += 2;
-        } else if pressed(ctx, Control::Left) && self.cursor > 0 {
+        } else if pressed(ctx, eng, Control::Left) && self.cursor > 0 {
             self.cursor -= 1;
-        } else if pressed(ctx, Control::Right) && self.cursor < 3 {
+        } else if pressed(ctx, eng, Control::Right) && self.cursor < 3 {
             self.cursor += 1;
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
-        Panel::draw(ctx, 120.0, 113.0, 120.0, 47.0);
+    pub fn draw(&self, ctx: &mut Context, eng: &EngineContext) {
+        Panel::draw(ctx, eng, 120.0, 113.0, 120.0, 47.0);
 
         draw_text_left(
             ctx,
+            eng,
             &1,
             "What will",
             11.0,
@@ -58,6 +59,7 @@ impl BattleOptions {
         );
         draw_text_left(
             ctx,
+            eng,
             &1,
             &self.pokemon_do,
             11.0,
@@ -68,6 +70,7 @@ impl BattleOptions {
         for (index, string) in self.buttons.iter().enumerate() {
             draw_text_left(
                 ctx,
+                eng,
                 &0,
                 string,
                 138.0 + if index % 2 == 0 { 0.0 } else { 56.0 },
@@ -78,6 +81,7 @@ impl BattleOptions {
 
         draw_cursor(
             ctx,
+            eng,
             131.0 + if self.cursor % 2 == 0 { 0.0 } else { 56.0 },
             126.0 + if (self.cursor >> 1) == 0 { 0.0 } else { 16.0 },
             Default::default(),

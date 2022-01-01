@@ -1,5 +1,10 @@
 use core::ops::Deref;
-use pokedex::{engine::utils::HashMap, item::Item, moves::Move, pokemon::Pokemon};
+use pokedex::{
+    engine::{utils::HashMap, EngineContext},
+    item::Item,
+    moves::Move,
+    pokemon::Pokemon,
+};
 
 use pokedex::{
     engine::{
@@ -125,10 +130,15 @@ impl BasicBattleIntroduction {
         }
     }
 
-    pub(crate) fn draw_opponent(&self, ctx: &mut Context, opponent: &[ActivePokemonRenderer]) {
+    pub(crate) fn draw_opponent(
+        &self,
+        ctx: &mut Context,
+        eng: &EngineContext,
+        opponent: &[ActivePokemonRenderer],
+    ) {
         for active in opponent.iter() {
             active.pokemon.draw(ctx, vec2(0.0, 0.0), Color::WHITE);
-            active.status.draw(ctx, self.offsets.0, 0.0);
+            active.status.draw(ctx, eng, self.offsets.0, 0.0);
         }
     }
 
@@ -173,14 +183,15 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
 
     fn update(
         &mut self,
-        ctx: &Context,
+        ctx: &mut Context,
+        eng: &mut EngineContext,
         delta: f32,
         local: &mut GuiLocalPlayer<ID, P, M, I>,
         opponent: &mut GuiRemotePlayer<ID, P>,
         text: &mut MessageBox,
     ) {
         if !text.finished() {
-            text.update(ctx, delta);
+            text.update(ctx, eng, delta);
         }
 
         if text.page() + 1 == text.pages() && self.counter < Self::PLAYER_DESPAWN {
@@ -202,7 +213,7 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
         if let Some(active) = local.renderer.get(0) {
             if active.pokemon.spawner.spawning() {
                 for active in local.renderer.iter_mut() {
-                    active.pokemon.spawner.update(ctx, delta);
+                    active.pokemon.spawner.update(ctx, eng, delta);
                 }
             } else if active.status.alive() {
                 self.offsets1(delta);
@@ -220,10 +231,11 @@ impl<ID, P: Deref<Target = Pokemon>, M: Deref<Target = Move>, I: Deref<Target = 
     fn draw(
         &self,
         ctx: &mut Context,
+        eng: &EngineContext,
         local: &[ActivePokemonRenderer],
         opponent: &[ActivePokemonRenderer],
     ) {
-        self.draw_opponent(ctx, opponent);
+        self.draw_opponent(ctx, eng, opponent);
         self.draw_player(ctx, local);
     }
 }
