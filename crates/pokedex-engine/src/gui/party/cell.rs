@@ -2,7 +2,7 @@ use core::ops::Deref;
 use engine::graphics::Texture;
 
 use crate::pokedex::{
-    pokemon::{nature::Nature, stat::StatType, Pokemon},
+    pokemon::{Nature, stat::StatType, Pokemon},
     Dex,
 };
 use tinystr::TinyStr16;

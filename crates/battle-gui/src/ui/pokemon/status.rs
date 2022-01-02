@@ -10,9 +10,8 @@ use pokedex::{
     },
     gui::health::HealthBar,
     pokemon::{
-        nature::Nature,
         owned::{OwnablePokemon, OwnedPokemon},
-        Health, Level, Pokemon,
+        Health, Level, Nature, Pokemon,
     },
     PokedexClientData,
 };

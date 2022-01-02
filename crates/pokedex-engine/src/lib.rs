@@ -20,10 +20,9 @@ mod get {
     use std::ops::Deref;
 
     use crate::pokedex::pokemon::{
-        nature::Nature,
         owned::OwnablePokemon,
         stat::{Stat, StatSet},
-        Health, Level, Pokemon, PokemonId,
+        Health, Level, Nature, Pokemon, PokemonId,
     };
 
     pub trait GetPokemonData {

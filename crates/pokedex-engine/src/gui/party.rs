@@ -147,6 +147,11 @@ impl PartyGui {
                     if is_world {
                         let old = self.cursor.get();
                         party.swap(old, selected);
+                        if let Some(o) = self.pokemon.get(old).map(super::cellmut) {
+                            if let Some(s) = self.pokemon.get(selected).map(super::cellmut) {
+                                std::mem::swap(o, s);
+                            }
+                        }
                     }
                 }
             } else if is_world.is_some() {

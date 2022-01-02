@@ -273,8 +273,8 @@ impl SummaryPokemon {
             name: SizedStr::new(instance.name().unwrap_or_else(|| pokemon.name.as_ref()))?,
             front: texture.clone(),
             types: [
-                Some(PokemonTypeDisplay::new(pokemon.primary_type)),
-                pokemon.secondary_type.map(PokemonTypeDisplay::new),
+                Some(PokemonTypeDisplay::new(pokemon.types.primary)),
+                pokemon.types.secondary.map(PokemonTypeDisplay::new),
             ],
             pos: 34.0 + (64.0 - texture.height() as f32) / 2.0,
             level: cell.level.clone(),

@@ -35,3 +35,7 @@ impl<const S: usize> Deref for SizedStr<S> {
 fn cellref<'a, T>(cell: &'a Cell<T>) -> &'a T {
     unsafe { &*cell.as_ptr() }
 }
+
+fn cellmut<'a, T>(cell: &'a Cell<T>) -> &'a mut T {
+    unsafe { &mut *cell.as_ptr() }
+}
