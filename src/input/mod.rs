@@ -1,22 +1,32 @@
 use crate::EngineError;
 
-pub mod gamepad;
 pub mod keyboard;
 pub mod mouse;
 
+#[cfg(all(not(target_arch = "wasm32"), feature = "gamepad"))]
+pub mod gamepad;
+
 
 pub(crate) struct InputContext {
-    #[cfg(not(target_arch = "wasm32"))]
-    gamepad: quad_gamepad::ControllerContext,
+    #[cfg(all(not(target_arch = "wasm32"), feature = "gamepad"))]
+    gamepad: gilrs::Gilrs,
 }
 
 impl InputContext {
     pub fn new() -> Result<Self, EngineError> {
         Ok(Self {
-            #[cfg(not(target_arch = "wasm32"))]
-            gamepad: quad_gamepad::ControllerContext::new().ok_or(EngineError::GamepadContext)?,
+            #[cfg(all(not(target_arch = "wasm32"), feature = "gamepad"))]
+            gamepad: gilrs::GilrsBuilder::new().set_update_state(false).build().map_err(EngineError::Gamepad)?,
         })
     }
+
+    pub fn update(&mut self) {
+        #[cfg(all(not(target_arch = "wasm32"), feature = "gamepad"))]
+        while let Some(ev) = self.gamepad.next_event() {
+            self.gamepad.update(&ev)
+        }
+    }
+
 }
 
 // pub type DebugBind = tetra::input::Key;

@@ -4,7 +4,13 @@ pub use image::ImageError;
 pub enum EngineError {
     Image(image::ImageError),
     File(FileError),
-    GamepadContext,
+    Gamepad(gilrs::Error),
+}
+
+#[derive(Debug)]
+pub enum FileError {
+    Engine(macroquad::prelude::FileError),
+    String(std::string::FromUtf8Error),
 }
 
 impl std::error::Error for EngineError {}
@@ -14,15 +20,9 @@ impl std::fmt::Display for EngineError {
         match self {
             EngineError::Image(err) => std::fmt::Display::fmt(err, f),
             EngineError::File(err) => std::fmt::Display::fmt(err, f),
-            other => std::fmt::Debug::fmt(other, f),
+            EngineError::Gamepad(err) => std::fmt::Display::fmt(err, f),
         }
     }
-}
-
-#[derive(Debug)]
-pub enum FileError {
-    Engine(macroquad::prelude::FileError),
-    String(std::string::FromUtf8Error),
 }
 
 impl std::error::Error for FileError {}

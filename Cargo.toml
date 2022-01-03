@@ -4,26 +4,21 @@ description = "Base engine for my games"
 version = "0.0.3"
 authors = ["Rhys H <donotdoughnut99@gmail.com>"]
 edition = "2021"
-license = "MIT"
+license = "CC0"
 repository = "https://github.com/fiirecore/engine"
 readme = "README.md"
 
 [features]
-default = []
+default = ["audio", "gamepad"]
 audio = ["macroquad/audio"]
+gamepad = ["gilrs"]
 
 [dependencies]
-
-# Underlying engine
-
 macroquad = { version = "0.3", git = "https://github.com/DoNotDoughnut/macroquad", rev = "236d84b", default-features = false }
-quad-gamepad = "0.2.0-alpha"
-
 image = { version = "0.23", default-features = false, features = [
     "png",
     "tga",
 ] }
 
-[workspace]
-members = ["crates/*", "crates/pokedex-engine/builder"]
-default-members = ["crates/*", "crates/pokedex-engine/builder"]
+[target.'cfg(not(target = "wasm32"))'.dependencies]
+gilrs = { version = "0.8", features = ["serde"], optional = true }

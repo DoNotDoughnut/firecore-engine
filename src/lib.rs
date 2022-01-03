@@ -79,6 +79,9 @@ pub fn run<
         state.start(&mut ctx, &mut userctx);
 
         loop {
+
+            ctx.input.update();
+
             state.update(&mut ctx, &mut userctx, macroquad::prelude::get_frame_time());
 
             state.draw(&mut ctx, &mut userctx);
