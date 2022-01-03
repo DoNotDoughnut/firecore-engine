@@ -4,6 +4,7 @@ pub use image::ImageError;
 pub enum EngineError {
     Image(image::ImageError),
     File(FileError),
+    #[cfg(all(not(target_arch = "wasm32"), feature = "gamepad"))]
     Gamepad(gilrs::Error),
 }
 
@@ -20,6 +21,7 @@ impl std::fmt::Display for EngineError {
         match self {
             EngineError::Image(err) => std::fmt::Display::fmt(err, f),
             EngineError::File(err) => std::fmt::Display::fmt(err, f),
+            #[cfg(all(not(target_arch = "wasm32"), feature = "gamepad"))]
             EngineError::Gamepad(err) => std::fmt::Display::fmt(err, f),
         }
     }
