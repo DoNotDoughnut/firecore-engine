@@ -13,6 +13,10 @@ pub fn connected(ctx: &Context, gamepad: GamepadId) -> bool {
     }
 }
 
+pub fn gamepads<'c>(ctx: &'c Context) -> impl Iterator<Item = GamepadId> + 'c {
+    ctx.input.gamepad.gamepads().map(|(id, ..)| id)
+}
+
 pub mod axis {
 
     use super::GamepadId;
